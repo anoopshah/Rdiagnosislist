@@ -1,0 +1,14 @@
+Package: Rdiagnosislist
+Title: Manipulate SNOMED CT Diagnosis and Problem Lists
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Anoop",
+           family = "Shah",
+           role = c("aut", "cre"),
+           email = "anoop@doctors.org.uk",
+           comment = structure("0000-0002-8907-5724", .Names = "ORCID"))
+Description: R package for manipulating problem and diagnosis lists
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.0.1
