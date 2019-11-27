@@ -66,7 +66,6 @@ loadSNOMED <- function(folders, active_only = TRUE){
 							message('  Limiting to active rows (', 
 								sum(TEMP$active), '/', nrow(TEMP), ').')
 							TEMP <- TEMP[active == TRUE]
-							TEMP[, active := NULL]
 						} else if (
 							all(as.integer64(SNOMED$RELATIONSHIP$active))
 							%in% as.integer64(c(0, 1))){
@@ -93,6 +92,13 @@ loadSNOMED <- function(folders, active_only = TRUE){
 		# Append files from 2nd and subsequent folders
 		append <- TRUE
 	}
+	
+	# Remove double quotes around descriptions
+	SNOMED$DESCRIPTION[, term := gsub('^\\"(.+)\\"$', '\\1', term)]
+	
+	# Add metadata to environment
+	assign('metadata', value = list(source = folders,
+		active_only  = active_only), envir = SNOMED)
 	
 	cat('\nSNOMED CT tables loaded into environment:\n')
 	tables(env = SNOMED)

@@ -1,43 +1,41 @@
 
 # Generate a function to retrieve descendants of a particular SNOMED code
-getRelatedConcepts <- function(conceptIds, typeIds,
+getRelatedConcepts <- function(conceptIds, typeId, SNOMED,
 	tables = c('Relationship', 'StatedRelationship'),
-	reverse = FALSE, recursive = FALSE, envir = .GlobalEnv,
-	activeOnly = TRUE){
+	reverse = FALSE, recursive = FALSE, active_only = TRUE){
 	# Returns the original concepts and the linked concepts
-	if (activeOnly){
-		activeOK <- 1
-	} else {
-		activeOK <- c(0, 1)
-	}
+	check_active <- checkActive(active_only, SNOMED)
 	
 	conceptIds <- sort(unique(as.integer64(conceptIds)))
-	typeIds <- as.integer64(typeIds)
-	TOLINK <- data.table(sourceId = conceptIds)
-	setkey(TOLINK, sourceId)
-	out <- bit64::integer64(0)
+	typeId <- as.integer64(typeId)
+	TOLINK <- data.table(sourceId = conceptIds, typeId = typeId)
+	setkey(TOLINK, sourceId, typeId)
+	OUT <- data.table(active = logical(0), conceptId = bit64::integer64(0))
 	# Retrieve relationship table
-	addRelationship <- function(tablename, out){
-		TABLE <- get(tablename, envir = envir)
+	addRelationship <- function(tablename, OUT){
+		TABLE <- get(tablename, envir = SNOMED)
 		if (reverse){
-			setkey(TABLE, destinationId)
-			out <- sort(unique(c(out,
-				TABLE[TOLINK][typeId %in% typeIds &
-				active %in% activeOK]$sourceId)))
+			setkey(TABLE, destinationId, typeId)
+			OUT <- rbind(OUT, TABLE[TOLINK][,
+				.(active, conceptId = sourceId)])
 		} else {
-			setkey(TABLE, sourceId)
-			out <- sort(unique(c(out,
-				TABLE[TOLINK][typeId %in% typeIds &
-				active %in% activeOK]$destinationId)))
+			setkey(TABLE, sourceId, typeId)
+			OUT <- rbind(OUT, TABLE[TOLINK][,
+				.(active, conceptId = destinationId)])
 		}
-		out
+		OUT
 	}
 
 	if ('Relationship' %in% tables){
-		out <- addRelationship('RELATIONSHIP', out)
+		OUT <- addRelationship('RELATIONSHIP', OUT)
 	}
 	if ('StatedRelationship' %in% tables){
-		out <- addRelationship('STATEDRELATIONSHIP', out)
+		OUT <- addRelationship('STATEDRELATIONSHIP', OUT)
+	}
+	if (check_active){
+		out <- OUT[active == TRUE]$conceptId
+	} else {
+		out <- OUT$conceptId
 	}
 	if (recursive == TRUE){
 		out <- sort(unique(c(conceptIds, out)))
@@ -45,8 +43,8 @@ getRelatedConcepts <- function(conceptIds, typeIds,
 			# Recurse
 			return(getRelatedConcepts(conceptIds = 
 				sort(unique(c(conceptIds, out))),
-				typeIds = typeIds, tables = tables,
-				reverse = reverse, recursive = TRUE, envir = envir))
+				typeId = typeId, SNOMED = SNOMED, tables = tables,
+				reverse = reverse, recursive = TRUE, active_only = TRUE))
 		} else {
 			return(out)
 		}
@@ -55,20 +53,20 @@ getRelatedConcepts <- function(conceptIds, typeIds,
 	}
 }
 
-parents <- function(conceptIds, ...){
+parents <- function(conceptIds, SNOMED, ...){
 	conceptIds <- as.integer64(conceptIds)
 	parentIds <- getRelatedConcepts(conceptIds = conceptIds,
-		typeIds = as.integer64('116680003'),
-		reverse = FALSE, recursive = TRUE, ...)
+		typeId = as.integer64('116680003'),
+		reverse = FALSE, recursive = TRUE, SNOMED = SNOMED, ...)
 	# Exclude originals (note cannot use setdiff function with int64)
 	parentIds[!(parentIds %in% parentIds)]
 }
 
-children <- function(conceptIds, ...){
+children <- function(conceptIds, SNOMED, ...){
 	conceptIds <- as.integer64(conceptIds)
 	childIds <- getRelatedConcepts(conceptIds = conceptIds,
-		typeIds = as.integer64('116680003'),
-		reverse = TRUE, recursive = TRUE, ...)
+		typeId = as.integer64('116680003'),
+		reverse = TRUE, recursive = TRUE, SNOMED = SNOMED, ...)
 	# Exclude originals (note cannot use setdiff function with int64)
 	childIds[!(childIds %in% conceptIds)]
 }
