@@ -78,7 +78,7 @@ has_attribute <- function(conceptIds, refId, SNOMED,
 	# in the second list
 	# Returns a vector of Booleans
 	TEMP <- data.table(conceptIds)
-	RELATIONSHIP typeId = as.integer64('116680003')
+	RELATIONSHIP
 	STATEDRELATIONSHIP
 }
 
