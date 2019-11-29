@@ -11,6 +11,7 @@ inactiveIncluded <- function(SNOMED){
 	}
 }
 
+
 conceptId <- function(term, SNOMED, active_only = TRUE,
 	exact_match = TRUE){
 	
@@ -37,12 +38,28 @@ conceptId <- function(term, SNOMED, active_only = TRUE,
 	}
 }
 
+checkConcepts <- function(conceptIds){
+	# Checks that a set of conceptIds is valid, and converts to integer64 if necessary.
+	conceptIds <- unlist(conceptIds) # ensure that it is a vector
+	
+	if (class(conceptIds) == 'character'){
+		return(as.integer64(conceptIds))
+	} else if (class(conceptIds) == 'integer64'){
+		# correct format
+		return(conceptIds)
+	} else {
+		stop('conceptId must be supplied in character or integer64 format; ',
+			class(conceptIds), 'is not acceptable.')
+	}
+}
+
 description <- function(conceptIds, SNOMED,
 	include_synonyms = FALSE, active_only = TRUE){
-	
+	# Check that conceptIds is a vector of strings or integer64 values
+
 	# FSN     '900000000000003001'
 	# Synonym '900000000000013009'
-	TOMATCH <- data.table(conceptId = as.integer64(conceptIds))
+	TOMATCH <- data.table(conceptId = checkConcepts(conceptIds))
 	if (include_synonyms == FALSE){
 		OUT <- SNOMED$DESCRIPTION[TOMATCH, on = 'conceptId'][
 			typeId == as.integer64('900000000000003001')][,
@@ -59,5 +76,5 @@ description <- function(conceptIds, SNOMED,
 	if (active_only){
 		OUT[, active := NULL]
 	}
-	return(OUT)
+	OUT[]
 }

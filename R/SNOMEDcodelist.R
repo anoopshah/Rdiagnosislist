@@ -1,4 +1,4 @@
-as.SNOMEDcodelist <- function(x){
+as.SNOMEDcodelist <- function(x, SNOMED){
 	# Creates a SNOMED codelist consisting of conceptId and include_children columns
 	# Option to include children allows the creation of more succinct SNOMED codelists
 	# Input is a data.frame or data.table with column names 'conceptId' and 'include_children'
@@ -9,14 +9,7 @@ as.SNOMEDcodelist <- function(x){
 	if (!('conceptId' %in% names(x))){
 		stop('the SNOMED conceptId must be in a column named conceptId')
 	}
-	if (class(x$conceptId) == 'character'){
-		x[, conceptId := as.integer64(conceptId)]
-	} else if (class(x$conceptId) == 'integer64'){
-		# correct format
-	} else {
-		stop('conceptId must be supplied in character or integer64 format; ',
-			class(x$conceptId), 'is not acceptable.')
-	}
+	x[, conceptId := checkConcepts(conceptId)]
 	if ('include_children' %in% names(x)){
 		x[, include_children := as.logical(include_children)]
 		setattr(x, 'expanded', FALSE)
@@ -26,13 +19,13 @@ as.SNOMEDcodelist <- function(x){
 	}
 	if (!('term' %in% names(x))){
 		# Add SNOMED terms (fully specified names)
-		
+		x[, term := description(conceptIds, SNOMED)$term]
 	}
 	setattr(x, 'expanded', TRUE)
 	class(x) <- c('data.frame', 'data.table', 'SNOMEDcodelist')
 }
 
-expand.SNOMEDcodelist <- function(x){
+expand.SNOMEDcodelist <- function(x, SNOMED){
 	# Adds children of terms marked 'include_children'
 	if (!is.SNOMEDcodelist(x)){
 		stop('x must be a SNOMEDcodelist')
@@ -41,7 +34,10 @@ expand.SNOMEDcodelist <- function(x){
 		return(x)
 	}
 	# Otherwise perform the expansion
-	parents <- parents(x[include_children == TRUE]$conceptId)
+	children_conceptIds <- children(x[include_children == TRUE]$conceptId)
+	x <- rbind(x, data.table(conceptId = children_conceptIds,
+		term = description(children_conceptIds, SNOMED)$term,
+		include_children = NA_logical_))
 	x
 }
 
@@ -51,10 +47,11 @@ is.SNOMEDcodelist <- function(x){
 	}
 }
 
-contract.SNOMEDcodelist <- function(x){
+contract.SNOMEDcodelist <- function(x, SNOMED){
 	# Checks how many SNOMED terms can be included in parents
 	# and includes only additional explicit terms as necessary
-
+	children_conceptIds <- x[include_children == FALSE]$conceptIds
+	nonchildren_conceptIds <- x[is.na(include_children) | include_children == TRUE]$conceptIds
 	setattr(x, 'expanded', FALSE)
 	x	
 }

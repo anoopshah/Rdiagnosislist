@@ -5,8 +5,8 @@ getRelatedConcepts <- function(conceptIds, typeId, SNOMED,
 	reverse = FALSE, recursive = FALSE, active_only = TRUE){
 	# Returns the original concepts and the linked concepts
 
-	conceptIds <- sort(unique(as.integer64(conceptIds)))
-	typeId <- as.integer64(typeId)
+	conceptIds <- checkConcepts(conceptIds)
+	typeId <- checkConcepts(typeId)
 	TOLINK <- data.table(sourceId = conceptIds, typeId = typeId)
 	setkey(TOLINK, sourceId, typeId)
 	OUT <- data.table(active = logical(0),
@@ -54,7 +54,7 @@ getRelatedConcepts <- function(conceptIds, typeId, SNOMED,
 }
 
 parents <- function(conceptIds, SNOMED, ...){
-	conceptIds <- as.integer64(conceptIds)
+	conceptIds <- checkConcepts(unique(conceptIds))
 	parentIds <- getRelatedConcepts(conceptIds = conceptIds,
 		typeId = as.integer64('116680003'),
 		reverse = FALSE, recursive = TRUE, SNOMED = SNOMED, ...)
@@ -63,7 +63,7 @@ parents <- function(conceptIds, SNOMED, ...){
 }
 
 children <- function(conceptIds, SNOMED, ...){
-	conceptIds <- as.integer64(conceptIds)
+	conceptIds <- checkConcepts(unique(conceptIds))
 	childIds <- getRelatedConcepts(conceptIds = conceptIds,
 		typeId = as.integer64('116680003'),
 		reverse = TRUE, recursive = TRUE, SNOMED = SNOMED, ...)
@@ -82,3 +82,23 @@ has_attribute <- function(conceptIds, refId, SNOMED,
 	STATEDRELATIONSHIP
 }
 
+get_attributes <- function(conceptIds, attributes, ...){
+	# Retrieves a table of attributes for a given set of concepts
+	attribute_ids <- attributeId(attributes)
+	rbindlist(lapply(attribute_ids, function(x){
+		getRelatedConcepts(conceptIds, typeId = x, ...)	
+	}))
+}
+
+attributeId <- function(attributes){
+	# Converts an attribute as a character string to a conceptId for
+	# the attribute. However, if attribute is already a conceptId
+	# it is left as it is
+	attribute_ids <- checkConcepts(attributes)
+	if (any(is.na(attribute_ids))){
+		tomatch <- is.na(attribute_ids)
+		TOMATCH <- data.table(term = tolower(as.character(attributes[tomatch])))
+		attribute_ids[tomatch] <- TOMATCH[ATTRIBUTES, on = 'term']$conceptId
+	}
+	attribute_ids
+}
