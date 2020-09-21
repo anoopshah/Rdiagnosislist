@@ -7,8 +7,8 @@ Authors@R:
            role = c("aut", "cre"),
            email = "anoop@doctors.org.uk",
            comment = structure("0000-0002-8907-5724", .Names = "ORCID"))
-Description: R package for manipulating problem and diagnosis lists
+Description: R package for manipulating lists of SNOMED CT diagnoses
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.0.1
+RoxygenNote: 7.1.1

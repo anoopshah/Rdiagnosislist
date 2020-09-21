@@ -1,8 +1,8 @@
 #' Load SNOMED files from a folder(s) into R data.table objects
 #'
 #' Identifies relevant SNOMED files from a distribution and loads 
-#' them into R. Files from two folders (e.g. International and UK
-#' versions) can be loaded together and appended.
+#' them into an R environment. Files from two folders (e.g.
+#' International and UK versions) can be loaded together and appended.
 #'
 #' @param folderpaths Vector of folder paths containing SNOMED CT files
 #' @param active_only Whether to limit to current (active) SNOMED CT terms
@@ -11,12 +11,7 @@
 #' @export
 #' @examples
 #' # Load from the data folder
-#'
-#' @import data.table
-#' @import bit64
 loadSNOMED <- function(folders, active_only = TRUE){
-	# Returns an environment containing the SNOMED CT files
-	# loaded into data.tables
 	SNOMED <- new.env()
 	append <- FALSE
 	for (folder in folders){
@@ -98,10 +93,10 @@ loadSNOMED <- function(folders, active_only = TRUE){
 	
 	# Add metadata to environment
 	assign('metadata', value = list(source = folders,
-		active_only  = active_only), envir = SNOMED)
+		active_only = active_only), envir = SNOMED)
 	
 	cat('\nSNOMED CT tables loaded into environment:\n')
-	tables(env = SNOMED)
+	data.table::tables(env = SNOMED)
 	return(SNOMED)
 }
 

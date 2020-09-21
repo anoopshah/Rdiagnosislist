@@ -1,5 +1,5 @@
 
-inactiveIncluded <- function(SNOMED){
+inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 	# Checks SNOMED metadata to determine whether inactive terms are
 	# included in dictionaries
 	if (is.null(SNOMED$metadata$active_only)){
@@ -12,8 +12,9 @@ inactiveIncluded <- function(SNOMED){
 }
 
 
-conceptId <- function(term, SNOMED, active_only = TRUE,
-	exact_match = TRUE){
+conceptId <- function(term, active_only = TRUE,
+	exact_match = TRUE,
+	SNOMED = get('SNOMED', envir = globalenv())){
 	
 	if (exact_match){
 		tomatch <- data.table(term = term)
@@ -53,8 +54,9 @@ checkConcepts <- function(conceptIds){
 	}
 }
 
-description <- function(conceptIds, SNOMED,
-	include_synonyms = FALSE, active_only = TRUE){
+description <- function(conceptIds, include_synonyms = FALSE,
+	active_only = TRUE,
+	SNOMED = get('SNOMED', envir = globalenv())){
 	# Check that conceptIds is a vector of strings or integer64 values
 
 	# FSN     '900000000000003001'

@@ -1,8 +1,9 @@
 
 # Generate a function to retrieve descendants of a particular SNOMED code
-getRelatedConcepts <- function(conceptIds, typeId, SNOMED,
+relatedConcepts <- function(conceptIds, typeId,
 	tables = c('Relationship', 'StatedRelationship'),
-	reverse = FALSE, recursive = FALSE, active_only = TRUE){
+	reverse = FALSE, recursive = FALSE, active_only = TRUE,
+	SNOMED = get('SNOMED', envir = globalenv())){
 	# Returns the original concepts and the linked concepts
 
 	conceptIds <- checkConcepts(conceptIds)
@@ -41,7 +42,7 @@ getRelatedConcepts <- function(conceptIds, typeId, SNOMED,
 		out <- sort(unique(c(conceptIds, out)))
 		if (length(conceptIds) < length(out)){
 			# Recurse
-			return(getRelatedConcepts(conceptIds = out,
+			return(relatedConcepts(conceptIds = out,
 				typeId = typeId, SNOMED = SNOMED, tables = tables,
 				reverse = reverse, recursive = TRUE,
 				active_only = active_only))
@@ -53,40 +54,53 @@ getRelatedConcepts <- function(conceptIds, typeId, SNOMED,
 	}
 }
 
-parents <- function(conceptIds, SNOMED, ...){
+parents <- function(conceptIds,
+	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	conceptIds <- checkConcepts(unique(conceptIds))
-	parentIds <- getRelatedConcepts(conceptIds = conceptIds,
+	parentIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = as.integer64('116680003'),
 		reverse = FALSE, recursive = TRUE, SNOMED = SNOMED, ...)
 	# Exclude originals (note cannot use setdiff function with int64)
 	parentIds[!(parentIds %in% conceptIds)]
 }
 
-children <- function(conceptIds, SNOMED, ...){
+children <- function(conceptIds,
+	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	conceptIds <- checkConcepts(unique(conceptIds))
-	childIds <- getRelatedConcepts(conceptIds = conceptIds,
+	childIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = as.integer64('116680003'),
 		reverse = TRUE, recursive = TRUE, SNOMED = SNOMED, ...)
 	# Exclude originals (note cannot use setdiff function with int64)
 	childIds[!(childIds %in% conceptIds)]
 }
 
-has_attribute <- function(conceptIds, refId, SNOMED,
-	typeId = as.integer64('116680003'), ...){
+hasParent <- function(conceptIds, refId,
+	SNOMED = get('SNOMED', envir = globalenv()), ...){
+	hasAttribute(conceptIds, refId, SNOMED,
+		typeId = as.integer64('116680003'), ...)
+}
+
+hasAttribute <- function(conceptIds, refId,
+	typeId = as.integer64('116680003'),
+	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	# IN PROGRESS
 	# For each concept in the first list, whether it has the parent
 	# in the second list
 	# Returns a vector of Booleans
+	
+	# Recycle refId and typeId if necessary 
 	TEMP <- data.table(conceptIds)
 	RELATIONSHIP
 	STATEDRELATIONSHIP
 }
 
-get_attributes <- function(conceptIds, attributes, ...){
+attributes <- function(conceptIds, attributes,
+	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	# Retrieves a table of attributes for a given set of concepts
 	attribute_ids <- attributeId(attributes)
 	rbindlist(lapply(attribute_ids, function(x){
-		getRelatedConcepts(conceptIds, typeId = x, ...)	
+		relatedConcepts(conceptIds, typeId = x,
+		SNOMED = SNOMED, ...)	
 	}))
 }
 
