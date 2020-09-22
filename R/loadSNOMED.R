@@ -10,7 +10,28 @@
 #'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
 #' @export
 #' @examples
-#' # Load from the data folder
+#' # Create a TEST environment and load the sample dictionaries
+#' TEST <- new.env()
+#' data(CONCEPT, envir = TEST)
+#' data(DESCRIPTION, envir = TEST)
+#' data(RELATIONSHIP, envir = TEST)
+#' data(STATEDRELATIONSHIP, envir = TEST) 
+#'
+#' # Export to temporary directory
+#' write.csv(TEST$CONCEPT, paste0(tempdir(),
+#'   '/Concept.csv'), row.names = FALSE)
+#' write.csv(TEST$DESCRIPTION, paste0(tempdir(),
+#'   '/Description.csv'), row.names = FALSE)
+#' write.csv(TEST$RELATIONSHIP, paste0(tempdir(),
+#'   '/Relationship.csv'), row.names = FALSE)
+#' write.csv(TEST$STATEDRELATIONSHIP, paste0(tempdir(),
+#'   '/StatedRelationship.csv'), row.names = FALSE)
+#'
+#' # Try to import using the loadSNOMED function
+#' TEST2 <- loadSNOMED(tempdir(), active_only = FALSE)
+#'
+#' # Check that reimported SNOMED dictionary is the same as the original
+#' identical(TEST, TEST2)
 loadSNOMED <- function(folders, active_only = TRUE){
 	SNOMED <- new.env()
 	append <- FALSE

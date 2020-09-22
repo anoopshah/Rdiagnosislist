@@ -84,14 +84,14 @@ hasAttribute <- function(conceptIds, refId,
 	typeId = as.integer64('116680003'),
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	# IN PROGRESS
-	# For each concept in the first list, whether it has the parent
+	# For each concept in the first list, whether it has the attribute
 	# in the second list
 	# Returns a vector of Booleans
 	
 	# Recycle refId and typeId if necessary 
-	TEMP <- data.table(conceptIds)
-	RELATIONSHIP
-	STATEDRELATIONSHIP
+	#TEMP <- data.table(conceptIds)
+	##RELATIONSHIP
+	#STATEDRELATIONSHIP
 }
 
 attributes <- function(conceptIds, attributes,
@@ -100,7 +100,7 @@ attributes <- function(conceptIds, attributes,
 	attribute_ids <- attributeId(attributes)
 	rbindlist(lapply(attribute_ids, function(x){
 		relatedConcepts(conceptIds, typeId = x,
-		SNOMED = SNOMED, ...)	
+		SNOMED = SNOMED, ...)
 	}))
 }
 

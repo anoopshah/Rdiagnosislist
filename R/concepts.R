@@ -39,8 +39,14 @@ conceptId <- function(term, active_only = TRUE,
 	}
 }
 
+#' Check format of concept IDs
+#' 
+#' Checks that a set of conceptIds is in the correct format, and
+#' converts to integer64 if necessary.
+#'
+#' @param conceptIds character or integer64 vector 
+#' @return conceptIds in integer64 format
 checkConcepts <- function(conceptIds){
-	# Checks that a set of conceptIds is valid, and converts to integer64 if necessary.
 	conceptIds <- unlist(conceptIds) # ensure that it is a vector
 	
 	if (class(conceptIds) == 'character'){
@@ -54,6 +60,10 @@ checkConcepts <- function(conceptIds){
 	}
 }
 
+#' 
+#' @param
+#' @export
+#' @examples
 description <- function(conceptIds, include_synonyms = FALSE,
 	active_only = TRUE,
 	SNOMED = get('SNOMED', envir = globalenv())){
