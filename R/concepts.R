@@ -1,7 +1,12 @@
-
+#' Check if inactive terms are included in SNOMED dictionary
+#'
+#' Checks SNOMED metadata to determine whether inactive terms are
+#' included in dictionary as loaded into the environment
+#'
+#' @param SNOMED environment containing SNOMED dictionary, defaults
+#'   to an object named 'SNOMED' in the global environment
+#' @return TRUE or FALSE (logical vector of length one)
 inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
-	# Checks SNOMED metadata to determine whether inactive terms are
-	# included in dictionaries
 	if (is.null(SNOMED$metadata$active_only)){
 		TRUE
 	} else if (SNOMED$metadata$active_only == TRUE){
@@ -11,20 +16,35 @@ inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 	}
 }
 
-
-conceptId <- function(term, active_only = TRUE,
+#' Returns the SNOMED CT concept IDs for a set of terms
+#'
+#' Carries out an exact or regular expression match to
+#' return the concept ID for a particular set of terms
+#'
+#' @param terms character vector of terms or words to match
+#' @param active_only whether or not to include inactive concepts
+#' @param exact_match if TRUE, only an exact (case sensitive)
+#'   match is performed. If FALSE, a regular expression match
+#'   is performed.
+#' @param SNOMED environment containing SNOMED dictionary, defaults
+#'   to an object named 'SNOMED' in the global environment
+#' @return a vector of unique SNOMED CT concept IDs in integer64 format
+#' @export
+conceptId <- function(terms, active_only = TRUE,
 	exact_match = TRUE,
 	SNOMED = get('SNOMED', envir = globalenv())){
+	MATCHED <- do.call('rbind', lapply(terms, function(term){
+		if (exact_match){
+			tomatch <- data.table(term = term)
+			SNOMED$DESCRIPTION[tomatch, on = 'term'][,
+				.(active, conceptId)]
+		} else {
+			tomatch <- term
+			SNOMED$DESCRIPTION[term %like% tomatch][,
+				.(active, conceptId)]
+		}
+	}))
 	
-	if (exact_match){
-		tomatch <- data.table(term = term)
-		MATCHED <- SNOMED$DESCRIPTION[tomatch, on = 'term'][,
-			.(active, conceptId)]
-	} else {
-		tomatch <- term
-		MATCHED <- SNOMED$DESCRIPTION[term %like% tomatch][,
-			.(active, conceptId)]
-	}
 	if (active_only & inactiveIncluded(SNOMED)){
 		MATCHED <- MATCHED[active == TRUE]
 	}
