@@ -1,12 +1,14 @@
-#' Sample concept table from SNOMED CT dictionary
+#' Sample relationship tables from SNOMED CT dictionary
 #'
-#' A sample of the SNOMED CT concept table. 
+#' Samples of the SNOMED CT 'relationship' and 'stated relationship' tables. 
 #' 
-#' @name CONCEPT
+#' @name RELATIONSHIP
+#' @aliases STATEDRELATIONSHIP
 #' @docType data
-#' @usage data(CONCEPT)
+#' @usage data(RELATIONSHIP); data(STATEDRELATIONSHIP)
 #' @format An object of class \code{"data.table"}
 #' @keywords datasets
+#' @family SNOMEDsample
 #'
 #' @details
 #' \itemize{
@@ -25,6 +27,10 @@
 #' data(RELATIONSHIP, envir = TEST)
 #' data(STATEDRELATIONSHIP, envir = TEST) 
 #' 
-#' Show properties of the CONCEPT table
-#' str(TEST$CONCEPT)
-"CONCEPT"
+#' Show properties of the relationship tables
+#' str(TEST$RELATIONSHIP)
+#' str(TEST$STATEDRELATIONSHIP)
+"RELATIONSHIP"
+
+#' @describeIn RELATIONSHIP
+"STATEDRELATIONSHIP"

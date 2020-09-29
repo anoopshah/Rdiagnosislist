@@ -6,6 +6,14 @@
 #' @param SNOMED environment containing SNOMED dictionary, defaults
 #'   to an object named 'SNOMED' in the global environment
 #' @return TRUE or FALSE (logical vector of length one)
+#' @examples
+#' # Create a TEST environment and load the sample dictionaries
+#' ALL <- new.env()
+#' assign('metadata', list(active_only = TRUE), envir = ALL)
+#' ACTIVE_ONLY <- new.env()
+#' assign('metadata', list(active_only = TRUE), envir = ACTIVE_ONLY)
+#' inactiveIncluded(ALL)
+#' inactiveIncluded(ACTIVE_ONLY)
 inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 	if (is.null(SNOMED$metadata$active_only)){
 		TRUE
@@ -14,6 +22,24 @@ inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 	} else {
 		TRUE
 	}
+}
+
+#' Sample SNOMED CT dictionary
+#'
+#' Returns an environment containing a selection of SNOMED CT
+#' terms, their relationships and descriptions which are
+#' provided with the package
+#'
+#' @return environment containing four data.table objects:
+#'   CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
+#'   and a list named 'metadata'
+#' @export
+#' @examples
+#' TEST <- sampleSNOMED()
+#' inactiveIncluded(TEST)
+#' conceptId('Heart failure', TEST)
+sampleSNOMED <- function(){
+	
 }
 
 #' Returns the SNOMED CT concept IDs for a set of terms
@@ -30,6 +56,8 @@ inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 #'   to an object named 'SNOMED' in the global environment
 #' @return a vector of unique SNOMED CT concept IDs in integer64 format
 #' @export
+#' @examples
+#' conceptId('Heart failure', SNOMED = sampleSNOMED())
 conceptId <- function(terms, active_only = TRUE,
 	exact_match = TRUE,
 	SNOMED = get('SNOMED', envir = globalenv())){
@@ -80,8 +108,18 @@ checkConcepts <- function(conceptIds){
 	}
 }
 
+#' SNOMED description(s) for a set of conceptIds
+#'
+#' Returns the 
 #' 
-#' @param
+#' @param vector of conceptIds in character or integer64 format 
+#' @param include_synonyms logical vector of length 1, whether to
+#'   retrieve synonyms as well as the Fully Specified Name per concept.
+#'   If TRUE, an extra column 'type' is added to the output
+#' @param active_only whether to limit to active terms
+#' @param SNOMED environment containing the SNOMED dictionaries
+#' @return data.table with columns: id (description ID), conceptId,
+#'   type (only if )
 #' @export
 #' @examples
 description <- function(conceptIds, include_synonyms = FALSE,
