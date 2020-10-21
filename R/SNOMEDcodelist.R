@@ -1,11 +1,11 @@
 #' Convert a data.frame to a SNOMEDcodelist object
 #'
 #' SNOMEDcodelist is an S3 class for lists of SNOMED codes.
-#' It consists of conceptId and include_children columns.
-#' Option to include children allows the creation of more succinct
+#' It consists of conceptId and include_children columns. The 
+#' option to include children allows the creation of more succinct
 #' SNOMED codelists.
 #' Input is a data.frame or data.table with column names 'conceptId'
-#' and 'include_children'
+#' and optionally 'include_children'
 #'
 #' @param x data.frame to convert to a SNOMEDcodelist
 #' @param SNOMED environment containing a SNOMED dictionary
@@ -13,6 +13,17 @@
 #' @family SNOMEDcodelist functions
 #' @export
 #' @examples
+#' # Create a TEST environment and load the sample dictionaries
+#' TEST <- new.env()
+#' data(CONCEPT, envir = TEST)
+#' data(DESCRIPTION, envir = TEST)
+#' data(RELATIONSHIP, envir = TEST)
+#' data(STATEDRELATIONSHIP, envir = TEST) 
+#'
+#' my_concepts <- conceptId('Heart failure', SNOMED = TEST)
+#' as.SNOMEDcodelist(data.table(conceptId = my_concepts), SNOMED = TEST)
+#' as.SNOMEDcodelist(data.table(conceptId = my_concepts,
+#'   include_children = TRUE), SNOMED = TEST)
 as.SNOMEDcodelist <- function(x, SNOMED){
 	if (!is.data.frame(x)){
 		stop('x must be a data.frame')
@@ -31,9 +42,8 @@ as.SNOMEDcodelist <- function(x, SNOMED){
 	}
 	if (!('term' %in% names(x))){
 		# Add SNOMED terms (fully specified names)
-		x[, term := description(conceptIds, SNOMED)$term]
+		x[, term := description(x$conceptId, SNOMED = SNOMED)$term]
 	}
-	setattr(x, 'Expanded', TRUE)
 	class(x) <- c('data.frame', 'data.table', 'SNOMEDcodelist')
 	x
 }
@@ -52,6 +62,17 @@ as.SNOMEDcodelist <- function(x, SNOMED){
 #' @family SNOMEDcodelist functions
 #' @export
 #' @examples
+#' # Create a TEST environment and load the sample dictionaries
+#' TEST <- new.env()
+#' data(CONCEPT, envir = TEST)
+#' data(DESCRIPTION, envir = TEST)
+#' data(RELATIONSHIP, envir = TEST)
+#' data(STATEDRELATIONSHIP, envir = TEST) 
+#'
+#' my_concepts <- conceptId('Heart failure', SNOMED = TEST)
+#' my_codelist <- as.SNOMEDcodelist(data.table(conceptId = my_concepts,
+#'   include_children = TRUE), SNOMED = TEST)
+#' expand(my_codelist)
 expand.SNOMEDcodelist <- function(x, SNOMED){
 	# Adds children of terms marked 'include_children'
 	if (!is.SNOMEDcodelist(x)){
@@ -81,12 +102,13 @@ contract.SNOMEDcodelist <- function(x, SNOMED){
 #' Check if an object is a SNOMEDcodelist
 #'
 #' SNOMEDcodelist is an S3 class for lists of SNOMED codes.
+#' This function checks whether the object has the class
+#' SNOMEDcodelist. It does not check whether it contains valid data.
 #'
 #' @param x object to check
 #' @return a logical vector of length one: TRUE or FALSE
 #' @family SNOMEDcodelist functions
 #' @export
-#' @examples
 is.SNOMEDcodelist <- function(x){
 	if (identical(class(x), c('data.frame', 'data.table', 'SNOMEDcodelist'))){
 		TRUE

@@ -1,7 +1,8 @@
 #' Check if inactive terms are included in SNOMED dictionary
 #'
-#' Checks SNOMED metadata to determine whether inactive terms are
-#' included in dictionary as loaded into the environment
+#' Checks the active_only flag in the metadata of a SNOMED
+#' environment to determine whether inactive terms are
+#' included
 #'
 #' @param SNOMED environment containing SNOMED dictionary, defaults
 #'   to an object named 'SNOMED' in the global environment
@@ -16,17 +17,17 @@ inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 	}
 }
 
-#' Returns the SNOMED CT concept IDs for a set of terms
+#' Obtain the SNOMED CT concept IDs for a set of terms
 #'
 #' Carries out an exact or regular expression match to
-#' return the concept ID for a particular set of terms
+#' return the concept ID for a set of search terms
 #'
 #' @param terms character vector of terms or words to match
 #' @param active_only whether or not to include inactive concepts
 #' @param exact_match if TRUE, only an exact (case sensitive)
 #'   match is performed. If FALSE, a regular expression match
 #'   is performed.
-#' @param SNOMED environment containing SNOMED dictionary, defaults
+#' @param SNOMED environment containing SNOMED dictionary. Defaults
 #'   to an object named 'SNOMED' in the global environment
 #' @return a vector of unique SNOMED CT concept IDs in integer64 format
 #' @export
@@ -59,10 +60,10 @@ conceptId <- function(terms, active_only = TRUE,
 	}
 }
 
-#' Check format of concept IDs
+#' Check that concept IDs are in the correct format
 #' 
-#' Checks that a set of conceptIds is in the correct format, and
-#' converts to integer64 if necessary.
+#' Checks if a vector of conceptIds of type integer64, and 
+#' converts them to integer64 if necessary.
 #'
 #' @param conceptIds character or integer64 vector 
 #' @return conceptIds in integer64 format
@@ -80,8 +81,20 @@ checkConcepts <- function(conceptIds){
 	}
 }
 
-#' 
-#' @param
+#' Obtain descriptions for a set of SNOMED CT terms
+#'
+#' Returns the descriptions matching a set of concept IDs from
+#' a SNOMED dictionary
+#'
+#' @param conceptIds character or integer64 vector
+#' @param include_synonyms whether to return only the Fully Specified
+#'    Name (default) or all synonyms
+#' @param active_only whether to include only active descriptions
+#' @param SNOMED environment containing SNOMED dictionary. Defaults
+#'   to an object named 'SNOMED' in the global environment
+#' @return a data.table with the following columns: id, conceptId, type
+#'   (only if include_synonyms = TRUE), term,
+#'   active (only if active_only = FALSE)
 #' @export
 #' @examples
 description <- function(conceptIds, include_synonyms = FALSE,

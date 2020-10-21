@@ -11,15 +11,20 @@
 #'
 #' @details
 #' \itemize{
-#'   \item{id}{integer64 - description ID}
-#'   \item{moduleId}{integer64 - class of SNOMED CT concept (whether it is used for recording information or is a metadata concept)}
-#'   \item{conceptId}{integer64 - SNOMED CT concept ID}
-#'   \item{languageCode}{character - 'en' = English}
-#'   \item{typeId}{integer64 - 900000000000013009 synonym, 900000000000003001 fully specified name}
-#'   \item{term}{character - term description}
-#'   \item{caseSignificanceId}{integer64 - 900000000000020002 initial character case sensitive, 900000000000017005 whole term case sensitive, 900000000000448009 whole term case insensitive}
-#'   \item{effectiveTime}{IDate - when the concept became active}
-#'   \item{active}{integer - whether this concept is currently active}
+#'   \item{id}{integer64: description ID}
+#'   \item{moduleId}{integer64: class of SNOMED CT concept (whether it
+#'     is used for recording information or is a metadata concept)}
+#'   \item{conceptId}{integer64: SNOMED CT concept ID}
+#'   \item{languageCode}{character: 'en' = English}
+#'   \item{typeId}{integer64: 900000000000013009 = Synonym,
+#'     900000000000003001 = Fully Specified Name}
+#'   \item{term}{character: term description}
+#'   \item{caseSignificanceId}{integer64:
+#'     900000000000020002 = Initial character case sensitive,
+#'     900000000000017005 = Whole term case sensitive,
+#'     900000000000448009 = Whole term case insensitive}
+#'   \item{effectiveTime}{IDate: when the concept became active}
+#'   \item{active}{integer: whether this concept is currently active}
 #' }
 #' 
 #' @examples
