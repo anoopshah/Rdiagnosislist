@@ -9,6 +9,7 @@
 #' @usage data(RELATIONSHIP); data(STATEDRELATIONSHIP)
 #' @format An object of class \code{"data.table"}
 #' @keywords datasets
+#' @family SNOMEDsample
 #'
 #' @details
 #' \itemize{

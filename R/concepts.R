@@ -7,6 +7,14 @@
 #' @param SNOMED environment containing SNOMED dictionary, defaults
 #'   to an object named 'SNOMED' in the global environment
 #' @return TRUE or FALSE (logical vector of length one)
+#' @examples
+#' # Create a TEST environment and load the sample dictionaries
+#' ALL <- new.env()
+#' assign('metadata', list(active_only = TRUE), envir = ALL)
+#' ACTIVE_ONLY <- new.env()
+#' assign('metadata', list(active_only = TRUE), envir = ACTIVE_ONLY)
+#' inactiveIncluded(ALL)
+#' inactiveIncluded(ACTIVE_ONLY)
 inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 	if (is.null(SNOMED$metadata$active_only)){
 		TRUE
@@ -17,7 +25,25 @@ inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 	}
 }
 
-#' Obtain the SNOMED CT concept IDs for a set of terms
+#' Sample SNOMED CT dictionary
+#'
+#' Returns an environment containing a selection of SNOMED CT
+#' terms, their relationships and descriptions which are
+#' provided with the package
+#'
+#' @return environment containing four data.table objects:
+#'   CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
+#'   and a list named 'metadata'
+#' @export
+#' @examples
+#' TEST <- sampleSNOMED()
+#' inactiveIncluded(TEST)
+#' conceptId('Heart failure', TEST)
+sampleSNOMED <- function(){
+	
+}
+
+#' Returns the SNOMED CT concept IDs for a set of terms
 #'
 #' Carries out an exact or regular expression match to
 #' return the concept ID for a set of search terms
@@ -31,6 +57,8 @@ inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 #'   to an object named 'SNOMED' in the global environment
 #' @return a vector of unique SNOMED CT concept IDs in integer64 format
 #' @export
+#' @examples
+#' conceptId('Heart failure', SNOMED = sampleSNOMED())
 conceptId <- function(terms, active_only = TRUE,
 	exact_match = TRUE,
 	SNOMED = get('SNOMED', envir = globalenv())){
