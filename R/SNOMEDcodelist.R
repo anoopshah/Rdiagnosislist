@@ -11,6 +11,7 @@
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @return An object of class 'SNOMEDcodelist'
 #' @family SNOMEDcodelist functions
+#' @aliases SNOMEDcodelist
 #' @export
 #' @examples
 #' # Create a TEST environment and load the sample dictionaries
@@ -72,8 +73,9 @@ as.SNOMEDcodelist <- function(x, SNOMED){
 #' my_concepts <- conceptId('Heart failure', SNOMED = TEST)
 #' my_codelist <- as.SNOMEDcodelist(data.table(conceptId = my_concepts,
 #'   include_children = TRUE), SNOMED = TEST)
-#' expand(my_codelist)
-expand.SNOMEDcodelist <- function(x, SNOMED){
+#' expanded_codelist <- expandSNOMED(my_codelist)
+#' contract(expanded_codelist)
+expandSNOMED <- function(x, SNOMED){
 	# Adds children of terms marked 'include_children'
 	if (!is.SNOMEDcodelist(x)){
 		stop('x must be a SNOMEDcodelist')
@@ -89,12 +91,14 @@ expand.SNOMEDcodelist <- function(x, SNOMED){
 	x
 }
 
-#' @describeIn expand.SNOMEDcodelist
-contract.SNOMEDcodelist <- function(x, SNOMED){
+#' @rdname expandSNOMED
+#' @export
+contractSNOMED <- function(x, SNOMED){
 	# Checks how many SNOMED terms can be included in parents
 	# and includes only additional explicit terms as necessary
 	children_conceptIds <- x[include_children == FALSE]$conceptIds
-	nonchildren_conceptIds <- x[is.na(include_children) | include_children == TRUE]$conceptIds
+	nonchildren_conceptIds <- x[is.na(include_children) |
+		include_children == TRUE]$conceptIds
 	setattr(x, 'Expanded', FALSE)
 	x
 }
@@ -116,4 +120,3 @@ is.SNOMEDcodelist <- function(x){
 		FALSE
 	}
 }
-

@@ -1,0 +1,11 @@
+---
+title: "Using SNOMED dictionaries and codelists"
+author: "Anoop Shah"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+%\VignetteIndexEntry{Using SNOMED dictionaries and codelists}
+%\VignetteEngine{knitr::rmarkdown}
+\usepackage[utf8]{inputenc}
+---
+
