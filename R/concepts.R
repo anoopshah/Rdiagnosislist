@@ -9,12 +9,10 @@
 #' @return TRUE or FALSE (logical vector of length one)
 #' @examples
 #' # Create a TEST environment and load the sample dictionaries
-#' ALL <- new.env()
-#' assign('metadata', list(active_only = TRUE), envir = ALL)
-#' ACTIVE_ONLY <- new.env()
-#' assign('metadata', list(active_only = TRUE), envir = ACTIVE_ONLY)
-#' inactiveIncluded(ALL)
-#' inactiveIncluded(ACTIVE_ONLY)
+#' TEST <- sampleSNOMED()
+#' inactiveIncluded(TEST)
+#' assign('metadata', list(active_only = TRUE), envir = TEST)
+#' inactiveIncluded(TEST)
 inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 	if (is.null(SNOMED$metadata$active_only)){
 		TRUE
@@ -55,39 +53,44 @@ sampleSNOMED <- function(){
 #' Carries out an exact or regular expression match to
 #' return the concept ID for a set of search terms
 #'
-#' @param terms character vector of terms to match, or a single character
-#'   string containing a regular expression to match (if exact_match = FALSE)
+#' @param terms character vector of terms to match
 #' @param active_only whether or not to include inactive concepts
 #' @param exact_match if TRUE, only an exact (case sensitive)
 #'   match is performed. If FALSE, a regular expression match
 #'   is performed.
 #' @param SNOMED environment containing SNOMED dictionary. Defaults
 #'   to an object named 'SNOMED' in the global environment
+#' @param ... additional arguments to send to grepl if using
+#'   regular expression matching
 #' @return a vector of unique SNOMED CT concept IDs in integer64 format
 #' @export
 #' @examples
 #' conceptId('Heart failure', SNOMED = sampleSNOMED())
 conceptId <- function(terms, active_only = TRUE,
 	exact_match = TRUE,
-	SNOMED = get('SNOMED', envir = globalenv())){
-	DESC <- setDT(SNOMED$DESCRIPTION)
+	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	if (exact_match){
-		MATCHED <- DESC[data.table(term = terms), list(active, conceptId), on = 'term']
+		MATCHED <- SNOMED$DESCRIPTION[data.table(term = terms),
+			list(active, conceptId), on = 'term']
 	} else {
-		MATCHED <- DESC[term %like% terms, list(active, conceptId)]
+		matched <- rep(FALSE, nrow(SNOMED$DESCRIPTION))
+		for (x in terms){
+			matched <- matched | grepl(x, SNOMED$DESCRIPTION$term)
+		}
+		MATCHED <- SNOMED$DESCRIPTION[matched, list(active, conceptId)]
 	}
 	
+	# Limit to active descriptions if needed
 	if (active_only & inactiveIncluded(SNOMED)){
 		MATCHED <- MATCHED[active == TRUE]
 	}
-	MATCHED <- MATCHED[, .(id = conceptId)]
+	
+	# Limit to active concepts
 	if (active_only){
-		# Note that this filtering is essential - even if inactive
-		# concepts are excluded, they may be included in the
-		# descriptions.
-		unique(setDT(SNOMED$CONCEPT)[MATCHED, on = 'id'][active == TRUE]$id)
+		unique(SNOMED$CONCEPT[MATCHED[, list(id = conceptId)], on = 'id'][
+			active == TRUE]$id)
 	} else {
-		unique(MATCHED$id)
+		unique(MATCHED$conceptId)
 	}
 }
 
@@ -143,11 +146,11 @@ description <- function(conceptIds, include_synonyms = FALSE,
 	# Synonym '900000000000013009'
 	TOMATCH <- data.table(conceptId = checkConcepts(conceptIds))
 	if (include_synonyms == FALSE){
-		OUT <- setDT(SNOMED$DESCRIPTION)[TOMATCH, on = 'conceptId'][
+		OUT <- SNOMED$DESCRIPTION[TOMATCH, on = 'conceptId'][
 			typeId == as.integer64('900000000000003001')][,
 			list(id, conceptId, term, active)]
 	} else {
-		OUT <- setDT(SNOMED$DESCRIPTION)[TOMATCH, on = 'conceptId'][,
+		OUT <- SNOMED$DESCRIPTION[TOMATCH, on = 'conceptId'][,
 			list(id, conceptId,
 			type = ifelse(typeId == as.integer64('900000000000003001'),
 			'Fully specified name', 'Synonym'), term, active)]

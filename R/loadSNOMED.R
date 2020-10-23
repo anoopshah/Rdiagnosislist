@@ -11,27 +11,23 @@
 #' @export
 #' @examples
 #' # Create a TEST environment and load the sample dictionaries
-#' TEST <- new.env()
-#' data(CONCEPT, envir = TEST)
-#' data(DESCRIPTION, envir = TEST)
-#' data(RELATIONSHIP, envir = TEST)
-#' data(STATEDRELATIONSHIP, envir = TEST) 
+#' TEST <- sampleSNOMED()
 #'
 #' # Export to temporary directory
-#' write.csv(TEST$CONCEPT, paste0(tempdir(),
-#'   '/Concept.csv'), row.names = FALSE)
-#' write.csv(TEST$DESCRIPTION, paste0(tempdir(),
-#'   '/Description.csv'), row.names = FALSE)
-#' write.csv(TEST$RELATIONSHIP, paste0(tempdir(),
-#'   '/Relationship.csv'), row.names = FALSE)
-#' write.csv(TEST$STATEDRELATIONSHIP, paste0(tempdir(),
-#'   '/StatedRelationship.csv'), row.names = FALSE)
+#' for (table in c('Concept', 'Description', 'Relationship',
+#'   'StatedRelationship')){
+#'   write.table(get(toupper(table), envir = TEST), paste0(tempdir(),
+#'     '/', table, '.txt'), row.names = FALSE, sep = '\t', quote = FALSE)
+#' }
 #'
 #' # Try to import using the loadSNOMED function
 #' TEST2 <- loadSNOMED(tempdir(), active_only = FALSE)
 #'
 #' # Check that reimported SNOMED dictionary is the same as the original
-#' identical(TEST, TEST2)
+#' all.equal(TEST$CONCEPT, TEST2$CONCEPT)
+#' all.equal(TEST$DESCRIPTION, TEST2$DESCRIPTION)
+#' all.equal(TEST$RELATIONSHIP, TEST2$RELATIONSHIP)
+#' all.equal(TEST$STATEDRELATIONSHIP, TEST2$STATEDRELATIONSHIP)
 loadSNOMED <- function(folders, active_only = TRUE){
 	SNOMED <- new.env()
 	append <- FALSE
@@ -51,16 +47,22 @@ loadSNOMED <- function(folders, active_only = TRUE){
 					warning('Failed to load file.')
 				} else {
 					message('  Loaded ', nrow(TEMP), ' rows.')
+					# Save original column order
+					orig_col_order <- copy(names(TEMP))
 					# Convert all 'time' columns to times (YYYYMMDD format)
 					toconvert <- names(TEMP)[names(TEMP) %like% 'Time']
 					if (length(toconvert) > 0){
 						for (i in toconvert){
-							message('  Converting ', i, ' to IDate.')
-							try(TEMP[, .temp := data.table::as.IDate(
-								as.character(get(i)), '%Y%m%d')])
-							if ('.temp' %in% names(TEMP)){
+							TEMP[, .temp := data.table::as.IDate(
+								as.character(get(i)), '%Y%m%d')]
+							TEMP[is.na(.temp), .temp := data.table::as.IDate(
+								as.character(get(i)), '%Y-%m-%d')]
+							if (all(is.na(TEMP[['.temp']]))){
+								message('  Failed to convert ', i, ' to IDate.')
+							} else {
 								TEMP[, (i) := NULL]
 								data.table::setnames(TEMP, '.temp', i)
+								message('  Converted ', i, ' to IDate.')
 							}
 						}
 					}
@@ -91,10 +93,13 @@ loadSNOMED <- function(folders, active_only = TRUE){
 							data.table::setnames(TEMP, '.temp', 'active')
 						}
 					}
+					# Restore original column order
+					setcolorder(TEMP, orig_col_order)
+					# Return the table or append to another partial table
 					if (append){
 						message('  Appending to ', toupper(filename))
 						TEMP2 <- get(toupper(filename), envir = SNOMED)
-						try(TEMP <- rbind(TEMP, TEMP2, use.names = TRUE))
+						try(TEMP <- rbind(TEMP, TEMP2, use.names = TRUE, fill = TRUE))
 					} else {
 						message('  Naming as ', toupper(filename))
 					}

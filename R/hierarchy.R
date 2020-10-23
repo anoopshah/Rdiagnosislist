@@ -33,12 +33,12 @@ relatedConcepts <- function(conceptIds,
 		TABLE <- get(tablename, envir = SNOMED)
 		if (reverse){
 			setkey(TABLE, destinationId, typeId)
-			OUT <- rbind(OUT, setDT(TABLE)[TOLINK][,
-				.(active, conceptId = sourceId)])
+			OUT <- rbind(OUT, TABLE[TOLINK][,
+				list(active, conceptId = sourceId)])
 		} else {
 			setkey(TABLE, sourceId, typeId)
-			OUT <- rbind(OUT, setDT(TABLE)[TOLINK][,
-				.(active, conceptId = destinationId)])
+			OUT <- rbind(OUT, TABLE[TOLINK][,
+				list(active, conceptId = destinationId)])
 		}
 		OUT
 	}

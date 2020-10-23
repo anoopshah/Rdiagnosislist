@@ -25,7 +25,7 @@
 #' as.SNOMEDcodelist(data.table(conceptId = my_concepts), SNOMED = TEST)
 #' as.SNOMEDcodelist(data.table(conceptId = my_concepts,
 #'   include_children = TRUE), SNOMED = TEST)
-as.SNOMEDcodelist <- function(x, SNOMED){
+as.SNOMEDcodelist <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 	if (!is.data.frame(x)){
 		stop('x must be a data.frame')
 	}
@@ -75,7 +75,7 @@ as.SNOMEDcodelist <- function(x, SNOMED){
 #'   include_children = TRUE), SNOMED = TEST)
 #' expanded_codelist <- expandSNOMED(my_codelist)
 #' contract(expanded_codelist)
-expandSNOMED <- function(x, SNOMED){
+expandSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 	# Adds children of terms marked 'include_children'
 	if (!is.SNOMEDcodelist(x)){
 		stop('x must be a SNOMEDcodelist')
@@ -93,7 +93,7 @@ expandSNOMED <- function(x, SNOMED){
 
 #' @rdname expandSNOMED
 #' @export
-contractSNOMED <- function(x, SNOMED){
+contractSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 	# Checks how many SNOMED terms can be included in parents
 	# and includes only additional explicit terms as necessary
 	children_conceptIds <- x[include_children == FALSE]$conceptIds
