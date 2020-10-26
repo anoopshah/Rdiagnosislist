@@ -9,3 +9,70 @@ vignette: >
 \usepackage[utf8]{inputenc}
 ---
 
+This package is designed to make it easier to use SNOMED CT in R, including searching the SNOMED CT dictionary and relations, and creating and manipulaing SNOMED CT codelists.
+
+It contains functions to import a set of SNOMED CT release files from NHS Digital TRUD. The International and UK release files are provided in separate downloads, and need to be combined to create the whole dictionary. This can be done using the loadSNOMED() function and specifying a vector of folder paths to load 
+
+For most users the 'Snapshot' files, containing the current versions of the entries, will be the most useful, and the sample dictionaries in this package are based on the Snapshot file format. The 'Delta' files contain changes since the previous version, and the 'Full' files contain a history of the changes to each entry.
+
+Loading the SNOMED CT dictionaries
+----------------------------------
+
+The SNOMED CT dictionary files are loaded into an R 'environment', which is an object that can contain other objects. This is a convenient way in R to store a group of objects without cluttering up the global environment with too many individual objects. It also allows different versions of SNOMED CT dictionaries to be used side by side, by loading them into different environments. For ease of use, many of the functions in the package will search for the dictionaries in an environment named 'SNOMED' by default, but for programming use I recommend specifying the environment explicitly to avoid unexpected errors. 
+
+For the purpose of this vignette, we will create a sample set of SNOMED CT files from the sample dictionaries included with the package. 
+
+```
+# The sampleSNOMED() function returns an environment containing
+# the sample dictionaries
+TEST <- sampleSNOMED()
+
+# TEST is now the environment. Objects within the environment can be
+# retrieved using the $ operator or the 'get' function. We will export
+# the sample dictionaries to a temporary folder in order to retrieve
+# them using loadSNOMED()
+
+for (table in c('Concept', 'Description', 'Relationship',
+  'StatedRelationship')){
+  write.table(get(toupper(table), envir = TEST), paste0(tempdir(),
+    '/', table, '.txt'), row.names = FALSE, sep = '\t', quote = FALSE)
+}
+
+# Import using the loadSNOMED function
+SNOMED <- loadSNOMED(tempdir(), active_only = FALSE)
+```
+
+Searching for SNOMED CT concepts
+--------------------------------
+
+
+
+Relationships between SNOMED CT concepts
+----------------------------------------
+
+Parent / child (Is a relationship)
+
+Other relationships
+
+
+
+
+SNOMED CT codelists
+-------------------
+
+The SNOMED CT codelist data type 
+It allows codelists to be contracted (simplified) to include children or expanded
+The same codeist can be expressed in different ways - expanded form or contracted form.
+
+inCodelist(concepts, codelist) - whether a specific concept is contained within a codelist
+returns a Boolean vector. The codelist may not include the full expansion of children.
+
+SNOMED CT properties
+--------------------
+
+This package provides an opportunity to test out ways of specifying properties of 
+
+1. Find immediate parents within a defined SNOMED CT codelist
+
+
+2.  

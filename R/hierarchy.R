@@ -15,6 +15,17 @@
 #'   active (only if active_only = FALSE)
 #' @export
 #' @examples
+#' # Load sample SNOMED CT dictionary
+#' SNOMED <- sampleSNOMED()
+#'
+#' # Example: anatomical site of a finding
+#' findingSite <- function(x){
+#'   relatedConcepts(conceptId(x),
+#'     typeId = conceptId('Finding site'))
+#' }
+#' 
+#' description(findingSite('Heart failure'))
+#' # Heart structure (body structure)
 relatedConcepts <- function(conceptIds,
 	typeId = as.integer64('116680003'),
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP'),
@@ -65,13 +76,28 @@ relatedConcepts <- function(conceptIds,
 				reverse = reverse, recursive = TRUE,
 				active_only = active_only))
 		} else {
-			return(out)
+			return(unique(out))
 		}
 	} else {
-		return(out)
+		return(unique(out))
 	}
 }
 
+#' Parents and children of SNOMED CT concepts
+#'
+#' Returns concepts with 'Is a' or inverse 'Is a'
+#' relationship with a set of target concepts
+#'
+#' @param conceptIds character or integer64 vector
+#' @param SNOMED environment containing a SNOMED dictionary
+#' @param ... other arguments to pass to relatedConcepts
+#' @return a bit64 vector of SNOMED CT concepts
+#' @export
+#' @examples
+#' SNOMED <- sampleSNOMED()
+#'
+#' description(parents(conceptId('Heart failure')))
+#' description(children(conceptId('Heart failure')))
 parents <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	conceptIds <- checkConcepts(unique(conceptIds))
@@ -82,6 +108,7 @@ parents <- function(conceptIds,
 	parentIds[!(parentIds %in% conceptIds)]
 }
 
+#' @rdname parents
 children <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	conceptIds <- checkConcepts(unique(conceptIds))
@@ -92,7 +119,14 @@ children <- function(conceptIds,
 	childIds[!(childIds %in% conceptIds)]
 }
 
+#' @rdname parents
 hasParents <- function(childIds, parentIds,
+	SNOMED = get('SNOMED', envir = globalenv()), ...){
+	hasAttributes(childIds, parentIds, SNOMED,
+		typeId = as.integer64('116680003'), ...)
+}
+
+hasChildren <- function(childIds, parentIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	hasAttributes(childIds, parentIds, SNOMED,
 		typeId = as.integer64('116680003'), ...)
