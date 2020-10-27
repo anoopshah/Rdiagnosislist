@@ -18,3 +18,7 @@ Diagnosis archetype objects:
 Options for viewing a diagnosis list
 
 Options for reconstructing diagnosis chronologies
+
+To test:
+library(data.table); library(devtools); library(bit64)
+load_all()
