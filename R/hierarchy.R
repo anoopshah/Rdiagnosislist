@@ -88,8 +88,10 @@ relatedConcepts <- function(conceptIds,
 #' Returns concepts with 'Is a' or inverse 'Is a'
 #' relationship with a set of target concepts
 #'
-#' @param conceptIds character or integer64 vector
+#' @param conceptIds character or integer64 vector of SNOMED concept IDs
 #' @param SNOMED environment containing a SNOMED dictionary
+#' @param childIds character or integer64 vector of SNOMED concept IDs for children
+#' @param parentIds character or integer64 vector of SNOMED concept IDs for parents
 #' @param ... other arguments to pass to relatedConcepts
 #' @return a bit64 vector of SNOMED CT concepts
 #' @export
@@ -98,6 +100,8 @@ relatedConcepts <- function(conceptIds,
 #'
 #' description(parents(conceptId('Heart failure')))
 #' description(children(conceptId('Heart failure')))
+#' hasParents(conceptId('Left heart failure'), conceptId('Heart failure'))
+#' hasChildren(conceptId('Heart failure'), conceptId('Left heart failure'))
 parents <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	conceptIds <- checkConcepts(unique(conceptIds))
@@ -126,12 +130,30 @@ hasParents <- function(childIds, parentIds,
 		typeId = as.integer64('116680003'), ...)
 }
 
-hasChildren <- function(childIds, parentIds,
+#' @rdname parents
+hasChildren <- function(parentIds, childIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	hasAttributes(childIds, parentIds, SNOMED,
 		typeId = as.integer64('116680003'), ...)
 }
 
+#' Whether a SNOMED CT concept has a particular attribute
+#'
+#' For each concept in the , whether it has the attribute
+#' in the second list. Returns a vector of Booleans.
+#'
+#' @param sourceIds character or integer64 vector of SNOMED concept IDs for children
+#' @param destinationIds character or integer64 vector of SNOMED concept IDs for parents
+#' @param typeIds character or integer64 vector of SNOMED concept IDs
+#'   for renationship types. Defaults to 116680003 = 'Is a' (child/parent)
+#' @param SNOMED environment containing a SNOMED dictionary
+#' @param tables character vector of relationship tables to use
+#' @return a bit64 vector of SNOMED CT concepts
+#' @export
+#' @examples
+#' SNOMED <- sampleSNOMED()
+#'
+#' hasAttributes(parents(conceptId('Heart failure')))
 hasAttributes <- function(sourceIds, destinationIds,
 	typeIds = as.integer64('116680003'),
 	SNOMED = get('SNOMED', envir = globalenv()), 
@@ -172,27 +194,27 @@ hasAttributes <- function(sourceIds, destinationIds,
 	out
 }
 
-attributes <- function(conceptIds, attributes,
-	SNOMED = get('SNOMED', envir = globalenv()), ...){
+#' Returns all attributes of a given SNOMED CT concept
+#'
+#' For each concept in the , whether it has the attribute
+#' in the second list. Returns a vector of Booleans.
+#'
+#' @param conceptIds character or integer64 vector of SNOMED concept IDs
+#' @param SNOMED environment containing a SNOMED dictionary
+#' @param tables character vector of relationship tables to use
+#' @return a data.table with the following columns:
+#' @export
+#' @examples
+#' SNOMED <- sampleSNOMED()
+#'
+#' attributes(conceptId('Heart failure'))
+hasAttributes <- function(conceptIds,
+	SNOMED = get('SNOMED', envir = globalenv()), 
+	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
 	# Retrieves a table of attributes for a given set of concepts
 	attribute_ids <- attributeId(attributes)
 	rbindlist(lapply(attribute_ids, function(x){
 		relatedConcepts(conceptIds, typeId = x,
 		SNOMED = SNOMED, ...)
 	}))
-}
-
-	# Converts an attribute as a character string to a conceptId for
-	# the attribute. However, if attribute is already a conceptId
-	# it is left as it is
-
-attributeId <- function(attributes,
-	SNOMED = get('SNOMED', envir = globalenv())){
-	attribute_ids <- checkConcepts(attributes)
-	if (any(is.na(attribute_ids))){
-		tomatch <- is.na(attribute_ids)
-		TOMATCH <- data.table(term = tolower(as.character(attributes[tomatch])))
-		attribute_ids[tomatch] <- TOMATCH[SNOMED$DESCRIPTION, on = 'term']$conceptId
-	}
-	attribute_ids
 }
