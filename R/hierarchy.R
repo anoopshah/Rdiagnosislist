@@ -194,27 +194,101 @@ hasAttributes <- function(sourceIds, destinationIds,
 	out
 }
 
-#' Returns all attributes of a given SNOMED CT concept
+#' Retrieve all attributes of a given SNOMED CT concept
 #'
-#' For each concept in the , whether it has the attribute
-#' in the second list. Returns a vector of Booleans.
+#' Returns a list of source-destination-type triples with their
+#' translation.
 #'
 #' @param conceptIds character or integer64 vector of SNOMED concept IDs
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param tables character vector of relationship tables to use
-#' @return a data.table with the following columns:
+#' @return a data.table with the following columns: 
+#'   sourceId (concept ID of source for relationship),
+#'   destinationId (concept ID of source for relationship),
+#'   typeId (concept ID of relationship type),
+#'   typeName (description of relationship type)
+#'
 #' @export
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #'
 #' attributes(conceptId('Heart failure'))
-hasAttributes <- function(conceptIds,
+attributes <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), 
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
 	# Retrieves a table of attributes for a given set of concepts
-	attribute_ids <- attributeId(attributes)
-	rbindlist(lapply(attribute_ids, function(x){
-		relatedConcepts(conceptIds, typeId = x,
-		SNOMED = SNOMED, ...)
-	}))
+	
+	TOMATCH <- data.table(sourceId = checkConcepts(conceptIds),
+		destinationId = checkConcepts(destinationIds),
+		typeId = checkConcepts(typeIds))
+	
+	OUT <- 
+	
+	# add matches and combine Boolean
+	for (table in tables){
+		
+	}
+	addRelationship <- function(tablename, out){
+		TABLE <- as.data.table(get(tablename, envir = SNOMED))
+		out | !is.na(TABLE[TOMATCH,
+			on = c('sourceId', 'destinationId', 'typeId')]$id)
+	}
+	
+	# Blank output logical vector
+	out <- logical(nrow(TOMATCH))
+	# Add relationships from each table
+	for (table in tables){
+		out <- addRelationship(table, out)
+	}
+	
+}
+
+#' Retrieves semantic types using the text 'tag' in the description
+#'
+#' IN PROGRESS
+#'
+#' @param conceptIds character or integer64 vector of SNOMED concept IDs
+#' @param SNOMED environment containing a SNOMED dictionary
+#' @return a character vector of semantic tags corresponding to the conceptIDs 
+#'   
+#' @export
+#' @examples
+#' SNOMED <- sampleSNOMED()
+#'
+#' semanticType(conceptId(c('Heart failure', 'Is a')))
+semanticType <- function(conceptIds,
+	SNOMED = get('SNOMED', envir = globalenv())){
+	conceptIds <- checkConcepts(conceptIds)
+	descriptions <- description(conceptIds)
+	setkey(descriptions, 'conceptId')
+	descriptions[I(conceptIds)]
+}
+
+#' Retrieves closest single ancestor within a given set of SNOMED CT concepts
+#'
+#' Returns a . If multiple ancestors are possible, the concept is not
+#' translated. This can be used to translate concepts into simpler forms
+#' for display, e.g. 
+#'
+#' @param conceptIds character or integer64 vector of SNOMED concept IDs
+#' @param SNOMED environment containing a SNOMED dictionary
+#' @param tables character vector of relationship tables to use
+#' @return a data.table with the following columns:
+#'   
+#' @export
+#' @examples
+#' SNOMED <- sampleSNOMED()
+#'
+#' closestSingleAncestor(conceptId('Fetal heart failure'),
+#'   conceptId(c('Heart failure', 'Acute heart failure')))
+closestSingleAncestor <- function(conceptIds, ancestorIds,
+	SNOMED = get('SNOMED', envir = globalenv()), 
+	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
+	
+	matched <- rep(FALSE, len(conceptIds))
+	recursionlimit <- 10
+	while(any(matched == FALSE) & recursionlimit > 0){
+		conceptIds[matched == FALSE]
+		recursionlimit <- recursionlimit - 1
+	}
 }

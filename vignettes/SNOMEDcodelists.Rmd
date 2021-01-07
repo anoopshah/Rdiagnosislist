@@ -11,7 +11,7 @@ vignette: >
 
 This package is designed to make it easier to use SNOMED CT in R, including searching the SNOMED CT dictionary and relations, and creating and manipulaing SNOMED CT codelists.
 
-It contains functions to import a set of SNOMED CT release files from NHS Digital TRUD. The International and UK release files are provided in separate downloads, and need to be combined to create the whole dictionary. This can be done using the loadSNOMED() function and specifying a vector of folder paths to load 
+It contains functions to import a set of SNOMED CT release files from NHS Digital TRUD. The International and UK release files are provided in separate downloads, and need to be combined to create the whole dictionary. This can be done using the loadSNOMED() function and specifying a vector of folder paths to load.
 
 For most users the 'Snapshot' files, containing the current versions of the entries, will be the most useful, and the sample dictionaries in this package are based on the Snapshot file format. The 'Delta' files contain changes since the previous version, and the 'Full' files contain a history of the changes to each entry.
 
@@ -44,6 +44,7 @@ SNOMED <- loadSNOMED(tempdir(), active_only = FALSE)
 
 Searching for SNOMED CT concepts
 --------------------------------
+
 
 
 
