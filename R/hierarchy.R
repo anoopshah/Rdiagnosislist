@@ -137,43 +137,31 @@ hasChildren <- function(parentIds, childIds,
 		typeId = as.integer64('116680003'), ...)
 }
 
-#' Whether a SNOMED CT concept has a particular attribute
+#' Whether SNOMED CT concepts have particular attributes
 #'
 #' For each concept in the , whether it has the attribute
 #' in the second list. Returns a vector of Booleans.
 #'
-#' @param sourceIds character or integer64 vector of SNOMED concept IDs for children
-#' @param destinationIds character or integer64 vector of SNOMED concept IDs for parents
+#' @param sourceIds character or integer64 vector of SNOMED concept IDs
+#'   for children, recycled if necessary
+#' @param destinationIds character or integer64 vector of SNOMED concept
+#'   IDs for parents, recycled if necessary
 #' @param typeIds character or integer64 vector of SNOMED concept IDs
-#'   for renationship types. Defaults to 116680003 = 'Is a' (child/parent)
+#'   for renationship types, recycled if necessary.
+#'   Defaults to 116680003 = 'Is a' (child/parent)
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param tables character vector of relationship tables to use
-#' @return a bit64 vector of SNOMED CT concepts
+#' @return a vector of Booleans stating whether the attribute exists
 #' @export
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #'
-#' hasAttributes(parents(conceptId('Heart failure')))
+#' hasAttributes(conceptId('Heart failure'),
+#'   conceptId('Heart structure'), conceptId('Finding site'))
 hasAttributes <- function(sourceIds, destinationIds,
 	typeIds = as.integer64('116680003'),
 	SNOMED = get('SNOMED', envir = globalenv()), 
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
-	# IN PROGRESS
-	# For each concept in the first list, whether it has the attribute
-	# in the second list
-	# Returns a vector of Booleans
-	# Defaults to whether the 
-	
-	# Recycle refId and typeId if necessary 
-	#TEMP <- data.table(conceptIds)
-	#RELATIONSHIP
-	#STATEDRELATIONSHIP
-	
-	# TO check ois a data.table 
-	
-	# Check with relationshpi then statedrelationship  (source, dest, type)
-	# return booolean of matches
-	# then check with other and to an OR
 	TOMATCH <- data.table(sourceId = checkConcepts(sourceIds),
 		destinationId = checkConcepts(destinationIds),
 		typeId = checkConcepts(typeIds))
@@ -194,12 +182,13 @@ hasAttributes <- function(sourceIds, destinationIds,
 	out
 }
 
-#' Returns all attributes of a given SNOMED CT concept
+#' Retrieve all attributes of a set of SNOMED CT concepts
 #'
-#' For each concept in the , whether it has the attribute
-#' in the second list. Returns a vector of Booleans.
+#' Returns the portion of the SNOMED CT relationship tables containing
+#' relationships where the given concepts are either the source or the 
+#' destination.
 #'
-#' @param conceptIds character or integer64 vector of SNOMED concept IDs
+#' @param conceptId character or integer64 vector of SNOMED concept IDs
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param tables character vector of relationship tables to use
 #' @return a data.table with the following columns:
@@ -208,13 +197,19 @@ hasAttributes <- function(sourceIds, destinationIds,
 #' SNOMED <- sampleSNOMED()
 #'
 #' attributes(conceptId('Heart failure'))
-hasAttributes <- function(conceptIds,
+attributes <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), 
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
 	# Retrieves a table of attributes for a given set of concepts
-	attribute_ids <- attributeId(attributes)
-	rbindlist(lapply(attribute_ids, function(x){
-		relatedConcepts(conceptIds, typeId = x,
-		SNOMED = SNOMED, ...)
-	}))
+	# add matches and combine Boolean
+
+	OUT <- do.call('rbindlist', lapply(tables, function(table){
+		get(table, envir = SNOMED)[
+			sourceId %in% conceptIds | destinationId %in% conceptIds,
+			list(sourceId, destinationId, typeId, relationshipGroup)]
+	}), use.names = TRUE, fill = TRUE)
+	OUT[, sourceDesc := description(sourceId)]
+	OUT[, destinationDesc := description(destinationId)]
+	OUT[, typeDesc := description(typeId)]
+	OUT
 }
