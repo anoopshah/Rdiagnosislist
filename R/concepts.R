@@ -137,14 +137,15 @@ checkConcepts <- function(conceptIds){
 #' @examples
 #' myconcepts <- conceptId('Heart failure', SNOMED = sampleSNOMED())
 #' description(myconcepts, include_synonyms = FALSE, SNOMED = sampleSNOMED())
-description <- function(conceptIds, include_synonyms = FALSE,
-	active_only = TRUE,
+description <- function(conceptIds,
+	include_synonyms = FALSE, active_only = TRUE,
 	SNOMED = get('SNOMED', envir = globalenv())){
 	# Check that conceptIds is a vector of strings or integer64 values
 
 	# FSN     '900000000000003001'
 	# Synonym '900000000000013009'
-	TOMATCH <- data.table(conceptId = checkConcepts(conceptIds))
+	CONCEPTS <- data.table(conceptId = checkConcepts(conceptIds))
+	TOMATCH <- CONCEPTS[, 1, by = conceptId]
 	if (include_synonyms == FALSE){
 		OUT <- SNOMED$DESCRIPTION[TOMATCH, on = 'conceptId'][
 			typeId == as.integer64('900000000000003001')][,
@@ -155,10 +156,13 @@ description <- function(conceptIds, include_synonyms = FALSE,
 			type = ifelse(typeId == as.integer64('900000000000003001'),
 			'Fully specified name', 'Synonym'), term, active)]
 	}
-	if (active_only & inactiveIncluded(SNOMED)){
-		OUT <- OUT[active == TRUE]
-	}
+	# Restore original order
+	OUT <- CONCEPTS[OUT, on = 'conceptId']
+	# Remove inactive terms if necessary
 	if (active_only){
+		if (inactiveIncluded(SNOMED)){
+			OUT <- OUT[active == TRUE]
+		}
 		OUT[, active := NULL]
 	}
 	OUT[]

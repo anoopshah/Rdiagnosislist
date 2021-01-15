@@ -139,7 +139,7 @@ hasChildren <- function(parentIds, childIds,
 
 #' Whether SNOMED CT concepts have particular attributes
 #'
-#' For each concept in the , whether it has the attribute
+#' For each concept in the first list, whether it has the attribute
 #' in the second list. Returns a vector of Booleans.
 #'
 #' @param sourceIds character or integer64 vector of SNOMED concept IDs
@@ -208,7 +208,7 @@ attributes <- function(conceptIds,
 	# Retrieves a table of attributes for a given set of concepts
 	# add matches and combine Boolean
 
-	OUT <- do.call('rbindlist', lapply(tables, function(table){
+	OUT <- rbindlist(lapply(tables, function(table){
 		get(table, envir = SNOMED)[
 			sourceId %in% conceptIds | destinationId %in% conceptIds,
 			list(sourceId, destinationId, typeId, relationshipGroup)]
@@ -217,30 +217,6 @@ attributes <- function(conceptIds,
 	OUT[, destinationDesc := description(destinationId)]
 	OUT[, typeDesc := description(typeId)]
 	OUT
-	
-	TOMATCH <- data.table(sourceId = checkConcepts(conceptIds),
-		destinationId = checkConcepts(destinationIds),
-		typeId = checkConcepts(typeIds))
-	
-	OUT <- 
-	
-	# add matches and combine Boolean
-	for (table in tables){
-		
-	}
-	addRelationship <- function(tablename, out){
-		TABLE <- as.data.table(get(tablename, envir = SNOMED))
-		out | !is.na(TABLE[TOMATCH,
-			on = c('sourceId', 'destinationId', 'typeId')]$id)
-	}
-	
-	# Blank output logical vector
-	out <- logical(nrow(TOMATCH))
-	# Add relationships from each table
-	for (table in tables){
-		out <- addRelationship(table, out)
-	}
-	
 }
 
 #' Retrieves semantic types using the text 'tag' in the description
