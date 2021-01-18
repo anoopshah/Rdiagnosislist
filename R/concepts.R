@@ -144,8 +144,9 @@ description <- function(conceptIds,
 
 	# FSN     '900000000000003001'
 	# Synonym '900000000000013009'
-	CONCEPTS <- data.table(conceptId = checkConcepts(conceptIds))
-	TOMATCH <- CONCEPTS[, 1, by = conceptId]
+	CONCEPTS <- data.table(conceptId = checkConcepts(conceptIds),
+		order = seq_along(conceptIds))
+	TOMATCH <- data.table(conceptId = unique(CONCEPTS$conceptId))
 	if (include_synonyms == FALSE){
 		OUT <- SNOMED$DESCRIPTION[TOMATCH, on = 'conceptId'][
 			typeId == as.integer64('900000000000003001')][,
@@ -157,7 +158,9 @@ description <- function(conceptIds,
 			'Fully specified name', 'Synonym'), term, active)]
 	}
 	# Restore original order
-	OUT <- CONCEPTS[OUT, on = 'conceptId']
+	OUT <- OUT[CONCEPTS, on = 'conceptId']
+	setkey(OUT, order)
+	OUT[, order := NULL]
 	# Remove inactive terms if necessary
 	if (active_only){
 		if (inactiveIncluded(SNOMED)){

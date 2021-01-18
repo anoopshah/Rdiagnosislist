@@ -86,7 +86,9 @@ relatedConcepts <- function(conceptIds,
 #' Parents and children of SNOMED CT concepts
 #'
 #' Returns concepts with 'Is a' or inverse 'Is a'
-#' relationship with a set of target concepts
+#' relationship with a set of target concepts. 
+#' Ancestors include parents and all higher relations.
+#' Descendants include children and all lower relations.
 #'
 #' @param conceptIds character or integer64 vector of SNOMED concept IDs
 #' @param SNOMED environment containing a SNOMED dictionary
@@ -100,9 +102,18 @@ relatedConcepts <- function(conceptIds,
 #'
 #' description(parents(conceptId('Heart failure')))
 #' description(children(conceptId('Heart failure')))
-#' hasParents(conceptId('Left heart failure'), conceptId('Heart failure'))
-#' hasChildren(conceptId('Heart failure'), conceptId('Left heart failure'))
 parents <- function(conceptIds,
+	SNOMED = get('SNOMED', envir = globalenv()), ...){
+	conceptIds <- checkConcepts(unique(conceptIds))
+	parentIds <- relatedConcepts(conceptIds = conceptIds,
+		typeId = as.integer64('116680003'),
+		reverse = FALSE, recursive = FALSE, SNOMED = SNOMED, ...)
+	# Exclude originals (note cannot use setdiff function with int64)
+	parentIds[!(parentIds %in% conceptIds)]
+}
+
+#' @rdname parents
+ancestors <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	conceptIds <- checkConcepts(unique(conceptIds))
 	parentIds <- relatedConcepts(conceptIds = conceptIds,
@@ -114,6 +125,17 @@ parents <- function(conceptIds,
 
 #' @rdname parents
 children <- function(conceptIds,
+	SNOMED = get('SNOMED', envir = globalenv()), ...){
+	conceptIds <- checkConcepts(unique(conceptIds))
+	childIds <- relatedConcepts(conceptIds = conceptIds,
+		typeId = as.integer64('116680003'),
+		reverse = TRUE, recursive = FALSE, SNOMED = SNOMED, ...)
+	# Exclude originals (note cannot use setdiff function with int64)
+	childIds[!(childIds %in% conceptIds)]
+}
+
+#' @rdname parents
+descendants <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	conceptIds <- checkConcepts(unique(conceptIds))
 	childIds <- relatedConcepts(conceptIds = conceptIds,
@@ -131,7 +153,21 @@ hasParents <- function(childIds, parentIds,
 }
 
 #' @rdname parents
+hasAncestors <- function(childIds, ancestorIds,
+	SNOMED = get('SNOMED', envir = globalenv()), ...){
+	hasAttributes(childIds, parentIds, SNOMED,
+		typeId = as.integer64('116680003'), ...)
+}
+
+#' @rdname parents
 hasChildren <- function(parentIds, childIds,
+	SNOMED = get('SNOMED', envir = globalenv()), ...){
+	hasAttributes(childIds, parentIds, SNOMED,
+		typeId = as.integer64('116680003'), ...)
+}
+
+#' @rdname parents
+hasDescendants <- function(parentIds, descendantIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	hasAttributes(childIds, parentIds, SNOMED,
 		typeId = as.integer64('116680003'), ...)
@@ -207,21 +243,25 @@ attributes <- function(conceptIds,
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
 	# Retrieves a table of attributes for a given set of concepts
 	# add matches and combine Boolean
-
-	OUT <- rbindlist(lapply(tables, function(table){
-		get(table, envir = SNOMED)[
+	MATCHSOURCE <- data.table(sourceId = checkConcepts(conceptIds))
+	MATCHDEST <- data.table(destinationId = checkConcepts(conceptIds))
+	OUT <- rbind(rbindlist(lapply(tables, function(table){
+			get(table, envir = SNOMED)[MATCHSOURCE, on = 'sourceId',
+			list(sourceId, destinationId, typeId, relationshipGroup)]
+		}), use.names = TRUE, fill = TRUE),
+		rbindlist(lapply(tables, function(table){
+			get(table, envir = SNOMED)[
 			sourceId %in% conceptIds | destinationId %in% conceptIds,
 			list(sourceId, destinationId, typeId, relationshipGroup)]
-	}), use.names = TRUE, fill = TRUE)
-	OUT[, sourceDesc := description(sourceId)]
-	OUT[, destinationDesc := description(destinationId)]
-	OUT[, typeDesc := description(typeId)]
+		}), use.names = TRUE, fill = TRUE)
+	)
+	OUT[, sourceDesc := description(sourceId)$term]
+	OUT[, destinationDesc := description(destinationId)$term]
+	OUT[, typeDesc := description(typeId)$term]
 	OUT
 }
 
 #' Retrieves semantic types using the text 'tag' in the description
-#'
-#' IN PROGRESS
 #'
 #' @param conceptIds character or integer64 vector of SNOMED concept IDs
 #' @param SNOMED environment containing a SNOMED dictionary
@@ -235,16 +275,20 @@ attributes <- function(conceptIds,
 semanticType <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv())){
 	conceptIds <- checkConcepts(conceptIds)
-	descriptions <- description(conceptIds)
-	setkey(descriptions, 'conceptId')
-	descriptions[I(conceptIds)]
+	DESC <- description(conceptIds)
+	DESC[, tag := sub('^.*\\(([[:alnum:]\\/\\+ ]+)\\)$', '\\1', term)]
+	DESC$tag
 }
 
-#' Retrieves closest single ancestor within a given set of SNOMED CT concepts
+#' Retrieves closest single ancestor within a given set of SNOMED CT
+#' concepts
 #'
-#' Returns a . If multiple ancestors are possible, the concept is not
-#' translated. This can be used to translate concepts into simpler forms
-#' for display, e.g. 
+#' Returns a vector of SNOMED CT conceptIDs for an ancestor of each
+#' concept that is within a second list. If multiple ancestors are
+#' included in the second list, the original concept ID is returned
+#' This functionality can be used to translate concepts into simpler
+#' forms for display, e.g. 'Heart failure' instead of 'Heart failure
+#' with reduced ejection fraction'.
 #'
 #' @param conceptIds character or integer64 vector of SNOMED concept IDs
 #' @param SNOMED environment containing a SNOMED dictionary
@@ -255,16 +299,20 @@ semanticType <- function(conceptIds,
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #'
-#' closestSingleAncestor(conceptId('Fetal heart failure'),
+#' closestSingleAncestor(
+#'   conceptId('Heart failure with reduced ejection fraction'),
 #'   conceptId(c('Heart failure', 'Acute heart failure')))
 closestSingleAncestor <- function(conceptIds, ancestorIds,
 	SNOMED = get('SNOMED', envir = globalenv()), 
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
 	
-	matched <- rep(FALSE, len(conceptIds))
+	DATA <- data.table(conceptId = conceptIds,
+		ancestors = conceptIds, matched = FALSE,
+		order = 1:length(conceptIds))
 	recursionlimit <- 10
-	while(any(matched == FALSE) & recursionlimit > 0){
-		conceptIds[matched == FALSE]
+	while(any(DATA$matched == FALSE) & recursionlimit > 0){
+		DATA[, ancestors := lapply(ancestors, function(x){})]
+		# Is it in the ancestor list? If so, matched
 		recursionlimit <- recursionlimit - 1
 	}
 }
