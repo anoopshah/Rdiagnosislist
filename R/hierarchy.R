@@ -309,9 +309,21 @@ closestSingleAncestor <- function(conceptIds, ancestorIds,
 	DATA <- data.table(conceptId = conceptIds,
 		ancestors = conceptIds, matched = FALSE,
 		order = 1:length(conceptIds))
+	TOMATCH <- DATA
+	ANCESTORS <- data.table(conceptId = ancestorIds, found = TRUE)
 	recursionlimit <- 10
 	while(any(DATA$matched == FALSE) & recursionlimit > 0){
-		DATA[, ancestors := lapply(ancestors, function(x){})]
+		# Check for matches
+		TOMATCH[, matched := ANCESTORS[TOMATCH, on = 'conceptId']$found]
+		
+		if (TOMATCH[matched == TRUE])
+		
+		if (any(DATA$matched == FALSE)){
+			# Go up a generation
+			DATA <- [, ancestors := lapply(ancestors, function(x){})]
+		}
+		
+		TOMATCH <- TOMATCH[is.na(matched)]
 		# Is it in the ancestor list? If so, matched
 		recursionlimit <- recursionlimit - 1
 	}
