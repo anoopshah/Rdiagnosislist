@@ -311,12 +311,14 @@ closestSingleAncestor <- function(conceptIds, ancestorIds,
 	DATA <- data.table(conceptId = conceptIds,
 		original = conceptIds, found = FALSE, anymatch = FALSE,
 		keep_orig = FALSE, order = 1:length(conceptIds))
-	ANCESTORS <- data.table(conceptId = unique(ancestorIds), found = TRUE)
+	# found = whether this row is a match to closest ancestor
+	# anymatch = whether any match is found
+	# keep_orig = whether to keep original because 0 or > 1 matches
+
 	recursionlimit <- 10
 	while(any(DATA$anymatch == FALSE) & recursionlimit > 0){
 		# Check for matches
-		DATA[, found := found | ANCESTORS[DATA, on = 'conceptId']$found]
-		DATA[is.na(found), found := FALSE]
+		DATA[conceptId %in% ancestorIds, found := TRUE]
 		DATA[, keep_orig := keep_orig | sum(found) > 1, by = order]
 		DATA[, anymatch := any(found), by = order]
 		DATA[keep_orig == TRUE, anymatch := TRUE]
@@ -324,7 +326,8 @@ closestSingleAncestor <- function(conceptIds, ancestorIds,
 		
 		# Expand ancestors
 		EXPANDED <- DATA[!keep_orig & !anymatch][,
-			list(conceptId = parents(conceptId)),
+			list(conceptId = parents(conceptId, SNOMED = SNOMED,
+			tables = tables)),
 			by = list(original, found, anymatch, keep_orig, order)]
 		DATA <- rbind(DATA, EXPANDED)
 		
