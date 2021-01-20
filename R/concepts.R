@@ -1,4 +1,4 @@
-#' Check if inactive terms are included in SNOMED dictionary
+#' Check if inactive terms are included in SNOMED CT dictionary
 #'
 #' Checks the active_only flag in the metadata of a SNOMED
 #' environment to determine whether inactive terms are
@@ -36,7 +36,7 @@ inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 #' @examples
 #' TEST <- sampleSNOMED()
 #' inactiveIncluded(TEST)
-#' conceptId('Heart failure', TEST)
+#' conceptId('Heart failure', SNOMED = TEST)
 sampleSNOMED <- function(){
 	SNOMED <- new.env()
 	data(CONCEPT, envir = SNOMED)
@@ -115,7 +115,7 @@ checkConcepts <- function(conceptIds){
 		return(conceptIds)
 	} else {
 		stop('conceptId must be supplied in character or integer64 format; ',
-			class(conceptIds), 'is not acceptable.')
+			class(conceptIds), ' is not acceptable.')
 	}
 }
 

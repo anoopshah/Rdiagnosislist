@@ -126,13 +126,20 @@ The most important relationship is the 'Is a' relationship, also known as parent
 ```
 SNOMED <- sampledSNOMED()
 
-description(parents(conceptId('Systolic heart failure')))
+# Parents
+description(parents(conceptId('Acute heart failure')))
+
+# Ancestors
 description(ancestors(conceptId('Acute heart failure')))
+
+# Children
 description(children(conceptId('Acute heart failure')))
+
+# Descendants
 description(descendants(conceptId('Acute heart failure')))
 
-# To list all the attributes of a concept:
-attributes(conceptId('Heart failure'))
+# List all the attributes of a concept
+print(attributes(conceptId('Heart failure')))
 ```
 
 The 'hasAttributes' function can be used to find terms with particular attributes. For example, to find all disorders with a finding site of the heart, we can use the relatedConcepts function, which retrieves relationships from the RELATIONSHIP and STATEDRELATIONSHIP tables. 
@@ -140,14 +147,15 @@ The 'hasAttributes' function can be used to find terms with particular attribute
 In order to find the finding site of a disorder, we use the 'forward' relationship. In order to find disorders with a particular finding site, we use the relationship in the 'reverse' direction.
 
 ```
-SNOMED <- sampledSNOMED()
+SNOMED <- sampleSNOMED()
 
 # 'Finding site' of a particular disorder
-description(relatedConcepts(conceptId('Heart failure'), conceptId('Finding site')))
+description(relatedConcepts(conceptId('Heart failure'),
+	conceptId('Finding site')))
 
 # Disorders with a 'Finding site' of 'Heart'
-description(relatedConcepts(conceptId('Heart'), conceptId('Finding site'),
-	reverse = TRUE))
+description(relatedConcepts(conceptId('Heart'),
+	conceptId('Finding site'), reverse = TRUE))
 ```
 
 SNOMED CT codelists
@@ -156,7 +164,15 @@ SNOMED CT codelists
 The SNOMED CT codelist data type allows a list of SNOMED CT concepts to be curated. It allows codelists to be expressed in a contracted (simplified) form with descendants implicitly included.
 
 ```
+SNOMED <- sampleSNOMED()
 
+# Create a codelist containing all the descendants of
+my_heart_failure_codelist <- SNOMEDcodelist(
+	data.table(conceptId = conceptId('Heart failure'), include_desc = TRUE))
 
+# Original codelist
+print(my_heart_failure_codelist)
 
+# Expanded codelist
+print(expandSNOMED(my_heart_failure_codelist))
 ```

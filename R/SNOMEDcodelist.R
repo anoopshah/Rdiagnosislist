@@ -7,21 +7,23 @@
 #' Input is a data.frame or data.table with column names 'conceptId'
 #' and optionally 'include_desc'
 #'
+#' as.SNOMEDcodelist converts its argument into a SNOMEDcodelist but
+#'   leaves it unchanged if it is already a SNOMEDcodelist.
+#'
 #' @param x data.frame or data.table to convert to a SNOMEDcodelist.
 #'   It must have a column named 'conceptId'
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @return An object of class 'SNOMEDcodelist'
 #' @family SNOMEDcodelist functions
-#' @aliases SNOMEDcodelist
 #' @export
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #'
 #' my_concepts <- conceptId('Heart failure')
-#' as.SNOMEDcodelist(data.table(conceptId = my_concepts))
+#' SNOMEDcodelist(data.table(conceptId = my_concepts))
 #' as.SNOMEDcodelist(data.table(conceptId = my_concepts,
 #'   include_desc = TRUE))
-as.SNOMEDcodelist <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
+SNOMEDcodelist <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 	if (!is.data.frame(x)){
 		stop('x must be a data.frame')
 	}
@@ -45,6 +47,17 @@ as.SNOMEDcodelist <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 	x
 }
 
+#' @rdname SNOMEDcodelist
+#' @family SNOMEDcodelist functions
+#' @export
+as.SNOMEDcodelist <- function(x, ...){
+	if (is.SNOMEDcodelist(x)){
+		return(x)
+	} else {
+		SNOMEDcodelist(x, ...)
+	}
+}
+
 #' Expand or contract a SNOMEDcodelist
 #'
 #' SNOMEDcodelist is an S3 class for lists of SNOMED codes.
@@ -62,12 +75,14 @@ as.SNOMEDcodelist <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 #' SNOMED <- sampleSNOMED()
 #'
 #' my_concepts <- conceptId('Heart failure')
-#' my_codelist <- as.SNOMEDcodelist(data.table(conceptId = my_concepts,
+#' my_codelist <- SNOMEDcodelist(data.table(conceptId = my_concepts,
 #'   include_desc = TRUE))
 #' expanded_codelist <- expandSNOMED(my_codelist)
 #' contractSNOMED(expanded_codelist)
 expandSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
-	# Adds descendants of terms marked 'include_desc'
+	# Adds descendants of terms marked include_desc = TRUE
+	# Terms are added with include_desc = NA, which shows that they
+	# were automatically added, and can be removed by contractSNOMED
 	if (!is.SNOMEDcodelist(x)){
 		stop('x must be a SNOMEDcodelist')
 	}
@@ -79,20 +94,23 @@ expandSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 	x <- rbind(x, data.table(conceptId = desc_conceptIds,
 		term = description(desc_conceptIds, SNOMED = SNOMED)$term,
 		include_desc = as.logical(NA)))
+	# Restore SNOMEDcodelist class
+	class(x) <- c('SNOMEDcodelist', 'data.table', 'data.frame')
 	x
 }
 
 #' @rdname expandSNOMED
+#' @family SNOMEDcodelist functions
 #' @export
 contractSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
-	# Checks how many SNOMED terms can be included in parents
-	# and includes only additional explicit terms as necessary
-	desc_conceptIds <- x[include_desc == FALSE]$conceptIds
-	nondesc_conceptIds <- x[is.na(include_desc) |
-		include_desc == TRUE]$conceptIds
-		
-	# IN PROGRESS
-	
+	# Remove terms with include_desc = NA
+	if (!is.SNOMEDcodelist(x)){
+		stop('x must be a SNOMEDcodelist')
+	}
+	if (attr(x, 'Expanded') == FALSE){
+		return(x)
+	}
+	x <- x[!is.na(include_desc)]
 	setattr(x, 'Expanded', FALSE)
 	x
 }
