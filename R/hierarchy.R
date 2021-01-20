@@ -145,33 +145,6 @@ descendants <- function(conceptIds,
 	childIds[!(childIds %in% conceptIds)]
 }
 
-#' @rdname parents
-hasParents <- function(childIds, parentIds,
-	SNOMED = get('SNOMED', envir = globalenv()), ...){
-	hasAttributes(childIds, parentIds, SNOMED,
-		typeId = as.integer64('116680003'), ...)
-}
-
-#' @rdname parents
-hasAncestors <- function(childIds, ancestorIds,
-	SNOMED = get('SNOMED', envir = globalenv()), ...){
-	hasAttributes(childIds, parentIds, SNOMED,
-		typeId = as.integer64('116680003'), ...)
-}
-
-#' @rdname parents
-hasChildren <- function(parentIds, childIds,
-	SNOMED = get('SNOMED', envir = globalenv()), ...){
-	hasAttributes(childIds, parentIds, SNOMED,
-		typeId = as.integer64('116680003'), ...)
-}
-
-#' @rdname parents
-hasDescendants <- function(parentIds, descendantIds,
-	SNOMED = get('SNOMED', envir = globalenv()), ...){
-	hasAttributes(childIds, parentIds, SNOMED,
-		typeId = as.integer64('116680003'), ...)
-}
 
 #' Whether SNOMED CT concepts have particular attributes
 #'
@@ -192,8 +165,9 @@ hasDescendants <- function(parentIds, descendantIds,
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #'
-#' hasAttributes(conceptId('Heart failure'),
-#'   conceptId('Heart structure'), conceptId('Finding site'))
+#' hasAttributes(conceptId(c('Heart failure', 'Acute heart failure')),
+#'   conceptId(c('Heart structure', 'Heart failure')),
+#'   conceptId(c('Finding site', 'Is a')))
 hasAttributes <- function(sourceIds, destinationIds,
 	typeIds = as.integer64('116680003'),
 	SNOMED = get('SNOMED', envir = globalenv()), 
@@ -258,7 +232,7 @@ attributes <- function(conceptIds,
 	OUT[, sourceDesc := description(sourceId)$term]
 	OUT[, destinationDesc := description(destinationId)$term]
 	OUT[, typeDesc := description(typeId)$term]
-	OUT
+	OUT[]
 }
 
 #' Retrieves semantic types using the text 'tag' in the description
@@ -283,66 +257,90 @@ semanticType <- function(conceptIds,
 #' Retrieves closest single ancestor within a given set of SNOMED CT
 #' concepts
 #'
-#' Returns a vector of SNOMED CT conceptIDs for an ancestor of each
+#' Returns a vector of SNOMED CT concept IDs for an ancestor of each
 #' concept that is within a second list. If multiple ancestors are
-#' included in the second list, the original concept ID is returned
+#' included in the second list, the concept is not simplified (i.e.
+#' the original concept ID is returned).
 #' This functionality can be used to translate concepts into simpler
 #' forms for display, e.g. 'Heart failure' instead of 'Heart failure
 #' with reduced ejection fraction'.
 #'
 #' @param conceptIds character or integer64 vector of SNOMED concept IDs
+#'   for concepts for which an ancestor is sought
+#' @param ancestorIds character or integer64 vector of SNOMED concept IDs
+#'   for possible ancestors
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param tables character vector of relationship tables to use
 #' @return a data.table with the following columns:
-#'   conceptId (bit64), ancestorId (bit64)loa
+#'   originalId (integer64) = original conceptId,
+#'   ancestorId (integer64) = closest single ancestor, or original
+#'   concept ID if no ancestor is included in the 
 #'   
 #' @export
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #'
-#' closestSingleAncestor(
-#'   conceptId(c('Systolic heart failure', 'Is a',
-#'   'Heart failure with reduced ejection fraction')),
-#'   conceptId(c('Heart failure', 'Acute heart failure')))
-closestSingleAncestor <- function(conceptIds, ancestorIds,
+#' original_terms <- c('Systolic heart failure', 'Is a',
+#'   'Heart failure with reduced ejection fraction',
+#'   'Acute kidney injury due to circulatory failure (disorder)')
+#' # Note in this example 'Is a' has no parents in ancestors,
+#' # and acute kidney failure has two parents in ancestors
+#' # so neither of the parents will be chosen.
+#' # Also test out inclusion of duplicate concepts.
+#'
+#' ancestors <- simplify(
+#'   c(conceptId(original_terms), conceptId(original_terms)[3:4]),
+#'   conceptId(c('Heart failure', 'Acute heart failure',
+#'   'Cardiorenal syndrome (disorder)')))
+#' print(cbind(original_terms, description(ancestors$ancestorId)$term))
+simplify <- function(conceptIds, ancestorIds,
 	SNOMED = get('SNOMED', envir = globalenv()), 
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
 	
 	DATA <- data.table(conceptId = conceptIds,
-		original = conceptIds, found = FALSE, anymatch = FALSE,
+		originalId = conceptIds, found = FALSE, anymatch = FALSE,
 		keep_orig = FALSE, order = 1:length(conceptIds))
+	# order = identifier for the original concept (in case of duplicates)
+	# original = original concept
+	# conceptId = candidate closest single ancestor
 	# found = whether this row is a match to closest ancestor
-	# anymatch = whether any match is found
+	# anymatch = whether any match is found for this concept
 	# keep_orig = whether to keep original because 0 or > 1 matches
 
 	recursionlimit <- 10
+	# Loop while any of the concepts are unmatched and recursion
+	# limit is not reached
 	while(any(DATA$anymatch == FALSE) & recursionlimit > 0){
 		# Check for matches
 		DATA[conceptId %in% ancestorIds, found := TRUE]
+		# Keep original (ignore match) if more than one match
 		DATA[, keep_orig := keep_orig | sum(found) > 1, by = order]
 		DATA[, anymatch := any(found), by = order]
+		# anymatch means at least one match has been found,
+		# or a decision has been made to keep the original term
 		DATA[keep_orig == TRUE, anymatch := TRUE]
-		# keep original if more than one possible match
 		
-		# Expand ancestors
-		EXPANDED <- DATA[!keep_orig & !anymatch][,
-			list(conceptId = parents(conceptId, SNOMED = SNOMED,
-			tables = tables)),
-			by = list(original, found, anymatch, keep_orig, order)]
-		DATA <- rbind(DATA, EXPANDED)
-		
-		# Is it in the ancestor list? If so, matched
+		# Expand ancestors for terms without a match
+		if (any(DATA$anymatch == FALSE)){
+			EXPANDED <- DATA[anymatch == FALSE][,
+				list(conceptId = parents(conceptId, SNOMED = SNOMED,
+				tables = tables)),
+				by = list(originalId, found, anymatch, keep_orig, order)]
+			DATA <- rbind(DATA, EXPANDED)
+		}
 		recursionlimit <- recursionlimit - 1
 	}
 	
 	# Keep original if no matches
-	DATA[, keep_orig := keep_orig | all(found == FALSE), by = order]
+	DATA[, keep_orig := keep_orig | (anymatch == FALSE), by = order]
+	# If keeping the original concept, keep only the first row
 	DATA[keep_orig == TRUE, found := c(TRUE, rep(FALSE, .N - 1)), by = order]
 	DATA <- DATA[found == TRUE]
-	setnames(DATA, 'conceptId', 'ancestorId')
-	DATA[, ancestorId := conceptId]
-	DATA[keep_orig == TRUE, ancestorId := original]
 	setkey(DATA, order)
+	# Now there should be one row per order
+	stopifnot(DATA$order == seq_along(conceptIds))
+	setnames(DATA, 'conceptId', 'ancestorId')
+	DATA[keep_orig == TRUE, ancestorId := originalId]
 	DATA[, order := NULL]
 	DATA[, keep_orig := NULL]
 	DATA[, found := NULL]
@@ -351,4 +349,4 @@ closestSingleAncestor <- function(conceptIds, ancestorIds,
 }
 
 
-   
+ 

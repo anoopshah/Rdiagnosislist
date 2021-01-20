@@ -1,30 +1,26 @@
 #' Convert a data.frame to a SNOMEDcodelist object
 #'
 #' SNOMEDcodelist is an S3 class for lists of SNOMED codes.
-#' It consists of conceptId and include_children columns. The 
-#' option to include children allows the creation of more succinct
+#' It consists of conceptId and include_desc columns. The 
+#' option to include descendants allows the creation of more succinct
 #' SNOMED codelists.
 #' Input is a data.frame or data.table with column names 'conceptId'
-#' and optionally 'include_children'
+#' and optionally 'include_desc'
 #'
-#' @param x data.frame to convert to a SNOMEDcodelist
+#' @param x data.frame or data.table to convert to a SNOMEDcodelist.
+#'   It must have a column named 'conceptId'
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @return An object of class 'SNOMEDcodelist'
 #' @family SNOMEDcodelist functions
 #' @aliases SNOMEDcodelist
 #' @export
 #' @examples
-#' # Create a TEST environment and load the sample dictionaries
-#' TEST <- new.env()
-#' data(CONCEPT, envir = TEST)
-#' data(DESCRIPTION, envir = TEST)
-#' data(RELATIONSHIP, envir = TEST)
-#' data(STATEDRELATIONSHIP, envir = TEST) 
+#' SNOMED <- sampleSNOMED()
 #'
-#' my_concepts <- conceptId('Heart failure', SNOMED = TEST)
-#' as.SNOMEDcodelist(data.table(conceptId = my_concepts), SNOMED = TEST)
+#' my_concepts <- conceptId('Heart failure')
+#' as.SNOMEDcodelist(data.table(conceptId = my_concepts))
 #' as.SNOMEDcodelist(data.table(conceptId = my_concepts,
-#'   include_children = TRUE), SNOMED = TEST)
+#'   include_desc = TRUE))
 as.SNOMEDcodelist <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 	if (!is.data.frame(x)){
 		stop('x must be a data.frame')
@@ -34,18 +30,18 @@ as.SNOMEDcodelist <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 		stop('the SNOMED conceptId must be in a column named conceptId')
 	}
 	x[, conceptId := checkConcepts(conceptId)]
-	if ('include_children' %in% names(x)){
-		x[, include_children := as.logical(include_children)]
+	if ('include_desc' %in% names(x)){
+		x[, include_desc := as.logical(include_desc)]
 		setattr(x, 'Expanded', FALSE)
 	} else {
-		x[, include_children := as.logical(FALSE)]
+		x[, include_desc := as.logical(FALSE)]
 		setattr(x, 'Expanded', TRUE)
 	}
 	if (!('term' %in% names(x))){
 		# Add SNOMED terms (fully specified names)
 		x[, term := description(x$conceptId, SNOMED = SNOMED)$term]
 	}
-	class(x) <- c('data.frame', 'data.table', 'SNOMEDcodelist')
+	class(x) <- c('SNOMEDcodelist', 'data.table', 'data.frame')
 	x
 }
 
@@ -63,20 +59,15 @@ as.SNOMEDcodelist <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 #' @family SNOMEDcodelist functions
 #' @export
 #' @examples
-#' # Create a TEST environment and load the sample dictionaries
-#' TEST <- new.env()
-#' data(CONCEPT, envir = TEST)
-#' data(DESCRIPTION, envir = TEST)
-#' data(RELATIONSHIP, envir = TEST)
-#' data(STATEDRELATIONSHIP, envir = TEST) 
+#' SNOMED <- sampleSNOMED()
 #'
-#' my_concepts <- conceptId('Heart failure', SNOMED = TEST)
+#' my_concepts <- conceptId('Heart failure')
 #' my_codelist <- as.SNOMEDcodelist(data.table(conceptId = my_concepts,
-#'   include_children = TRUE), SNOMED = TEST)
+#'   include_desc = TRUE))
 #' expanded_codelist <- expandSNOMED(my_codelist)
-#' contract(expanded_codelist)
+#' contractSNOMED(expanded_codelist)
 expandSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
-	# Adds children of terms marked 'include_children'
+	# Adds descendants of terms marked 'include_desc'
 	if (!is.SNOMEDcodelist(x)){
 		stop('x must be a SNOMEDcodelist')
 	}
@@ -84,10 +75,10 @@ expandSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 		return(x)
 	}
 	# Otherwise perform the expansion
-	children_conceptIds <- children(x[include_children == TRUE]$conceptId)
-	x <- rbind(x, data.table(conceptId = children_conceptIds,
-		term = description(children_conceptIds, SNOMED)$term,
-		include_children = NA_logical_))
+	desc_conceptIds <- descendants(x[include_desc == TRUE]$conceptId)
+	x <- rbind(x, data.table(conceptId = desc_conceptIds,
+		term = description(desc_conceptIds, SNOMED = SNOMED)$term,
+		include_desc = as.logical(NA)))
 	x
 }
 
@@ -96,9 +87,12 @@ expandSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 contractSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 	# Checks how many SNOMED terms can be included in parents
 	# and includes only additional explicit terms as necessary
-	children_conceptIds <- x[include_children == FALSE]$conceptIds
-	nonchildren_conceptIds <- x[is.na(include_children) |
-		include_children == TRUE]$conceptIds
+	desc_conceptIds <- x[include_desc == FALSE]$conceptIds
+	nondesc_conceptIds <- x[is.na(include_desc) |
+		include_desc == TRUE]$conceptIds
+		
+	# IN PROGRESS
+	
 	setattr(x, 'Expanded', FALSE)
 	x
 }
@@ -114,7 +108,7 @@ contractSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 #' @family SNOMEDcodelist functions
 #' @export
 is.SNOMEDcodelist <- function(x){
-	if (identical(class(x), c('data.frame', 'data.table', 'SNOMEDcodelist'))){
+	if (identical(class(x), c('SNOMEDcodelist', 'data.table', 'data.frame'))){
 		TRUE
 	} else {
 		FALSE

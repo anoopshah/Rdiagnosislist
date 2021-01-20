@@ -11,12 +11,31 @@ vignette: >
 
 This package is designed to make it easier to use SNOMED CT in R, including searching the SNOMED CT dictionary and relations, and creating and manipulaing SNOMED CT codelists.
 
-It contains functions to import a set of SNOMED CT release files from NHS Digital TRUD. The International and UK release files are provided in separate downloads, and need to be combined to create the whole dictionary. This can be done using the loadSNOMED() function and specifying a vector of folder paths to load.
+Basic introduction to SNOMED CT
+-------------------------------
 
-For most users the 'Snapshot' files, containing the current versions of the entries, will be the most useful, and the sample dictionaries in this package are based on the Snapshot file format. The 'Delta' files contain changes since the previous version, and the 'Full' files contain a history of the changes to each entry.
+SNOMED CT is a clinical terminology system which contains thousands of concepts, each of which has a distinct meaning. Each concept has a unique concept ID, and one or more descriptions (synonyms). It also contains a knowledge model (ontology), specifying which concepts are subtypes of another concept or associated in other ways.
+
+The SNOMED dictionaries are contained within four key tables:
+
+- CONCEPT - one row per concept, with key metadata about the concepts
+- DESCRIPTION - one row per description
+- STATEDRELATIONSHIP - directly stated relationships
+- RELATIONSHIP - relationships between terms inferred from other relationships
+
+Each SNOMED CT concept may have any number of synonyms, but there are the following special types:
+
+- Fully Specified Name - this is the most precise description of the concept, but is too verbose for general use.
+- Preferred - these is the synonym that is preferred for clinical display in a particular language, and is recorded in the language-specific reference set
+
+Each concept also has a semantic tag, which denotes what type of concept it is (e.g. 'disorder' or 'organism'). This is currently recorded in parentheses at the end of the Fully Specified Name, but can be extracted using the semanticType function in this package.
 
 Loading the SNOMED CT dictionaries
 ----------------------------------
+
+This package contains functions to import a set of SNOMED CT release files from NHS Digital TRUD (https://isd.digital.nhs.uk/trud3/user/guest/group/0/home). The International and UK release files are provided in separate downloads, and need to be combined to create the whole dictionary. This can be done using the loadSNOMED() function and specifying a vector of folder paths to load.
+
+For most users the 'Snapshot' files, containing the current versions of the entries, will be the most useful, and the sample dictionaries in this package are based on the Snapshot file format. The 'Delta' files contain changes since the previous version, and the 'Full' files contain a history of the changes to each entry.
 
 The SNOMED CT dictionary files are loaded into an R 'environment', which is an object that can contain other objects. This is a convenient way in R to store a group of objects without cluttering up the global environment with too many individual objects. It also allows different versions of SNOMED CT dictionaries to be used side by side, by loading them into different environments. For ease of use, many of the functions in the package will search for the dictionaries in an environment named 'SNOMED' by default, but for programming use I recommend specifying the environment explicitly to avoid unexpected errors. 
 
@@ -42,38 +61,102 @@ for (table in c('Concept', 'Description', 'Relationship',
 SNOMED <- loadSNOMED(tempdir(), active_only = FALSE)
 ```
 
-Searching for SNOMED CT concepts
---------------------------------
+SNOMED CT concepts IDs in R
+---------------------------
 
+SNOMED CT concept IDs are long integers which need to be represented using the integer64 data type in R. This is not available in base R but is provided in the bit64 package which is automatically loaded with this package. They must not be stored as short integer or numeric values because they cannot be stored precisely and may be incorrect.
 
+This package makes it easier to use SNOMED CT concept IDs because they can be supplied as character vectors and are automatically converted to integer64 by the relevant functions.
 
+The function 'conceptId' can be used to retrieve the SNOMED concept ID matching a description.
 
-Relationships between SNOMED CT concepts
-----------------------------------------
+```
+# Make sure the SNOMED environment is available and contains the SNOMED dictionary
+conceptId('Heart failure', SNOMED = SNOMED)
 
-Parent / child (Is a relationship)
+# To use the sample SNOMED dictionary for testing
+conceptId('Heart failure', SNOMED = sampleSNOMED())
 
-Other relationships
+# If an object named SNOMED containing the SNOMED dictionary is available
+# in the current environment, it does not need to be stated in the
+# function call
+conceptId('Heart failure')
 
+# The argument 'exact' can be used to specify whether a regular expression
+# search should be done, e.g.
+conceptId('Heart f', exact = FALSE)
 
+# The 'description' function can be used to return the descriptions of
+# the concepts found. It returns a data.table with the fully specified 
+# name for each term
+description(conceptId('Heart f', exact = FALSE))
 
+# The 'semantic type' function returns the semantic type of the concept
+# from the Fully Specified Name
+semanticType(conceptId('Heart failure'))
+```
+
+Some of the base R functions such as 'setdiff', 'unlist', 'intersect' and 'union' do not work with integer64 data. However, the functions 'c', 'unique' and '%in%' do work correctly, and can be used to construct set operations as needed.
+
+```
+# A list of concepts with a description containing the term 'heart'
+# (not that all synonyms are searched, not just the Fully Specified Names)
+heart <- conceptId('Heart|heart', exact = FALSE, SNOMED = sampleSNOMED())
+
+# A list of concepts containing the term 'fail'
+fail <- conceptId('Fail|fail', exact = FALSE, SNOMED = sampleSNOMED())
+
+# Concepts with heart and fail (cannot use intersect)
+description(heart[heart %in% fail])
+
+# Heart without fail (cannot use setdiff)
+description(heart[!heart %in% fail])
+
+# Heart or fail (cannot use union)
+unique(c(heart, fail))
+```
+
+These set operations can be used to create lists of SNOMED CT concepts of interest, similar to the way researchers use Read codes. However, SNOMED CT also allows the use of hierarchies and relationships to locate concepts by their meaning
+
+Using relationships between SNOMED CT concepts
+----------------------------------------------
+
+The most important relationship is the 'Is a' relationship, also known as parent and child. This makes it easy to find all specific concepts that are a subtype of a more general concept.
+
+```
+SNOMED <- sampledSNOMED()
+
+description(parents(conceptId('Systolic heart failure')))
+description(ancestors(conceptId('Acute heart failure')))
+description(children(conceptId('Acute heart failure')))
+description(descendants(conceptId('Acute heart failure')))
+
+# To list all the attributes of a concept:
+attributes(conceptId('Heart failure'))
+```
+
+The 'hasAttributes' function can be used to find terms with particular attributes. For example, to find all disorders with a finding site of the heart, we can use the relatedConcepts function, which retrieves relationships from the RELATIONSHIP and STATEDRELATIONSHIP tables. 
+
+In order to find the finding site of a disorder, we use the 'forward' relationship. In order to find disorders with a particular finding site, we use the relationship in the 'reverse' direction.
+
+```
+SNOMED <- sampledSNOMED()
+
+# 'Finding site' of a particular disorder
+description(relatedConcepts(conceptId('Heart failure'), conceptId('Finding site')))
+
+# Disorders with a 'Finding site' of 'Heart'
+description(relatedConcepts(conceptId('Heart'), conceptId('Finding site'),
+	reverse = TRUE))
+```
 
 SNOMED CT codelists
 -------------------
 
-The SNOMED CT codelist data type 
-It allows codelists to be contracted (simplified) to include children or expanded
-The same codeist can be expressed in different ways - expanded form or contracted form.
+The SNOMED CT codelist data type allows a list of SNOMED CT concepts to be curated. It allows codelists to be expressed in a contracted (simplified) form with descendants implicitly included.
 
-inCodelist(concepts, codelist) - whether a specific concept is contained within a codelist
-returns a Boolean vector. The codelist may not include the full expansion of children.
-
-SNOMED CT properties
---------------------
-
-This package provides an opportunity to test out ways of specifying properties of 
-
-1. Find immediate parents within a defined SNOMED CT codelist
+```
 
 
-2.  
+
+```
