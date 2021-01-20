@@ -44,6 +44,7 @@ SNOMEDcodelist <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 		x[, term := description(x$conceptId, SNOMED = SNOMED)$term]
 	}
 	class(x) <- c('SNOMEDcodelist', 'data.table', 'data.frame')
+	setkey(x, conceptId)
 	x
 }
 
@@ -96,6 +97,8 @@ expandSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 		include_desc = as.logical(NA)))
 	# Restore SNOMEDcodelist class
 	class(x) <- c('SNOMEDcodelist', 'data.table', 'data.frame')
+	setattr(x, 'Expanded', TRUE)
+	setkey(x, conceptId)
 	x
 }
 
@@ -112,6 +115,7 @@ contractSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 	}
 	x <- x[!is.na(include_desc)]
 	setattr(x, 'Expanded', FALSE)
+	setkey(x, conceptId)
 	x
 }
 

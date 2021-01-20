@@ -67,8 +67,8 @@ sampleSNOMED <- function(){
 #' @examples
 #' conceptId('Heart failure', SNOMED = sampleSNOMED())
 conceptId <- function(terms, active_only = TRUE,
-	exact_match = TRUE,
-	SNOMED = get('SNOMED', envir = globalenv()), ...){
+	exact_match = TRUE, unique = TRUE,
+	SNOMED = get('SNOMED', envir = globalenv())){
 	if (exact_match){
 		MATCHED <- SNOMED$DESCRIPTION[data.table(term = terms),
 			list(active, conceptId), on = 'term']
@@ -87,10 +87,19 @@ conceptId <- function(terms, active_only = TRUE,
 	
 	# Limit to active concepts
 	if (active_only){
-		unique(SNOMED$CONCEPT[MATCHED[, list(id = conceptId)], on = 'id'][
-			active == TRUE]$id)
+		if (unique){
+			unique(SNOMED$CONCEPT[MATCHED[, list(id = conceptId)], on = 'id'][
+				active == TRUE]$id)
+		} else {
+			SNOMED$CONCEPT[MATCHED[, list(id = conceptId)], on = 'id'][
+				active == TRUE]$id
+		}
 	} else {
-		unique(MATCHED$conceptId)
+		if (unique){
+			unique(MATCHED$conceptId)
+		} else {
+			MATCHED$conceptId
+		}
 	}
 }
 
