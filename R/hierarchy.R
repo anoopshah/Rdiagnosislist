@@ -294,37 +294,58 @@ semanticType <- function(conceptIds,
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param tables character vector of relationship tables to use
 #' @return a data.table with the following columns:
+#'   conceptId (bit64), ancestorId (bit64)loa
 #'   
 #' @export
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #'
 #' closestSingleAncestor(
-#'   conceptId('Heart failure with reduced ejection fraction'),
+#'   conceptId(c('Systolic heart failure', 'Is a',
+#'   'Heart failure with reduced ejection fraction')),
 #'   conceptId(c('Heart failure', 'Acute heart failure')))
 closestSingleAncestor <- function(conceptIds, ancestorIds,
 	SNOMED = get('SNOMED', envir = globalenv()), 
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
 	
 	DATA <- data.table(conceptId = conceptIds,
-		ancestors = conceptIds, matched = FALSE,
-		order = 1:length(conceptIds))
-	TOMATCH <- DATA
-	ANCESTORS <- data.table(conceptId = ancestorIds, found = TRUE)
+		original = conceptIds, found = FALSE, anymatch = FALSE,
+		keep_orig = FALSE, order = 1:length(conceptIds))
+	ANCESTORS <- data.table(conceptId = unique(ancestorIds), found = TRUE)
 	recursionlimit <- 10
-	while(any(DATA$matched == FALSE) & recursionlimit > 0){
+	while(any(DATA$anymatch == FALSE) & recursionlimit > 0){
 		# Check for matches
-		TOMATCH[, matched := ANCESTORS[TOMATCH, on = 'conceptId']$found]
+		DATA[, found := found | ANCESTORS[DATA, on = 'conceptId']$found]
+		DATA[is.na(found), found := FALSE]
+		DATA[, keep_orig := keep_orig | sum(found) > 1, by = order]
+		DATA[, anymatch := any(found), by = order]
+		DATA[keep_orig == TRUE, anymatch := TRUE]
+		# keep original if more than one possible match
 		
-		if (TOMATCH[matched == TRUE])
+		# Expand ancestors
+		EXPANDED <- DATA[!keep_orig & !anymatch][,
+			list(conceptId = parents(conceptId)),
+			by = list(original, found, anymatch, keep_orig, order)]
+		DATA <- rbind(DATA, EXPANDED)
 		
-		if (any(DATA$matched == FALSE)){
-			# Go up a generation
-			DATA <- [, ancestors := lapply(ancestors, function(x){})]
-		}
-		
-		TOMATCH <- TOMATCH[is.na(matched)]
 		# Is it in the ancestor list? If so, matched
 		recursionlimit <- recursionlimit - 1
 	}
+	
+	# Keep original if no matches
+	DATA[, keep_orig := keep_orig | all(found == FALSE), by = order]
+	DATA[keep_orig == TRUE, found := c(TRUE, rep(FALSE, .N - 1)), by = order]
+	DATA <- DATA[found == TRUE]
+	setnames(DATA, 'conceptId', 'ancestorId')
+	DATA[, ancestorId := conceptId]
+	DATA[keep_orig == TRUE, ancestorId := original]
+	setkey(DATA, order)
+	DATA[, order := NULL]
+	DATA[, keep_orig := NULL]
+	DATA[, found := NULL]
+	DATA[, anymatch := NULL]
+	return(DATA)
 }
+
+
+   
