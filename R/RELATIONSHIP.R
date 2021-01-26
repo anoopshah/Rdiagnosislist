@@ -3,9 +3,11 @@
 #' Samples of the SNOMED CT tables of stated relationships (RELATIONSHIP)
 #'   and inferred relationships (RELATIONSHIP).
 #' 
-#' @name RELATIONSHIP
+#' @name RELATIONSHIP_tables
+#' @aliases RELATIONSHIP
 #' @aliases STATEDRELATIONSHIP
 #' @docType data
+#' @importFrom utils data
 #' @usage data(RELATIONSHIP); data(STATEDRELATIONSHIP)
 #' @format An object of class \code{"data.table"}
 #' @keywords datasets
@@ -36,10 +38,10 @@
 #' data(RELATIONSHIP, envir = TEST)
 #' data(STATEDRELATIONSHIP, envir = TEST) 
 #' 
-#' Show properties of the relationship tables
+#' # Show properties of the relationship tables
 #' str(TEST$RELATIONSHIP)
 #' str(TEST$STATEDRELATIONSHIP)
 "RELATIONSHIP"
 
-#' @describeIn RELATIONSHIP
+#' @rdname RELATIONSHIP_tables
 "STATEDRELATIONSHIP"

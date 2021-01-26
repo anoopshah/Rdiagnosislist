@@ -2,7 +2,9 @@
 #'
 #' A sample of the SNOMED CT concept table. 
 #' 
-#' @name CONCEPT
+#' @name CONCEPT_table
+#' @aliases CONCEPT
+#' @importFrom utils data
 #' @docType data
 #' @usage data(CONCEPT)
 #' @format An object of class \code{"data.table"}
@@ -25,6 +27,6 @@
 #' data(RELATIONSHIP, envir = TEST)
 #' data(STATEDRELATIONSHIP, envir = TEST) 
 #' 
-#' Show properties of the CONCEPT table
+#' # Show properties of the CONCEPT table
 #' str(TEST$CONCEPT)
 "CONCEPT"

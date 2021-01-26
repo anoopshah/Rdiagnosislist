@@ -1,24 +1,14 @@
 # Rdiagnosislist
 
-R package for manipulating problem and diagnosis lists
+This is an R package for using the SNOMED CT hierarchy and manipulating
+lists of SNOMED CT codes.
 
-Includes:
+It includes functions for loading a SNOMED CT distribution into an R
+environment, searching for concepts by regular expression search,
+finding attributes of concepts, navigating the hierarchy, and handling
+lists of SNOMED CT concepts.
 
-- Functions for 
-- Manipulating SNOMED codelists
-- Manipulating diagnosis archetypes
+This is an open source package licensed under GPL V3.
 
-Diagnosis archetype objects:
-
-- Codelist
-- Cardinality
-- Laterality_option
-- Duration_of_importance
-
-Options for viewing a diagnosis list
-
-Options for reconstructing diagnosis chronologies
-
-To test:
-library(data.table); library(devtools); library(bit64)
-load_all()
+For feedback or suggestions, please contact Anoop Shah
+(anoop@doctors.org.uk).

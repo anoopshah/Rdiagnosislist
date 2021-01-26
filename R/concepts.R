@@ -7,6 +7,7 @@
 #' @param SNOMED environment containing SNOMED dictionary, defaults
 #'   to an object named 'SNOMED' in the global environment
 #' @return TRUE or FALSE (logical vector of length one)
+#' @export
 #' @examples
 #' # Create a TEST environment and load the sample dictionaries
 #' TEST <- sampleSNOMED()
@@ -58,6 +59,8 @@ sampleSNOMED <- function(){
 #' @param exact_match if TRUE, only an exact (case sensitive)
 #'   match is performed. If FALSE, a regular expression match
 #'   is performed.
+#' @param unique whether to include no more than one instance of each
+#'   SNOMED CT concept
 #' @param SNOMED environment containing SNOMED dictionary. Defaults
 #'   to an object named 'SNOMED' in the global environment
 #' @param ... additional arguments to send to grepl if using
@@ -110,6 +113,7 @@ conceptId <- function(terms, active_only = TRUE,
 #'
 #' @param conceptIds character or integer64 vector 
 #' @return conceptIds in integer64 format
+#' @importFrom bit64 as.integer64
 #' @export
 #' @examples
 #' checkConcepts('900000000000003001')
@@ -179,3 +183,4 @@ description <- function(conceptIds,
 	}
 	OUT[]
 }
+

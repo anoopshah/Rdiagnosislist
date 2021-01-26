@@ -22,7 +22,7 @@ test_that('Duplicates', {
 	expect_equal(conceptId(c('Heart failure', 'Weak heart')),
 		as.integer64('84114007'))
 	expect_equal(conceptId(c('Heart failure', 'Systolic heart failure',
-		'Weak heart', 'Acute heart failure')),
+		'Weak heart', 'Acute heart failure'), unique = FALSE),
 		as.integer64(c('84114007', '417996009', '84114007', '56675007')))
 })
 

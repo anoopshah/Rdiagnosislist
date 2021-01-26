@@ -3,8 +3,10 @@
 #' A sample of the SNOMED CT description table. Each concept may has
 #' a fully specified name and may have any number of synonyms.
 #' 
-#' @name DESCRIPTION
+#' @name DESCRIPTION_table
+#' @aliases DESCRIPTION
 #' @docType data
+#' @importFrom utils data
 #' @usage data(DESCRIPTION)
 #' @format An object of class \code{"data.table"}
 #' @keywords datasets
@@ -35,6 +37,6 @@
 #' data(RELATIONSHIP, envir = TEST)
 #' data(STATEDRELATIONSHIP, envir = TEST) 
 #' 
-#' Show properties of the DESCRIPTION table
+#' # Show properties of the DESCRIPTION table
 #' str(TEST$DESCRIPTION)
 "DESCRIPTION"

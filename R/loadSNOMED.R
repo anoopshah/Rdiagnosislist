@@ -4,7 +4,7 @@
 #' them into an R environment. Files from two folders (e.g.
 #' International and UK versions) can be loaded together and appended.
 #'
-#' @param folderpaths Vector of folder paths containing SNOMED CT files
+#' @param folders Vector of folder paths containing SNOMED CT files
 #' @param active_only Whether to limit to current (active) SNOMED CT terms
 #' @return An environment containing data.table objects: CONCEPT,
 #'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP

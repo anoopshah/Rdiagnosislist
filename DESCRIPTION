@@ -7,9 +7,12 @@ Authors@R:
            role = c("aut", "cre"),
            email = "anoop@doctors.org.uk",
            comment = structure("0000-0002-8907-5724", .Names = "ORCID"))
-Description: R package for manipulating lists of SNOMED CT diagnoses
-License: GPL-3
-Depends: data.table, bit64, testthat
+Description: R package for manipulating lists of SNOMED CT diagnoses.
+License: GPL-3 + file LICENSE
+Depends: bit64
+Imports: data.table
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
+Author: Anoop Shah [aut, cre]
+Maintainer: Anoop Shah <anoop@doctors.org.uk>

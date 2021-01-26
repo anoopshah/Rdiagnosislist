@@ -13,6 +13,7 @@
 #' @param x data.frame or data.table to convert to a SNOMEDcodelist.
 #'   It must have a column named 'conceptId'
 #' @param SNOMED environment containing a SNOMED dictionary
+#' @param ... other arguments to pass to SNOMEDcodelist
 #' @return An object of class 'SNOMEDcodelist'
 #' @family SNOMEDcodelist functions
 #' @export

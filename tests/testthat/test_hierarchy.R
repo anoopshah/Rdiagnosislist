@@ -24,6 +24,7 @@ test_that('Ancestors and descendants', {
 })
 
 test_that('Semantic types', {
+	SNOMED <- sampleSNOMED()
 	expect_equal(semanticType(conceptId('Heart failure')), 'disorder')
 	expect_equal(semanticType(conceptId('Suspected heart failure')),
 		'situation')

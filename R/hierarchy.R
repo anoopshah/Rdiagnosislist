@@ -9,7 +9,9 @@
 #' @param tables vector of names of relationship table(s) to use;
 #'   by default use both RELATIONSHIP and STATEDRELATIONSHIP
 #' @param reverse whether to reverse the relationship
-#' @param recursive 
+#' @param recursive whether to re-apply the function on the outputs
+#' @param active_only whether to limit the output to active concepts only
+#' @param SNOMED environment containing a SNOMED dictionary
 #' @return a data.table with the following columns: id, conceptId, type
 #'   (only if include_synonyms = TRUE), term,
 #'   active (only if active_only = FALSE)
@@ -92,8 +94,6 @@ relatedConcepts <- function(conceptIds,
 #'
 #' @param conceptIds character or integer64 vector of SNOMED concept IDs
 #' @param SNOMED environment containing a SNOMED dictionary
-#' @param childIds character or integer64 vector of SNOMED concept IDs for children
-#' @param parentIds character or integer64 vector of SNOMED concept IDs for parents
 #' @param ... other arguments to pass to relatedConcepts
 #' @return a bit64 vector of SNOMED CT concepts
 #' @export
@@ -198,7 +198,7 @@ hasAttributes <- function(sourceIds, destinationIds,
 #' relationships where the given concepts are either the source or the 
 #' destination.
 #'
-#' @param conceptId character or integer64 vector of SNOMED concept IDs
+#' @param conceptIds character or integer64 vector of SNOMED concept IDs
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param tables character vector of relationship tables to use
 #' @return a data.table with the following columns: 
