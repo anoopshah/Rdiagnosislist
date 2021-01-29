@@ -3,7 +3,7 @@
 #' A sample of the SNOMED CT description table. Each concept may has
 #' a fully specified name and may have any number of synonyms.
 #' 
-#' @name DESCRIPTION_table
+#' @name SNOMED_DESCRIPTION
 #' @aliases DESCRIPTION
 #' @docType data
 #' @importFrom utils data

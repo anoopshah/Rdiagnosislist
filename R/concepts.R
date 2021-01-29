@@ -24,31 +24,6 @@ inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 	}
 }
 
-#' Sample SNOMED CT dictionary
-#'
-#' Returns an environment containing a selection of SNOMED CT
-#' terms, their relationships and descriptions which are
-#' provided with the package
-#'
-#' @return environment containing four data.table objects:
-#'   CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
-#'   and a list named 'metadata'
-#' @export
-#' @examples
-#' TEST <- sampleSNOMED()
-#' inactiveIncluded(TEST)
-#' conceptId('Heart failure', SNOMED = TEST)
-sampleSNOMED <- function(){
-	SNOMED <- new.env()
-	data(CONCEPT, envir = SNOMED)
-	data(RELATIONSHIP, envir = SNOMED)
-	data(STATEDRELATIONSHIP, envir = SNOMED)
-	data(DESCRIPTION, envir = SNOMED)
-	assign('metadata', value = list(source = 'sample',
-		active_only = FALSE), envir = SNOMED)
-	return(SNOMED)
-}
-
 #' Returns the SNOMED CT concept IDs for a set of terms
 #'
 #' Carries out an exact or regular expression match to
@@ -66,14 +41,18 @@ sampleSNOMED <- function(){
 #' @param ... additional arguments to send to grepl if using
 #'   regular expression matching
 #' @return a vector of unique SNOMED CT concept IDs in integer64 format
+#' @import data.table
 #' @export
 #' @examples
 #' conceptId('Heart failure', SNOMED = sampleSNOMED())
 conceptId <- function(terms, active_only = TRUE,
 	exact_match = TRUE, unique = TRUE,
 	SNOMED = get('SNOMED', envir = globalenv())){
+	# Declare names to be used for non-standard evaluation for R CMD check
+	active <- NULL
+	
 	if (exact_match){
-		MATCHED <- SNOMED$DESCRIPTION[data.table(term = terms),
+		MATCHED <- SNOMED$DESCRIPTION[data.table(term = as.character(terms)),
 			list(active, conceptId), on = 'term']
 	} else {
 		matched <- rep(FALSE, nrow(SNOMED$DESCRIPTION))
@@ -117,7 +96,6 @@ conceptId <- function(terms, active_only = TRUE,
 #' @export
 #' @examples
 #' checkConcepts('900000000000003001')
-#' checkConcepts(as.integer64('900000000000003001'))
 checkConcepts <- function(conceptIds){
 	conceptIds <- unlist(conceptIds) # ensure that it is a vector
 	
@@ -154,9 +132,12 @@ description <- function(conceptIds,
 	include_synonyms = FALSE, active_only = TRUE,
 	SNOMED = get('SNOMED', envir = globalenv())){
 	# Check that conceptIds is a vector of strings or integer64 values
-
 	# FSN     '900000000000003001'
 	# Synonym '900000000000013009'
+	
+	# Declare names used for non-standard evaluation for R CMD check
+	id <- term <- active <- typeId <- NULL
+	
 	CONCEPTS <- data.table(conceptId = checkConcepts(conceptIds),
 		order = seq_along(conceptIds))
 	TOMATCH <- data.table(conceptId = unique(CONCEPTS$conceptId))

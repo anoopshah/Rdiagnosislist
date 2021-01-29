@@ -29,6 +29,8 @@
 #' all.equal(TEST$RELATIONSHIP, TEST2$RELATIONSHIP)
 #' all.equal(TEST$STATEDRELATIONSHIP, TEST2$STATEDRELATIONSHIP)
 loadSNOMED <- function(folders, active_only = TRUE){
+	.temp <- active <- term <- NULL
+	
 	SNOMED <- new.env()
 	append <- FALSE
 	for (folder in folders){
@@ -117,6 +119,9 @@ loadSNOMED <- function(folders, active_only = TRUE){
 	# Remove double quotes around descriptions
 	SNOMED$DESCRIPTION[, term := gsub('^\\"(.+)\\"$', '\\1', term)]
 	
+	# Add indices to enable fast searching
+	SNOMED <- createSNOMEDindices(SNOMED)
+	
 	# Add metadata to environment
 	assign('metadata', value = list(source = folders,
 		active_only = active_only), envir = SNOMED)
@@ -126,3 +131,66 @@ loadSNOMED <- function(folders, active_only = TRUE){
 	return(SNOMED)
 }
 
+#' Create indices for tables in a SNOMED environment
+#'
+#' Creates relevant indices for fast searching of SNOMED CT tables
+#'
+#' @param SNOMED environment containing data.table objects: CONCEPT,
+#'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
+#' @return The environment with indices added to each table for
+#'   fast searching
+createSNOMEDindices <- function(SNOMED){
+	id <- active <- conceptId <- typeId <- term <- active <- NULL
+	sourceId <- destinationId <- NULL
+	
+	setindex(SNOMED$CONCEPT, id)
+	setindex(SNOMED$CONCEPT, active)
+	
+	setindex(SNOMED$DESCRIPTION, id)
+	setindex(SNOMED$DESCRIPTION, conceptId)
+	setindex(SNOMED$DESCRIPTION, typeId)
+	setindex(SNOMED$DESCRIPTION, term)
+	setindex(SNOMED$DESCRIPTION, active)
+
+	setindex(SNOMED$STATEDRELATIONSHIP, id)
+	setindex(SNOMED$STATEDRELATIONSHIP, sourceId)
+	setindex(SNOMED$STATEDRELATIONSHIP, destinationId)
+	setindex(SNOMED$STATEDRELATIONSHIP, typeId)
+	setindex(SNOMED$STATEDRELATIONSHIP, active)
+
+	setindex(SNOMED$RELATIONSHIP, id)
+	setindex(SNOMED$RELATIONSHIP, sourceId)
+	setindex(SNOMED$RELATIONSHIP, destinationId)
+	setindex(SNOMED$RELATIONSHIP, typeId)
+	setindex(SNOMED$RELATIONSHIP, active)
+	return(SNOMED)
+}
+
+#' Sample SNOMED CT dictionary
+#'
+#' Returns an environment containing a selection of SNOMED CT
+#' terms, their relationships and descriptions which are
+#' provided with the package
+#'
+#' @return environment containing four data.table objects:
+#'   CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
+#'   and a list named 'metadata'
+#' @export
+#' @examples
+#' TEST <- sampleSNOMED()
+#' inactiveIncluded(TEST)
+#' conceptId('Heart failure', SNOMED = TEST)
+#'
+#' # To display metadata for this SNOMED CT dictionary
+#' sampleSNOMED()$metadata
+sampleSNOMED <- function(){
+	SNOMED <- new.env()
+	data(CONCEPT, envir = SNOMED)
+	data(RELATIONSHIP, envir = SNOMED)
+	data(STATEDRELATIONSHIP, envir = SNOMED)
+	data(DESCRIPTION, envir = SNOMED)
+	SNOMED <- createSNOMEDindices(SNOMED)
+	assign('metadata', value = list(source = 'sample',
+		active_only = FALSE), envir = SNOMED)
+	return(SNOMED)
+}

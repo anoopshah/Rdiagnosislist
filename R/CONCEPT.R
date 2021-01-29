@@ -2,7 +2,7 @@
 #'
 #' A sample of the SNOMED CT concept table. 
 #' 
-#' @name CONCEPT_table
+#' @name SNOMED_CONCEPT
 #' @aliases CONCEPT
 #' @importFrom utils data
 #' @docType data

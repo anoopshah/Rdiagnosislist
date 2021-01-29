@@ -3,9 +3,10 @@
 #' Samples of the SNOMED CT tables of stated relationships (RELATIONSHIP)
 #'   and inferred relationships (RELATIONSHIP).
 #' 
-#' @name RELATIONSHIP_tables
+#' @name SNOMED_RELATIONSHIP
 #' @aliases RELATIONSHIP
 #' @aliases STATEDRELATIONSHIP
+#' @aliases SNOMED_STATEDRELATIONSHIP
 #' @docType data
 #' @importFrom utils data
 #' @usage data(RELATIONSHIP); data(STATEDRELATIONSHIP)
@@ -43,5 +44,5 @@
 #' str(TEST$STATEDRELATIONSHIP)
 "RELATIONSHIP"
 
-#' @rdname RELATIONSHIP_tables
+#' @rdname SNOMED_RELATIONSHIP
 "STATEDRELATIONSHIP"

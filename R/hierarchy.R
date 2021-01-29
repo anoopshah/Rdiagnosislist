@@ -35,22 +35,27 @@ relatedConcepts <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv())){
 	# Returns the original concepts and the linked concepts
 
+	active <- sourceId <- destinationId <- NULL
+
 	conceptIds <- checkConcepts(conceptIds)
 	typeId <- checkConcepts(typeId)
-	TOLINK <- data.table(sourceId = conceptIds, typeId = typeId)
-	setkey(TOLINK, sourceId, typeId)
+	if (reverse){
+		TOLINK <- data.table(destinationId = conceptIds, typeId = typeId)
+	} else {
+		TOLINK <- data.table(sourceId = conceptIds, typeId = typeId)
+	}
 	OUT <- data.table(active = logical(0),
 		conceptId = bit64::integer64(0))
 	# Retrieve relationship table
 	addRelationship <- function(tablename, OUT){
 		TABLE <- get(tablename, envir = SNOMED)
 		if (reverse){
-			setkey(TABLE, destinationId, typeId)
-			OUT <- rbind(OUT, TABLE[TOLINK][,
+			OUT <- rbind(OUT, TABLE[TOLINK,
+				on = c('destinationId', 'typeId')][,
 				list(active, conceptId = sourceId)])
 		} else {
-			setkey(TABLE, sourceId, typeId)
-			OUT <- rbind(OUT, TABLE[TOLINK][,
+			OUT <- rbind(OUT, TABLE[TOLINK,
+				on = c('sourceId', 'typeId')][,
 				list(active, conceptId = destinationId)])
 		}
 		OUT
@@ -85,7 +90,7 @@ relatedConcepts <- function(conceptIds,
 	}
 }
 
-#' Parents and children of SNOMED CT concepts
+#' Anceestors and descendants of SNOMED CT concepts
 #'
 #' Returns concepts with 'Is a' or inverse 'Is a'
 #' relationship with a set of target concepts. 
@@ -102,6 +107,8 @@ relatedConcepts <- function(conceptIds,
 #'
 #' description(parents(conceptId('Heart failure')))
 #' description(children(conceptId('Heart failure')))
+#' description(ancestors(conceptId('Heart failure')))
+#' description(descendants(conceptId('Heart failure')))
 parents <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	conceptIds <- checkConcepts(unique(conceptIds))
@@ -113,6 +120,7 @@ parents <- function(conceptIds,
 }
 
 #' @rdname parents
+#' @export
 ancestors <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	conceptIds <- checkConcepts(unique(conceptIds))
@@ -124,6 +132,7 @@ ancestors <- function(conceptIds,
 }
 
 #' @rdname parents
+#' @export
 children <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	conceptIds <- checkConcepts(unique(conceptIds))
@@ -135,6 +144,7 @@ children <- function(conceptIds,
 }
 
 #' @rdname parents
+#' @export
 descendants <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	conceptIds <- checkConcepts(unique(conceptIds))
@@ -211,12 +221,15 @@ hasAttributes <- function(sourceIds, destinationIds,
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #'
-#' attributes(conceptId('Heart failure'))
-attributes <- function(conceptIds,
+#' attrConcept(conceptId('Heart failure'))
+attrConcept <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), 
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
 	# Retrieves a table of attributes for a given set of concepts
 	# add matches and combine Boolean
+	sourceId <- destinationId <- typeId <- relationshipGroup <- NULL
+	sourceDesc <- destinationDesc <- typeDesc <- NULL
+
 	MATCHSOURCE <- data.table(sourceId = checkConcepts(conceptIds))
 	MATCHDEST <- data.table(destinationId = checkConcepts(conceptIds))
 	OUT <- rbind(rbindlist(lapply(tables, function(table){
@@ -248,8 +261,10 @@ attributes <- function(conceptIds,
 #' semanticType(conceptId(c('Heart failure', 'Is a')))
 semanticType <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv())){
+	tag <- term <- NULL
+	
 	conceptIds <- checkConcepts(conceptIds)
-	DESC <- description(conceptIds)
+	DESC <- description(conceptIds, SNOMED = SNOMED)
 	DESC[, tag := sub('^.*\\(([[:alnum:]\\/\\+ ]+)\\)$', '\\1', term)]
 	DESC$tag
 }
@@ -306,6 +321,7 @@ simplify <- function(conceptIds, ancestorIds,
 	# found = whether this row is a match to closest ancestor
 	# anymatch = whether any match is found for this concept
 	# keep_orig = whether to keep original because 0 or > 1 matches
+	found <- keep_orig <- anymatch <- originalId <- ancestorId <- NULL
 
 	recursionlimit <- 10
 	# Loop while any of the concepts are unmatched and recursion

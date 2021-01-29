@@ -99,6 +99,8 @@ semanticType(conceptId('Heart failure'))
 Some of the base R functions such as 'setdiff', 'unlist', 'intersect' and 'union' do not work with integer64 data. However, the functions 'c', 'unique' and '%in%' do work correctly, and can be used to construct set operations as needed.
 
 ```
+SNOMED <- sampleSNOMED()
+
 # A list of concepts with a description containing the term 'heart'
 # (not that all synonyms are searched, not just the Fully Specified Names)
 heart <- conceptId('Heart|heart', exact = FALSE, SNOMED = sampleSNOMED())
@@ -124,7 +126,7 @@ Using relationships between SNOMED CT concepts
 The most important relationship is the 'Is a' relationship, also known as parent and child. This makes it easy to find all specific concepts that are a subtype of a more general concept.
 
 ```
-SNOMED <- sampledSNOMED()
+SNOMED <- sampleSNOMED()
 
 # Parents
 description(parents(conceptId('Acute heart failure')))
@@ -139,7 +141,7 @@ description(children(conceptId('Acute heart failure')))
 description(descendants(conceptId('Acute heart failure')))
 
 # List all the attributes of a concept
-print(attributes(conceptId('Heart failure')))
+print(attrConcept(conceptId('Heart failure')))
 ```
 
 The 'hasAttributes' function can be used to find terms with particular attributes. For example, to find all disorders with a finding site of the heart, we can use the relatedConcepts function, which retrieves relationships from the RELATIONSHIP and STATEDRELATIONSHIP tables. 

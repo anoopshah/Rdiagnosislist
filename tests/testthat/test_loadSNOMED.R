@@ -1,3 +1,8 @@
+require(testthat)
+require(Rdiagnosislist)
+require(bit64)
+require(data.table)
+
 context('Loading SNOMED dictionary')
 
 test_that('Test exporting and reloading sample SNOMED dictionary', {
