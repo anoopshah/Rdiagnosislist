@@ -34,6 +34,7 @@ loadSNOMED <- function(folders, active_only = TRUE){
 	SNOMED <- new.env()
 	append <- FALSE
 	for (folder in folders){
+		message('Attempting to load from ', folder)
 		files <- dir(folder)
 		used <- rep(FALSE, length(files))
 		for (filename in c('Concept', 'Description', 'StatedRelationship',
@@ -99,9 +100,22 @@ loadSNOMED <- function(folders, active_only = TRUE){
 					setcolorder(TEMP, orig_col_order)
 					# Return the table or append to another partial table
 					if (append){
-						message('  Appending to ', toupper(filename))
+						message('  Attempting to append to ', toupper(filename))
 						TEMP2 <- get(toupper(filename), envir = SNOMED)
-						try(TEMP <- rbind(TEMP, TEMP2, use.names = TRUE, fill = TRUE))
+						if (nrow(TEMP) == 0 & nrow(TEMP2) == 0){
+							stop('Tables are empty')
+						} else if (nrow(TEMP) == 0 & nrow(TEMP2) > 0){
+							message('  No data in this file, keeping original.')
+							TEMP <- TEMP2
+						} else if (nrow(TEMP) > 0 & nrow(TEMP2) == 0){
+							message('  No data in original, replacing with new.')
+						} else {
+							existingN <- nrow(TEMP)
+							try(TEMP <- rbind(TEMP, TEMP2, use.names = TRUE, fill = TRUE))
+							if (nrow(TEMP) > existingN){
+								message('  Successfully appended.')
+							}
+						}
 					} else {
 						message('  Naming as ', toupper(filename))
 					}

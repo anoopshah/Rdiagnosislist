@@ -5,9 +5,7 @@
 \alias{SNOMED_CONCEPT}
 \alias{CONCEPT}
 \title{Sample concept table from SNOMED CT dictionary}
-\format{
-An object of class \code{"data.table"}
-}
+\format{An object of class \code{"data.table"}}
 \usage{
 data(CONCEPT)
 }
