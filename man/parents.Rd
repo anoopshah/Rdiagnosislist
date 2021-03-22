@@ -34,8 +34,8 @@ Descendants include children and all lower relations.
 \examples{
 SNOMED <- sampleSNOMED()
 
-description(parents(conceptId('Heart failure')))
-description(children(conceptId('Heart failure')))
-description(ancestors(conceptId('Heart failure')))
-description(descendants(conceptId('Heart failure')))
+parents('Heart failure')
+children('Heart failure')
+ancestors('Heart failure')
+descendants('Heart failure')
 }

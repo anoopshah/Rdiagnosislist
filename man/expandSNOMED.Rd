@@ -19,7 +19,7 @@ An object of class 'SNOMEDcodelist' with attribute
    Expanded = TRUE
 }
 \description{
-SNOMEDcodelist is an S3 class for lists of SNOMED codes.
+SNOMEDcodelist is an S3 class for sets of SNOMED concepts.
 In the 'contracted' form, it may contain only parents and not
 child terms (to create a more succinct list). The 'Expanded'
 form contains all concepts.

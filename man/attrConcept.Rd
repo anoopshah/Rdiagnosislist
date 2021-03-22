@@ -32,5 +32,5 @@ destination.
 \examples{
 SNOMED <- sampleSNOMED()
 
-attrConcept(conceptId('Heart failure'))
+attrConcept(as.SNOMEDconcept('Heart failure'))
 }

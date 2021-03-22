@@ -49,9 +49,9 @@ original_terms <- c('Systolic heart failure', 'Is a',
 # so neither of the parents will be chosen.
 # Also test out inclusion of duplicate concepts.
 
-ancestors <- simplify(
-  c(conceptId(original_terms), conceptId(original_terms)[3:4]),
-  conceptId(c('Heart failure', 'Acute heart failure',
+ancestors <- simplify(c(as.SNOMEDconcept(original_terms),
+  as.SNOMEDconcept(original_terms)[3:4]),
+  as.SNOMEDconcept(c('Heart failure', 'Acute heart failure',
   'Cardiorenal syndrome (disorder)')))
 print(cbind(original_terms, description(ancestors$ancestorId)$term))
 }

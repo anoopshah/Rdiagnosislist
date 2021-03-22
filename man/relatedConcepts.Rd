@@ -46,8 +46,8 @@ SNOMED <- sampleSNOMED()
 
 # Example: anatomical site of a finding
 findingSite <- function(x){
-  relatedConcepts(conceptId(x),
-    typeId = conceptId('Finding site'))
+  relatedConcepts(as.SNOMEDconcept(x),
+    typeId = as.SNOMEDconcept('Finding site'))
 }
 
 description(findingSite('Heart failure'))

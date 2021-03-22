@@ -6,7 +6,7 @@ require(data.table)
 context('SNOMED codelists')
 
 test_that('Creating codelists from concept IDs or tables', {
-	myconcepts <- conceptId('Heart failure', SNOMED = sampleSNOMED())
+	myconcepts <- SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED())
 	concept_codelist <- SNOMEDcodelist(myconcepts, SNOMED = sampleSNOMED())
 	table_codelist <- SNOMEDcodelist(data.frame(conceptId = myconcepts),
 		SNOMED = sampleSNOMED())
@@ -22,7 +22,7 @@ test_that('Codelist with missing descriptions', {
 })
 
 test_that('Expand and contract codelists', {
-	my_concepts <- conceptId('Heart failure', SNOMED = sampleSNOMED())
+	my_concepts <- SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED())
 	my_codelist <- SNOMEDcodelist(data.frame(conceptId = my_concepts,
 		include_desc = TRUE), SNOMED = sampleSNOMED())
 	expanded_codelist <- expandSNOMED(my_codelist, SNOMED = sampleSNOMED())

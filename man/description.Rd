@@ -32,6 +32,6 @@ Returns the descriptions matching a set of concept IDs from
 a SNOMED dictionary
 }
 \examples{
-myconcepts <- conceptId('Heart failure', SNOMED = sampleSNOMED())
-description(myconcepts, include_synonyms = FALSE, SNOMED = sampleSNOMED())
+hf <- SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED())
+description(hf, include_synonyms = FALSE, SNOMED = sampleSNOMED())
 }

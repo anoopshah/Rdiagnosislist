@@ -30,7 +30,7 @@
 SNOMEDcodelist <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 	include_desc <- term <- NULL
 	if (!is.list(x)){
-		conceptIds <- unique(checkConcepts(x))
+		conceptIds <- unique(as.SNOMEDconcept(x))
 		conceptIds <- conceptIds[!is.na(conceptIds)] # remove any missing
 		message(paste0('Converting ', length(conceptIds),
 			' concept(s) to a codelist'))
@@ -43,7 +43,7 @@ SNOMEDcodelist <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 	if (!('conceptId' %in% names(x))){
 		stop('the SNOMED conceptId must be in a column named conceptId')
 	}
-	x[, conceptId := checkConcepts(conceptId)]
+	x[, conceptId := as.SNOMEDconcept(conceptId)]
 	if ('include_desc' %in% names(x)){
 		x[, include_desc := as.logical(include_desc)]
 		setattr(x, 'Expanded', FALSE)
@@ -73,7 +73,7 @@ as.SNOMEDcodelist <- function(x, ...){
 
 #' Expand or contract a SNOMEDcodelist
 #'
-#' SNOMEDcodelist is an S3 class for lists of SNOMED codes.
+#' SNOMEDcodelist is an S3 class for sets of SNOMED concepts.
 #' In the 'contracted' form, it may contain only parents and not
 #' child terms (to create a more succinct list). The 'Expanded'
 #' form contains all concepts.

@@ -5,7 +5,9 @@
 \alias{SNOMED_CONCEPT}
 \alias{CONCEPT}
 \title{Sample concept table from SNOMED CT dictionary}
-\format{An object of class \code{"data.table"}}
+\format{
+An object of class \code{"data.table"}
+}
 \usage{
 data(CONCEPT)
 }
@@ -14,11 +16,11 @@ A sample of the SNOMED CT concept table.
 }
 \details{
 \itemize{
-  \item{id}{integer64: SNOMED CT conceptId (primary key)} 
-  \item{moduleId}{integer64: class of SNOMED CT concept (whether it is used for recording information or is a metadata concept)}
-  \item{definitionStatusId}{integer64: 900000000000074008 = primitive concept, 900000000000073002 = defined by conditions}
-  \item{effectiveTime}{IDate: when the concept became active}
-  \item{active}{integer: whether this concept is currently active}
+  \item{id}{ integer64: SNOMED CT conceptId (primary key)} 
+  \item{moduleId}{ integer64: class of SNOMED CT concept (whether it is used for recording information or is a metadata concept)}
+  \item{definitionStatusId}{ integer64: 900000000000074008 = primitive concept, 900000000000073002 = defined by conditions}
+  \item{effectiveTime}{ IDate: when the concept became active}
+  \item{active}{ integer: whether this concept is currently active}
 }
 }
 \examples{

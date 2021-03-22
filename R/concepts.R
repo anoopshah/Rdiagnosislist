@@ -27,9 +27,13 @@ inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 #' Returns the SNOMED CT concept IDs for a set of terms
 #'
 #' Carries out an exact or regular expression match to
-#' return the concept ID for a set of search terms
+#' return the concept ID for a set of search terms, or
+#' converts a character or integer64 vector to a SNOMEDconcept
+#' object.
 #'
-#' @param terms character vector of terms to match
+#' @param terms character vector of terms to match, or
+#'   character vector containing SNOMED CT concept IDs, or
+#'   64-bit integer vector containing SNOMED CT concept IDs
 #' @param active_only whether or not to include inactive concepts
 #' @param exact_match if TRUE, only an exact (case sensitive)
 #'   match is performed. If FALSE, a regular expression match
@@ -40,19 +44,42 @@ inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 #'   to an object named 'SNOMED' in the global environment
 #' @param ... additional arguments to send to grepl if using
 #'   regular expression matching
-#' @return a vector of unique SNOMED CT concept IDs in integer64 format
+#' @return a SNOMEDconcept object (vector of 64-bit integers) containing
+#'   unique SNOMED CT concept IDs
 #' @import data.table
 #' @export
 #' @examples
-#' conceptId('Heart failure', SNOMED = sampleSNOMED())
-conceptId <- function(terms, active_only = TRUE,
+#' SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED()) -> hf
+#' is.SNOMEDconcept(hf)
+#' SNOMEDconcept('900000000000003001')
+#' as.SNOMEDconcept('900000000000003001')
+SNOMEDconcept <- function(terms, active_only = TRUE,
 	exact_match = TRUE, unique = TRUE,
 	SNOMED = get('SNOMED', envir = globalenv())){
 	# Declare names to be used for non-standard evaluation for R CMD check
 	active <- NULL
 	
+	if ('integer64' %in% class(terms)){
+		# correct format
+		out <- terms
+		setattr(terms, 'class', c('SNOMEDconcept', 'integer64'))
+		return(terms)
+	} else if ('character' %in% class(terms)){
+		out <- terms
+		if (all(grepl('^[0-9]+$', terms))){
+			# concept ID in character format 
+			terms <- as.integer64(terms)
+			setattr(terms, 'class', c('SNOMEDconcept', 'integer64'))
+			return(terms)
+		}
+	} else {
+		stop('conceptId must be supplied in character or integer64 format; ',
+			class(conceptIds), ' is not acceptable.')
+	}
+
+	# Try to match a term description
 	if (exact_match){
-		MATCHED <- SNOMED$DESCRIPTION[data.table(term = as.character(terms)),
+		MATCHED <- SNOMED$DESCRIPTION[data.table(term = terms),
 			list(active, conceptId), on = 'term']
 	} else {
 		matched <- rep(FALSE, nrow(SNOMED$DESCRIPTION))
@@ -70,43 +97,83 @@ conceptId <- function(terms, active_only = TRUE,
 	# Limit to active concepts
 	if (active_only){
 		if (unique){
-			unique(SNOMED$CONCEPT[MATCHED[, list(id = conceptId)], on = 'id'][
+			out <- unique(SNOMED$CONCEPT[MATCHED[, list(id = conceptId)], on = 'id'][
 				active == TRUE]$id)
 		} else {
-			SNOMED$CONCEPT[MATCHED[, list(id = conceptId)], on = 'id'][
+			out <- SNOMED$CONCEPT[MATCHED[, list(id = conceptId)], on = 'id'][
 				active == TRUE]$id
 		}
 	} else {
 		if (unique){
-			unique(MATCHED$conceptId)
+			out <- unique(MATCHED$conceptId)
 		} else {
-			MATCHED$conceptId
+			out <- MATCHED$conceptId
 		}
+	}
+	setattr(out, 'class', c('SNOMEDconcept', 'integer64'))
+	return(out)
+}
+
+#' @rdname SNOMEDconcept
+#' @family SNOMEDconcept functions
+#' @export
+as.SNOMEDconcept <- function(x, ...){
+	SNOMEDconcept(x, ...)
+}
+
+#' Check if an object is a SNOMEDconcept
+#'
+#' SNOMEDconcept is an S3 class for vectors of SNOMED concept IDs
+#' as 64-bit integers. This function checks whether the object has
+#' the class SNOMEDconcept and is a vector of 64-bit integers.
+#'
+#' @param x object to check
+#' @return a logical vector of length one: TRUE or FALSE
+#' @family SNOMEDconcept functions
+#' @export
+is.SNOMEDconcept <- function(x){
+	if (identical(class(x), c('SNOMEDconcept', 'integer64'))){
+		TRUE
+	} else {
+		FALSE
 	}
 }
 
-#' Check that concept IDs are in the correct format
-#' 
-#' Checks if a vector of conceptIds of type integer64, and 
-#' converts them to integer64 if necessary.
+#' Display a SNOMEDconcept object with descriptions
 #'
-#' @param conceptIds character or integer64 vector 
-#' @return conceptIds in integer64 format
-#' @importFrom bit64 as.integer64
+#' SNOMEDconcept is an S3 class for vectors of SNOMED concept IDs
+#' as 64-bit integers. This function checks whether the object has
+#' the class SNOMEDconcept and is a vector of 64-bit integers.
+#'
+#' @param x SNOMEDconcept object, or something that can be
+#'    coerced to one
+#' @param x object to check
+#' @return a logical vector of length one: TRUE or FALSE
+#' @family SNOMEDconcept functions
 #' @export
-#' @examples
-#' checkConcepts('900000000000003001')
-checkConcepts <- function(conceptIds){
-	conceptIds <- unlist(conceptIds) # ensure that it is a vector
+print.SNOMEDconcept <- function(x, SNOMED = NULL){
+	# Default SNOMED is NULL so there is no error if SNOMED dictionary
+	# is not available
+	if (is.null(SNOMED)){
+		try(SNOMED <- get('SNOMED', envir = globalenv()))
+	}
 	
-	if (class(conceptIds) == 'character'){
-		return(as.integer64(conceptIds))
-	} else if (class(conceptIds) == 'integer64'){
-		# correct format
-		return(conceptIds)
+	if (is.null(SNOMED)){
+		x <- as.SNOMEDconcept(x)
+		show(x)
+		return(invisible(x))
 	} else {
-		stop('conceptId must be supplied in character or integer64 format; ',
-			class(conceptIds), ' is not acceptable.')
+		x <- as.SNOMEDconcept(x, SNOMED = SNOMED)
+		output <- paste0(x, ' | ', description(x, SNOMED = SNOMED)$term)
+		
+		truncateChar <- function (x, maxchar){
+			convert <- nchar(x) > maxchar
+			x[convert] <- substr(x[convert], 1, maxchar - 3) %&% "..."
+			x
+		}
+		
+		show(truncateChar(output, getOption("width") - 7))
+		return(invisible(output))
 	}
 }
 
@@ -126,8 +193,8 @@ checkConcepts <- function(conceptIds){
 #'   active (only if active_only = FALSE)
 #' @export
 #' @examples
-#' myconcepts <- conceptId('Heart failure', SNOMED = sampleSNOMED())
-#' description(myconcepts, include_synonyms = FALSE, SNOMED = sampleSNOMED())
+#' hf <- SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED())
+#' description(hf, include_synonyms = FALSE, SNOMED = sampleSNOMED())
 description <- function(conceptIds,
 	include_synonyms = FALSE, active_only = TRUE,
 	SNOMED = get('SNOMED', envir = globalenv())){
@@ -138,7 +205,7 @@ description <- function(conceptIds,
 	# Declare names used for non-standard evaluation for R CMD check
 	id <- term <- active <- typeId <- NULL
 	
-	CONCEPTS <- data.table(conceptId = checkConcepts(conceptIds),
+	CONCEPTS <- data.table(conceptId = as.SNOMEDconcept(conceptIds),
 		order = seq_along(conceptIds))
 	TOMATCH <- data.table(conceptId = unique(CONCEPTS$conceptId))
 	if (include_synonyms == FALSE){
@@ -164,4 +231,5 @@ description <- function(conceptIds,
 	}
 	OUT[]
 }
+
 

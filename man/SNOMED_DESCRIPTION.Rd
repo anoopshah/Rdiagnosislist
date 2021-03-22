@@ -5,7 +5,9 @@
 \alias{SNOMED_DESCRIPTION}
 \alias{DESCRIPTION}
 \title{Sample description table from SNOMED CT dictionary}
-\format{An object of class \code{"data.table"}}
+\format{
+An object of class \code{"data.table"}
+}
 \usage{
 data(DESCRIPTION)
 }
@@ -15,20 +17,20 @@ a fully specified name and may have any number of synonyms.
 }
 \details{
 \itemize{
-  \item{id}{integer64: description ID}
-  \item{moduleId}{integer64: class of SNOMED CT concept (whether it
+  \item{id}{ integer64: description ID}
+  \item{moduleId}{ integer64: class of SNOMED CT concept (whether it
     is used for recording information or is a metadata concept)}
-  \item{conceptId}{integer64: SNOMED CT concept ID}
-  \item{languageCode}{character: 'en' = English}
-  \item{typeId}{integer64: 900000000000013009 = Synonym,
+  \item{conceptId}{ integer64: SNOMED CT concept ID}
+  \item{languageCode}{ character: 'en' = English}
+  \item{typeId}{ integer64: 900000000000013009 = Synonym,
     900000000000003001 = Fully Specified Name}
-  \item{term}{character: term description}
-  \item{caseSignificanceId}{integer64:
+  \item{term}{ character: term description}
+  \item{caseSignificanceId}{ integer64:
     900000000000020002 = Initial character case sensitive,
     900000000000017005 = Whole term case sensitive,
     900000000000448009 = Whole term case insensitive}
-  \item{effectiveTime}{IDate: when the concept became active}
-  \item{active}{integer: whether this concept is currently active}
+  \item{effectiveTime}{ IDate: when the concept became active}
+  \item{active}{ integer: whether this concept is currently active}
 }
 }
 \examples{

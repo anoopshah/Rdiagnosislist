@@ -7,19 +7,19 @@ context('SNOMED hierarchy')
 
 test_that('Related concepts', {
 	expect_equal(relatedConcepts(
-		conceptId('Heart failure', SNOMED = sampleSNOMED()),
-		typeId = conceptId('Finding site', SNOMED = sampleSNOMED()),
+		as.SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED()),
+		typeId = as.SNOMEDconcept('Finding site', SNOMED = sampleSNOMED()),
 		SNOMED = sampleSNOMED()),
-		conceptId('Heart structure', SNOMED = sampleSNOMED()))
+		as.SNOMEDconcept('Heart structure', SNOMED = sampleSNOMED()))
 })
 
 test_that('Attributes', {
 	expect_equal(hasAttributes(
-		conceptId(c('Heart failure', 'Acute heart failure'),
+		as.SNOMEDconcept(c('Heart failure', 'Acute heart failure'),
 		SNOMED = sampleSNOMED()),
-		conceptId(c('Heart structure', 'Heart failure'),
+		as.SNOMEDconcept(c('Heart structure', 'Heart failure'),
 		SNOMED = sampleSNOMED()),
-		conceptId(c('Finding site', 'Is a'), SNOMED = sampleSNOMED()),
+		as.SNOMEDconcept(c('Finding site', 'Is a'), SNOMED = sampleSNOMED()),
 		SNOMED = sampleSNOMED()), c(TRUE, TRUE))
 })
 
@@ -30,11 +30,11 @@ test_that('Ancestors', {
 })
 
 test_that('Semantic types', {
-	expect_equal(semanticType(conceptId('Heart failure',
+	expect_equal(semanticType(as.SNOMEDconcept('Heart failure',
 		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED()), 'disorder')
-	expect_equal(semanticType(conceptId('Suspected heart failure',
+	expect_equal(semanticType(as.SNOMEDconcept('Suspected heart failure',
 		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED()), 'situation')
-	expect_equal(semanticType(conceptId('Is a', SNOMED = sampleSNOMED()),
+	expect_equal(semanticType(as.SNOMEDconcept('Is a', SNOMED = sampleSNOMED()),
 		SNOMED = sampleSNOMED()), 'attribute')
 })
 
@@ -53,9 +53,9 @@ test_that('Simplify - find closest single ancestor', {
 	# and acute kidney failure has two parents in ancestors
 	# so neither of the parents will be chosen.
 	# Also test out inclusion of duplicate concepts.
-	found_ancestors <- simplify(conceptId(original_terms,
+	found_ancestors <- simplify(as.SNOMEDconcept(original_terms,
 		unique = FALSE, SNOMED = sampleSNOMED())[c(1:4, 3:4)],
-		conceptId(possible_ancestors, SNOMED = sampleSNOMED()),
+		as.SNOMEDconcept(possible_ancestors, SNOMED = sampleSNOMED()),
 		SNOMED = sampleSNOMED())
 	expect_equal(found_ancestors$ancestorId,
 		conceptId(expected_ancestors, unique = FALSE,

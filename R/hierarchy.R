@@ -22,8 +22,8 @@
 #'
 #' # Example: anatomical site of a finding
 #' findingSite <- function(x){
-#'   relatedConcepts(conceptId(x),
-#'     typeId = conceptId('Finding site'))
+#'   relatedConcepts(as.SNOMEDconcept(x),
+#'     typeId = as.SNOMEDconcept('Finding site'))
 #' }
 #' 
 #' description(findingSite('Heart failure'))
@@ -37,8 +37,8 @@ relatedConcepts <- function(conceptIds,
 
 	active <- sourceId <- destinationId <- NULL
 
-	conceptIds <- checkConcepts(conceptIds)
-	typeId <- checkConcepts(typeId)
+	conceptIds <- as.SNOMEDconcept(conceptIds)
+	typeId <- as.SNOMEDconcept(typeId)
 	if (reverse){
 		TOLINK <- data.table(destinationId = conceptIds, typeId = typeId)
 	} else {
@@ -83,10 +83,10 @@ relatedConcepts <- function(conceptIds,
 				reverse = reverse, recursive = TRUE,
 				active_only = active_only))
 		} else {
-			return(unique(out))
+			return(as.SNOMEDconcept(unique(out)))
 		}
 	} else {
-		return(unique(out))
+		return(as.SNOMEDconcept(unique(out)))
 	}
 }
 
@@ -105,56 +105,55 @@ relatedConcepts <- function(conceptIds,
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #'
-#' description(parents(conceptId('Heart failure')))
-#' description(children(conceptId('Heart failure')))
-#' description(ancestors(conceptId('Heart failure')))
-#' description(descendants(conceptId('Heart failure')))
+#' parents('Heart failure')
+#' children('Heart failure')
+#' ancestors('Heart failure')
+#' descendants('Heart failure')
 parents <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
-	conceptIds <- checkConcepts(unique(conceptIds))
+	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
 	parentIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = as.integer64('116680003'),
 		reverse = FALSE, recursive = FALSE, SNOMED = SNOMED, ...)
 	# Exclude originals (note cannot use setdiff function with int64)
-	parentIds[!(parentIds %in% conceptIds)]
+	return(as.SNOMEDconcept(parentIds[!(parentIds %in% conceptIds)]))
 }
 
 #' @rdname parents
 #' @export
 ancestors <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
-	conceptIds <- checkConcepts(unique(conceptIds))
+	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
 	parentIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = as.integer64('116680003'),
 		reverse = FALSE, recursive = TRUE, SNOMED = SNOMED, ...)
 	# Exclude originals (note cannot use setdiff function with int64)
-	parentIds[!(parentIds %in% conceptIds)]
+	return(as.SNOMEDconcept(parentIds[!(parentIds %in% conceptIds)]))
 }
 
 #' @rdname parents
 #' @export
 children <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
-	conceptIds <- checkConcepts(unique(conceptIds))
+	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
 	childIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = as.integer64('116680003'),
 		reverse = TRUE, recursive = FALSE, SNOMED = SNOMED, ...)
 	# Exclude originals (note cannot use setdiff function with int64)
-	childIds[!(childIds %in% conceptIds)]
+	return(as.SNOMEDconcept(childIds[!(childIds %in% conceptIds)]))
 }
 
 #' @rdname parents
 #' @export
 descendants <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
-	conceptIds <- checkConcepts(unique(conceptIds))
+	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
 	childIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = as.integer64('116680003'),
 		reverse = TRUE, recursive = TRUE, SNOMED = SNOMED, ...)
 	# Exclude originals (note cannot use setdiff function with int64)
-	childIds[!(childIds %in% conceptIds)]
+	return(as.SNOMEDconcept(childIds[!(childIds %in% conceptIds)]))
 }
-
 
 #' Whether SNOMED CT concepts have particular attributes
 #'
@@ -175,16 +174,16 @@ descendants <- function(conceptIds,
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #'
-#' hasAttributes(conceptId(c('Heart failure', 'Acute heart failure')),
-#'   conceptId(c('Heart structure', 'Heart failure')),
-#'   conceptId(c('Finding site', 'Is a')))
+#' hasAttributes(c('Heart failure', 'Acute heart failure'),
+#'   c('Heart structure', 'Heart failure'),
+#'   c('Finding site', 'Is a'))
 hasAttributes <- function(sourceIds, destinationIds,
 	typeIds = as.integer64('116680003'),
 	SNOMED = get('SNOMED', envir = globalenv()), 
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
-	TOMATCH <- data.table(sourceId = checkConcepts(sourceIds),
-		destinationId = checkConcepts(destinationIds),
-		typeId = checkConcepts(typeIds))
+	TOMATCH <- data.table(sourceId = as.SNOMEDconcept(sourceIds),
+		destinationId = as.SNOMEDconcept(destinationIds),
+		typeId = as.SNOMEDconcept(typeIds))
 	
 	# add matches and combine Boolean
 	addRelationship <- function(tablename, out){
@@ -199,7 +198,7 @@ hasAttributes <- function(sourceIds, destinationIds,
 	for (table in tables){
 		out <- addRelationship(table, out)
 	}
-	out
+	return(out)
 }
 
 #' Retrieve all attributes of a set of SNOMED CT concepts
@@ -221,7 +220,7 @@ hasAttributes <- function(sourceIds, destinationIds,
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #'
-#' attrConcept(conceptId('Heart failure'))
+#' attrConcept(as.SNOMEDconcept('Heart failure'))
 attrConcept <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), 
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
@@ -230,8 +229,8 @@ attrConcept <- function(conceptIds,
 	sourceId <- destinationId <- typeId <- relationshipGroup <- NULL
 	sourceDesc <- destinationDesc <- typeDesc <- NULL
 
-	MATCHSOURCE <- data.table(sourceId = checkConcepts(conceptIds))
-	MATCHDEST <- data.table(destinationId = checkConcepts(conceptIds))
+	MATCHSOURCE <- data.table(sourceId = as.SNOMEDconcept(conceptIds))
+	MATCHDEST <- data.table(destinationId = as.SNOMEDconcept(conceptIds))
 	OUT <- rbind(rbindlist(lapply(tables, function(table){
 			get(table, envir = SNOMED)[MATCHSOURCE, on = 'sourceId',
 			list(sourceId, destinationId, typeId, relationshipGroup)]
@@ -245,7 +244,7 @@ attrConcept <- function(conceptIds,
 	OUT[, sourceDesc := description(sourceId)$term]
 	OUT[, destinationDesc := description(destinationId)$term]
 	OUT[, typeDesc := description(typeId)$term]
-	OUT[]
+	return(OUT[])
 }
 
 #' Retrieves semantic types using the text 'tag' in the description
@@ -258,15 +257,15 @@ attrConcept <- function(conceptIds,
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #'
-#' semanticType(conceptId(c('Heart failure', 'Is a')))
+#' semanticType(as.SNOMEDconcept(c('Heart failure', 'Is a')))
 semanticType <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv())){
 	tag <- term <- NULL
 	
-	conceptIds <- checkConcepts(conceptIds)
+	conceptIds <- as.SNOMEDconcept(conceptIds)
 	DESC <- description(conceptIds, SNOMED = SNOMED)
 	DESC[, tag := sub('^.*\\(([[:alnum:]\\/\\+ ]+)\\)$', '\\1', term)]
-	DESC$tag
+	return(DESC$tag)
 }
 
 #' Retrieves closest single ancestor within a given set of SNOMED CT
@@ -303,9 +302,9 @@ semanticType <- function(conceptIds,
 #' # so neither of the parents will be chosen.
 #' # Also test out inclusion of duplicate concepts.
 #'
-#' ancestors <- simplify(
-#'   c(conceptId(original_terms), conceptId(original_terms)[3:4]),
-#'   conceptId(c('Heart failure', 'Acute heart failure',
+#' ancestors <- simplify(c(as.SNOMEDconcept(original_terms),
+#'   as.SNOMEDconcept(original_terms)[3:4]),
+#'   as.SNOMEDconcept(c('Heart failure', 'Acute heart failure',
 #'   'Cardiorenal syndrome (disorder)')))
 #' print(cbind(original_terms, description(ancestors$ancestorId)$term))
 simplify <- function(conceptIds, ancestorIds,

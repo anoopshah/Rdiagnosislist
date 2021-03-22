@@ -20,5 +20,5 @@ Retrieves semantic types using the text 'tag' in the description
 \examples{
 SNOMED <- sampleSNOMED()
 
-semanticType(conceptId(c('Heart failure', 'Is a')))
+semanticType(as.SNOMEDconcept(c('Heart failure', 'Is a')))
 }
