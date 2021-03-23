@@ -4,7 +4,7 @@
 \alias{print.SNOMEDconcept}
 \title{Display a SNOMEDconcept object with descriptions}
 \usage{
-\method{print}{SNOMEDconcept}(x, SNOMED = NULL)
+\method{print}{SNOMEDconcept}(x, ...)
 }
 \arguments{
 \item{x}{object to check}

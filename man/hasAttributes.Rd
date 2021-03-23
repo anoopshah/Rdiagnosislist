@@ -37,7 +37,7 @@ in the second list. Returns a vector of Booleans.
 \examples{
 SNOMED <- sampleSNOMED()
 
-hasAttributes(as.SNOMEDconcept(c('Heart failure', 'Acute heart failure')),
-  as.SNOMEDconcept(c('Heart structure', 'Heart failure')),
-  as.SNOMEDconcept(c('Finding site', 'Is a')))
+hasAttributes(c('Heart failure', 'Acute heart failure'),
+  c('Heart structure', 'Heart failure'),
+  c('Finding site', 'Is a'))
 }

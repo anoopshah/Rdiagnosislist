@@ -118,7 +118,11 @@ SNOMEDconcept <- function(terms, active_only = TRUE,
 #' @family SNOMEDconcept functions
 #' @export
 as.SNOMEDconcept <- function(x, ...){
-	SNOMEDconcept(x, ...)
+	if (is.SNOMEDconcept(x)){
+		return(x)
+	} else {
+		return(SNOMEDconcept(x, ...))
+	}
 }
 
 #' Check if an object is a SNOMEDconcept
@@ -150,30 +154,34 @@ is.SNOMEDconcept <- function(x){
 #' @param x object to check
 #' @return a logical vector of length one: TRUE or FALSE
 #' @family SNOMEDconcept functions
+#' @method print SNOMEDconcept
 #' @export
-print.SNOMEDconcept <- function(x, SNOMED = NULL){
-	# Default SNOMED is NULL so there is no error if SNOMED dictionary
-	# is not available
-	if (is.null(SNOMED)){
-		try(SNOMED <- get('SNOMED', envir = globalenv()))
-	}
+print.SNOMEDconcept <- function(x, ...){
+	SNOMED <- NULL
+	try(SNOMED <- get('SNOMED', envir = globalenv()), silent = TRUE)
 	
-	if (is.null(SNOMED)){
-		x <- as.SNOMEDconcept(x)
-		show(x)
-		return(invisible(x))
-	} else {
-		x <- as.SNOMEDconcept(x, SNOMED = SNOMED)
-		output <- paste0(x, ' | ', description(x, SNOMED = SNOMED)$term)
-		
-		truncateChar <- function (x, maxchar){
-			convert <- nchar(x) > maxchar
-			x[convert] <- substr(x[convert], 1, maxchar - 3) %&% "..."
-			x
+	if (length(x) > 0){
+		if (is.null(SNOMED)){
+			out <- as.SNOMEDconcept(x)
+			setattr(out, 'class', 'integer64')
+			show(out)
+			return(invisible(out))
+		} else {
+			x <- as.SNOMEDconcept(x, SNOMED = SNOMED)
+			output <- paste0(x, ' | ', description(x, SNOMED = SNOMED)$term)
+			
+			truncateChar <- function (x, maxchar){
+				convert <- nchar(x) > maxchar
+				x[convert] <- substr(x[convert], 1, maxchar - 3) %&% "..."
+				x
+			}
+			
+			show(truncateChar(output, getOption("width") - 7))
+			return(invisible(output))
 		}
-		
-		show(truncateChar(output, getOption("width") - 7))
-		return(invisible(output))
+	} else {
+		cat('No SNOMED CT concepts\n')
+		return(character(0))
 	}
 }
 

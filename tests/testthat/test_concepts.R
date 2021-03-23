@@ -19,31 +19,31 @@ context('Identifying concepts in test SNOMED dictionary')
 
 test_that('Single term matching', {
 	expect_equal(as.SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED()),
-		as.integer64('84114007'))
+		as.SNOMEDconcept('84114007'))
 })
 
 test_that('Duplicates', {
 	expect_equal(as.SNOMEDconcept(c('Heart failure', 'Weak heart'),
-		SNOMED = sampleSNOMED()), as.integer64('84114007'))
+		SNOMED = sampleSNOMED()), as.SNOMEDconcept('84114007'))
 	expect_equal(as.SNOMEDconcept(c('Heart failure', 'Systolic heart failure',
 		'Weak heart', 'Acute heart failure'), unique = FALSE,
-		SNOMED = sampleSNOMED()), as.integer64(c('84114007',
+		SNOMED = sampleSNOMED()), as.SNOMEDconcept(c('84114007',
 		'417996009', '84114007', '56675007')))
 })
 
 test_that('Regular expressions', {
 	expect_equal(as.SNOMEDconcept('hfnef|HFNEF', exact = FALSE,
-		SNOMED = sampleSNOMED()), as.integer64('446221000'))
+		SNOMED = sampleSNOMED()), as.SNOMEDconcept('446221000'))
 })
 
 test_that('Pattern matching', {
 	expect_equal(as.SNOMEDconcept('Systolic heart', exact = FALSE,
-		SNOMED = sampleSNOMED()), as.integer64('417996009'))
+		SNOMED = sampleSNOMED()), as.SNOMEDconcept('417996009'))
 })
 
 test_that('Match not found', {
 	expect_equal(as.SNOMEDconcept('Angina',
-		SNOMED = sampleSNOMED()), integer64(0))
+		SNOMED = sampleSNOMED()), as.SNOMEDconcept(0))
 })
 
 test_that('Check concept ID', {
