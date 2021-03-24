@@ -22,7 +22,8 @@ test_that('Codelist with missing descriptions', {
 })
 
 test_that('Expand and contract codelists', {
-	my_concepts <- SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED())
+	my_concepts <- as.SNOMEDconcept('Heart failure',
+		SNOMED = sampleSNOMED())
 	my_codelist <- SNOMEDcodelist(data.frame(conceptId = my_concepts,
 		include_desc = TRUE), SNOMED = sampleSNOMED())
 	expanded_codelist <- expandSNOMED(my_codelist, SNOMED = sampleSNOMED())

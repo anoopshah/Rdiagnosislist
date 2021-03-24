@@ -172,7 +172,7 @@ print.SNOMEDconcept <- function(x, ...){
 			
 			truncateChar <- function (x, maxchar){
 				convert <- nchar(x) > maxchar
-				x[convert] <- substr(x[convert], 1, maxchar - 3) %&% "..."
+				x[convert] <- paste0(substr(x[convert], 1, maxchar - 3), "...")
 				x
 			}
 			

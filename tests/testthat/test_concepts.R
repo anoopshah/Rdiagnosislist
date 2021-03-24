@@ -42,14 +42,15 @@ test_that('Pattern matching', {
 })
 
 test_that('Match not found', {
+	empty_concept <- bit64::integer64(0)
+	setattr(empty_concept, 'class', c('SNOMEDconcept', 'integer64'))
 	expect_equal(as.SNOMEDconcept('Angina',
-		SNOMED = sampleSNOMED()), as.SNOMEDconcept(0))
+		SNOMED = sampleSNOMED()), empty_concept)
 })
 
 test_that('Check concept ID', {
 	expect_equal(as.SNOMEDconcept('900000000000003001'),
 		as.SNOMEDconcept(as.integer64('900000000000003001')))
 	expect_error(as.SNOMEDconcept(12345))
-	expect_equal(as.SNOMEDconcept('Heart'), NA)
 	expect_error(as.SNOMEDconcept(list(as.integer64('1234'))))
 })

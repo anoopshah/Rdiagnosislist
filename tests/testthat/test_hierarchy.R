@@ -24,7 +24,7 @@ test_that('Attributes', {
 })
 
 test_that('Ancestors', {
-	expect_equal(ancestors(conceptId(c('Heart failure',
+	expect_equal(ancestors(c('Heart failure',
 		'Acute heart failure'), SNOMED = sampleSNOMED()),
 		SNOMED = sampleSNOMED()), as.integer64('105981003'))
 })

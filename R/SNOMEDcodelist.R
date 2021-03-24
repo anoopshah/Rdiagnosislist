@@ -12,8 +12,12 @@
 #' as.SNOMEDcodelist converts its argument into a SNOMEDcodelist but
 #'   leaves it unchanged if it is already a SNOMEDcodelist.
 #'
-#' @param x data.frame or data.table to convert to a SNOMEDcodelist,
-#'   with a column named 'conceptId', OR a vector of SNOMED concept IDs
+#' @param x vector of SNOMED CT concept IDs, something which can
+#'   be coerced to a SNOMEDconcept object, or a data.frame with
+#'   a column 'conceptId' containing SNOMED CT concept concept IDs
+#'   in integer64 or text format. 
+#' @param include_desc Boolean vector stating whether descendants
+#'   are included, recycled if necessary. Default = TRUE
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param ... other arguments to pass to SNOMEDcodelist
 #' @return An object of class 'SNOMEDcodelist'
@@ -27,14 +31,17 @@
 #' SNOMEDcodelist(data.frame(conceptId = my_concepts))
 #' as.SNOMEDcodelist(data.frame(conceptId = my_concepts,
 #'   include_desc = TRUE))
-SNOMEDcodelist <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
-	include_desc <- term <- NULL
+SNOMEDcodelist <- function(x, include_desc = TRUE,
+	SNOMED = get('SNOMED', envir = globalenv())){
+	term <- NULL
 	if (!is.list(x)){
-		conceptIds <- unique(as.SNOMEDconcept(x))
-		conceptIds <- conceptIds[!is.na(conceptIds)] # remove any missing
+		conceptIds <- unique(as.SNOMEDconcept(x, SNOMED = SNOMED))
+		conceptIds <- conceptIds[!is.na(conceptIds)]
+		# remove any missing concepts
 		message(paste0('Converting ', length(conceptIds),
 			' concept(s) to a codelist'))
-		x <- data.table(conceptId = conceptIds)
+		x <- data.table(conceptId = conceptIds,
+			include_desc = include_desc)
 	}
 	if (!is.data.frame(x)){
 		stop('x must be a data.frame')
@@ -43,7 +50,7 @@ SNOMEDcodelist <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 	if (!('conceptId' %in% names(x))){
 		stop('the SNOMED conceptId must be in a column named conceptId')
 	}
-	x[, conceptId := as.SNOMEDconcept(conceptId)]
+	x[, conceptId := as.SNOMEDconcept(conceptId, SNOMED = SNOMED)]
 	if ('include_desc' %in% names(x)){
 		x[, include_desc := as.logical(include_desc)]
 		setattr(x, 'Expanded', FALSE)
@@ -58,6 +65,14 @@ SNOMEDcodelist <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 	class(x) <- c('SNOMEDcodelist', 'data.table', 'data.frame')
 	setkey(x, conceptId)
 	x
+}
+
+#' @rdname SNOMEDconcept
+#' @family SNOMEDconcept functions
+#' @export
+as.data.frame.SNOMEDconcept <- function(x, ...){
+	setattr(x, 'class', 'integer64')
+	as.data.frame(x, ...)
 }
 
 #' @rdname SNOMEDcodelist
