@@ -24,9 +24,9 @@ test_that('Attributes', {
 })
 
 test_that('Ancestors', {
-	expect_equal(ancestors(c('Heart failure',
+	expect_equal(ancestors(as.SNOMEDconcept(c('Heart failure',
 		'Acute heart failure'), SNOMED = sampleSNOMED()),
-		SNOMED = sampleSNOMED()), as.integer64('105981003'))
+		SNOMED = sampleSNOMED()), as.SNOMEDconcept('105981003'))
 })
 
 test_that('Semantic types', {
@@ -58,7 +58,7 @@ test_that('Simplify - find closest single ancestor', {
 		as.SNOMEDconcept(possible_ancestors, SNOMED = sampleSNOMED()),
 		SNOMED = sampleSNOMED())
 	expect_equal(found_ancestors$ancestorId,
-		conceptId(expected_ancestors, unique = FALSE,
+		as.SNOMEDconcept(expected_ancestors, unique = FALSE,
 		SNOMED = sampleSNOMED())[c(1:4, 3:4)])
 })
 

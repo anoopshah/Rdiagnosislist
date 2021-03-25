@@ -29,7 +29,7 @@ test_that('Test exporting and reloading sample SNOMED dictionary', {
 })
 
 test_that('Test exporting and reloading multiple files', {
-	TEST <-sampleSNOMED()
+	TEST <- sampleSNOMED()
 	# Create temporary directories
 	dir.create(paste0(tempdir(), '/1'))
 	dir.create(paste0(tempdir(), '/2'))
