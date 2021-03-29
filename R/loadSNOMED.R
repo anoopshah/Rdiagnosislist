@@ -39,7 +39,8 @@ loadSNOMED <- function(folders, active_only = TRUE){
 		used <- rep(FALSE, length(files))
 		for (filename in c('Concept', 'Description', 'StatedRelationship',
 			'Relationship')){
-			touse <- which(files %like% filename & used == FALSE)
+			touse <- which(files %like% paste0('_', filename, '_')
+				& used == FALSE)
 			used[touse] <- TRUE
 			if (length(touse == 1)){
 				message('Attempting to load ', files[touse])
@@ -87,9 +88,8 @@ loadSNOMED <- function(folders, active_only = TRUE){
 							message('  Limiting to active rows (', 
 								sum(TEMP$active), '/', nrow(TEMP), ').')
 							TEMP <- TEMP[active == TRUE]
-						} else if (
-							all(as.integer64(SNOMED$RELATIONSHIP$active))
-							%in% as.integer64(c(0, 1))){
+						} else if (all(bit64::as.integer64(TEMP$active)) %in%
+								bit64::as.integer64(c(0, 1))){
 							message('  Converting active to logical.')
 							TEMP[, .temp := as.logical(active)]
 							TEMP[, active := NULL]
@@ -101,17 +101,21 @@ loadSNOMED <- function(folders, active_only = TRUE){
 					# Return the table or append to another partial table
 					if (append){
 						message('  Attempting to append to ', toupper(filename))
-						TEMP2 <- get(toupper(filename), envir = SNOMED)
-						if (nrow(TEMP) == 0 & nrow(TEMP2) == 0){
-							stop('Tables are empty')
-						} else if (nrow(TEMP) == 0 & nrow(TEMP2) > 0){
-							message('  No data in this file, keeping original.')
-							TEMP <- TEMP2
-						} else if (nrow(TEMP) > 0 & nrow(TEMP2) == 0){
-							message('  No data in original, replacing with new.')
+						EXISTING <- NULL
+						try(EXISTING <- get(toupper(filename),
+							envir = SNOMED, inherits = FALSE))
+						if (is.null(EXISTING)){
+							message('  No table in original, using new.')
+						} else if (nrow(TEMP) == 0 & nrow(EXISTING) == 0){
+							warning('  No data in original or new file.')
+						} else if (nrow(TEMP) == 0 & nrow(EXISTING) > 0){
+							message('  No data in new file, keeping original.')
+							TEMP <- EXISTING
+						} else if (nrow(TEMP) > 0 & nrow(EXISTING) == 0){
+							message('  No data in original, using new.')
 						} else {
 							existingN <- nrow(TEMP)
-							try(TEMP <- rbind(TEMP, TEMP2, use.names = TRUE, fill = TRUE))
+							try(TEMP <- rbind(TEMP, EXISTING, use.names = TRUE, fill = TRUE))
 							if (nrow(TEMP) > existingN){
 								message('  Successfully appended.')
 							}
@@ -121,8 +125,12 @@ loadSNOMED <- function(folders, active_only = TRUE){
 					}
 					assign(toupper(filename), value = TEMP, envir = SNOMED)
 				}
-			} else {
-				warning('Unable to identify correct file from ', touse)
+			} else if (length(touse) > 1) {
+				warning('Unable to identify correct file for ',
+					filename, ' from: ',
+					paste(files[touse], collapse = ', '))
+			} else if (length(touse) == 0){
+				message('No files matching ', filename)
 			}
 		}
 		
@@ -157,26 +165,26 @@ createSNOMEDindices <- function(SNOMED){
 	id <- active <- conceptId <- typeId <- term <- active <- NULL
 	sourceId <- destinationId <- NULL
 	
-	setindex(SNOMED$CONCEPT, id)
-	setindex(SNOMED$CONCEPT, active)
+	data.table::setindex(SNOMED$CONCEPT, id)
+	data.table::setindex(SNOMED$CONCEPT, active)
 	
-	setindex(SNOMED$DESCRIPTION, id)
-	setindex(SNOMED$DESCRIPTION, conceptId)
-	setindex(SNOMED$DESCRIPTION, typeId)
-	setindex(SNOMED$DESCRIPTION, term)
-	setindex(SNOMED$DESCRIPTION, active)
+	data.table::setindex(SNOMED$DESCRIPTION, id)
+	data.table::setindex(SNOMED$DESCRIPTION, conceptId)
+	data.table::setindex(SNOMED$DESCRIPTION, typeId)
+	data.table::setindex(SNOMED$DESCRIPTION, term)
+	data.table::setindex(SNOMED$DESCRIPTION, active)
 
-	setindex(SNOMED$STATEDRELATIONSHIP, id)
-	setindex(SNOMED$STATEDRELATIONSHIP, sourceId)
-	setindex(SNOMED$STATEDRELATIONSHIP, destinationId)
-	setindex(SNOMED$STATEDRELATIONSHIP, typeId)
-	setindex(SNOMED$STATEDRELATIONSHIP, active)
+	data.table::setindex(SNOMED$STATEDRELATIONSHIP, id)
+	data.table::setindex(SNOMED$STATEDRELATIONSHIP, sourceId)
+	data.table::setindex(SNOMED$STATEDRELATIONSHIP, destinationId)
+	data.table::setindex(SNOMED$STATEDRELATIONSHIP, typeId)
+	data.table::setindex(SNOMED$STATEDRELATIONSHIP, active)
 
-	setindex(SNOMED$RELATIONSHIP, id)
-	setindex(SNOMED$RELATIONSHIP, sourceId)
-	setindex(SNOMED$RELATIONSHIP, destinationId)
-	setindex(SNOMED$RELATIONSHIP, typeId)
-	setindex(SNOMED$RELATIONSHIP, active)
+	data.table::setindex(SNOMED$RELATIONSHIP, id)
+	data.table::setindex(SNOMED$RELATIONSHIP, sourceId)
+	data.table::setindex(SNOMED$RELATIONSHIP, destinationId)
+	data.table::setindex(SNOMED$RELATIONSHIP, typeId)
+	data.table::setindex(SNOMED$RELATIONSHIP, active)
 	return(SNOMED)
 }
 

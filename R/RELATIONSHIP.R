@@ -17,7 +17,7 @@
 #' @details
 #' \itemize{
 #'   \item{id}{ integer64: ID of the relationship record (primary key)} 
-#'   \item{active}{ integer: whether this concept is currently active}
+#'   \item{active}{ logical: whether this concept is currently active}
 #'   \item{moduleId}{ integer64: class of SNOMED CT concept (whether it
 #'     is used for recording information or is a metadata concept)}
 #'   \item{sourceId}{ integer64: source SNOMED CT concept for the relationship}

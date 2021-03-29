@@ -26,7 +26,7 @@
 #'     900000000000017005 = Whole term case sensitive,
 #'     900000000000448009 = Whole term case insensitive}
 #'   \item{effectiveTime}{ IDate: when the concept became active}
-#'   \item{active}{ integer: whether this concept is currently active}
+#'   \item{active}{ logical: whether this concept is currently active}
 #' }
 #' 
 #' @examples

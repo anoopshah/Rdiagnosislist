@@ -60,21 +60,20 @@ SNOMEDconcept <- function(terms, active_only = TRUE,
 	active <- NULL
 	
 	if ('integer64' %in% class(terms)){
-		# correct format
+		# correct format for a SNOMED CT concept ID
 		out <- terms
-		setattr(terms, 'class', c('SNOMEDconcept', 'integer64'))
-		return(terms)
+		data.table::setattr(out, 'class', c('SNOMEDconcept', 'integer64'))
+		return(out)
 	} else if ('character' %in% class(terms)){
-		out <- terms
 		if (all(grepl('^[0-9]+$', terms))){
 			# concept ID in character format 
-			terms <- as.integer64(terms)
-			setattr(terms, 'class', c('SNOMEDconcept', 'integer64'))
-			return(terms)
+			out <- bit64::as.integer64(terms)
+			data.table::setattr(out, 'class', c('SNOMEDconcept', 'integer64'))
+			return(out)
 		}
 	} else {
-		stop('conceptId must be supplied in character or integer64 format; ',
-			class(conceptIds), ' is not acceptable.')
+		stop('term to match must be character or integer64; ',
+			class(terms), ' is not acceptable.')
 	}
 
 	# Try to match a term description
@@ -86,7 +85,11 @@ SNOMEDconcept <- function(terms, active_only = TRUE,
 		for (x in terms){
 			matched <- matched | grepl(x, SNOMED$DESCRIPTION$term)
 		}
-		MATCHED <- SNOMED$DESCRIPTION[matched, list(active, conceptId)]
+		if (inactiveIncluded(SNOMED)){
+			MATCHED <- SNOMED$DESCRIPTION[matched, list(active, conceptId)]
+		} else {
+			MATCHED <- SNOMED$DESCRIPTION[matched, list(conceptId)]
+		}
 	}
 	
 	# Limit to active descriptions if needed
@@ -96,12 +99,15 @@ SNOMEDconcept <- function(terms, active_only = TRUE,
 	
 	# Limit to active concepts
 	if (active_only){
-		if (unique){
-			out <- unique(SNOMED$CONCEPT[MATCHED[, list(id = conceptId)], on = 'id'][
-				active == TRUE]$id)
+		if (inactiveIncluded(SNOMED)){
+			out <- unique(SNOMED$CONCEPT[MATCHED[, list(id = conceptId)],
+				on = 'id'][ active == TRUE]$id)
 		} else {
-			out <- SNOMED$CONCEPT[MATCHED[, list(id = conceptId)], on = 'id'][
-				active == TRUE]$id
+			out <- unique(SNOMED$CONCEPT[MATCHED[, list(id = conceptId)],
+				on = 'id']$id)
+		}
+		if (unique){
+			out <- unique(out)
 		}
 	} else {
 		if (unique){
@@ -110,7 +116,7 @@ SNOMEDconcept <- function(terms, active_only = TRUE,
 			out <- MATCHED$conceptId
 		}
 	}
-	setattr(out, 'class', c('SNOMEDconcept', 'integer64'))
+	data.table::setattr(out, 'class', c('SNOMEDconcept', 'integer64'))
 	return(out)
 }
 
@@ -163,7 +169,7 @@ print.SNOMEDconcept <- function(x, ...){
 	if (length(x) > 0){
 		if (is.null(SNOMED)){
 			out <- as.SNOMEDconcept(x)
-			setattr(out, 'class', 'integer64')
+			data.table::setattr(out, 'class', 'integer64')
 			show(out)
 			return(invisible(out))
 		} else {
@@ -228,7 +234,7 @@ description <- function(conceptIds,
 	}
 	# Restore original order
 	OUT <- OUT[CONCEPTS, on = 'conceptId']
-	setkey(OUT, order)
+	data.table::setkey(OUT, order)
 	OUT[, order := NULL]
 	# Remove inactive terms if necessary
 	if (active_only){

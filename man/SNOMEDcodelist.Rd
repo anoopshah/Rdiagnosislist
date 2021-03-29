@@ -5,13 +5,22 @@
 \alias{as.SNOMEDcodelist}
 \title{Convert a data.frame to a SNOMEDcodelist object}
 \usage{
-SNOMEDcodelist(x, SNOMED = get("SNOMED", envir = globalenv()))
+SNOMEDcodelist(
+  x,
+  include_desc = TRUE,
+  SNOMED = get("SNOMED", envir = globalenv())
+)
 
 as.SNOMEDcodelist(x, ...)
 }
 \arguments{
-\item{x}{data.frame or data.table to convert to a SNOMEDcodelist,
-with a column named 'conceptId', OR a vector of SNOMED concept IDs}
+\item{x}{vector of SNOMED CT concept IDs, something which can
+be coerced to a SNOMEDconcept object, or a data.frame with
+a column 'conceptId' containing SNOMED CT concept concept IDs
+in integer64 or text format.}
+
+\item{include_desc}{Boolean vector stating whether descendants
+are included, recycled if necessary. Default = TRUE}
 
 \item{SNOMED}{environment containing a SNOMED dictionary}
 

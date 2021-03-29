@@ -19,7 +19,7 @@ the class SNOMEDconcept and is a vector of 64-bit integers.
 }
 \seealso{
 Other SNOMEDconcept functions: 
-\code{\link{SNOMEDconcept}()},
+\code{\link{as.data.frame.SNOMEDconcept}()},
 \code{\link{is.SNOMEDconcept}()}
 }
 \concept{SNOMEDconcept functions}
