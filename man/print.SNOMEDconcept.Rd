@@ -7,10 +7,12 @@
 \method{print}{SNOMEDconcept}(x, ...)
 }
 \arguments{
-\item{x}{object to check}
+\item{x}{SNOMEDconcept object, or something that can be
+coerced to one}
 }
 \value{
-a logical vector of length one: TRUE or FALSE
+invisibly returns a character vector of the SNOMED CT
+  concepts with descriptions separated by pipe (|)
 }
 \description{
 SNOMEDconcept is an S3 class for vectors of SNOMED concept IDs
@@ -20,6 +22,9 @@ the class SNOMEDconcept and is a vector of 64-bit integers.
 \seealso{
 Other SNOMEDconcept functions: 
 \code{\link{as.data.frame.SNOMEDconcept}()},
-\code{\link{is.SNOMEDconcept}()}
+\code{\link{c.SNOMEDconcept}()},
+\code{\link{is.SNOMEDconcept}()},
+\code{\link{union.SNOMEDconcept}()},
+\code{\link{unique.SNOMEDconcept}()}
 }
 \concept{SNOMEDconcept functions}

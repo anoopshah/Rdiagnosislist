@@ -62,13 +62,13 @@ SNOMEDconcept <- function(terms, active_only = TRUE,
 	if ('integer64' %in% class(terms)){
 		# correct format for a SNOMED CT concept ID
 		out <- terms
-		data.table::setattr(out, 'class', c('SNOMEDconcept', 'integer64'))
+		class(out) <- c('SNOMEDconcept', 'integer64')
 		return(out)
 	} else if ('character' %in% class(terms)){
 		if (all(grepl('^[0-9]+$', terms))){
 			# concept ID in character format 
 			out <- bit64::as.integer64(terms)
-			data.table::setattr(out, 'class', c('SNOMEDconcept', 'integer64'))
+			class(out) <- c('SNOMEDconcept', 'integer64')
 			return(out)
 		}
 	} else {
@@ -78,8 +78,13 @@ SNOMEDconcept <- function(terms, active_only = TRUE,
 
 	# Try to match a term description
 	if (exact_match){
-		MATCHED <- SNOMED$DESCRIPTION[data.table(term = terms),
-			list(active, conceptId), on = 'term']
+		if (inactiveIncluded(SNOMED)){
+			MATCHED <- SNOMED$DESCRIPTION[data.table(term = terms),
+				list(active, conceptId), on = 'term']
+		} else {
+			MATCHED <- SNOMED$DESCRIPTION[data.table(term = terms),
+				list(conceptId), on = 'term']
+		}
 	} else {
 		matched <- rep(FALSE, nrow(SNOMED$DESCRIPTION))
 		for (x in terms){
@@ -100,8 +105,8 @@ SNOMEDconcept <- function(terms, active_only = TRUE,
 	# Limit to active concepts
 	if (active_only){
 		if (inactiveIncluded(SNOMED)){
-			out <- unique(SNOMED$CONCEPT[MATCHED[, list(id = conceptId)],
-				on = 'id'][ active == TRUE]$id)
+			out <- SNOMED$CONCEPT[MATCHED[, list(id = conceptId)],
+				on = 'id'][active == TRUE]$id
 		} else {
 			out <- unique(SNOMED$CONCEPT[MATCHED[, list(id = conceptId)],
 				on = 'id']$id)
@@ -116,7 +121,7 @@ SNOMEDconcept <- function(terms, active_only = TRUE,
 			out <- MATCHED$conceptId
 		}
 	}
-	data.table::setattr(out, 'class', c('SNOMEDconcept', 'integer64'))
+	class(out) <- c('SNOMEDconcept', 'integer64')
 	return(out)
 }
 
@@ -156,9 +161,9 @@ is.SNOMEDconcept <- function(x){
 #' the class SNOMEDconcept and is a vector of 64-bit integers.
 #'
 #' @param x SNOMEDconcept object, or something that can be
-#'    coerced to one
-#' @param x object to check
-#' @return a logical vector of length one: TRUE or FALSE
+#'   coerced to one
+#' @return invisibly returns a character vector of the SNOMED CT
+#'   concepts with descriptions separated by pipe (|)
 #' @family SNOMEDconcept functions
 #' @method print SNOMEDconcept
 #' @export
@@ -169,7 +174,7 @@ print.SNOMEDconcept <- function(x, ...){
 	if (length(x) > 0){
 		if (is.null(SNOMED)){
 			out <- as.SNOMEDconcept(x)
-			data.table::setattr(out, 'class', 'integer64')
+			class(out) <- 'integer64'
 			show(out)
 			return(invisible(out))
 		} else {
@@ -246,4 +251,142 @@ description <- function(conceptIds,
 	OUT[]
 }
 
+
+#' Set operations for SNOMEDconcept vectors
+#'
+#' The default functions in the base package do not handle integer64
+#' vectors correctly, so this package also provides new generic functions
+#' for union, intersect and setdiff, which enable the appropriate
+#' object-specific function to be called according to the class of the
+#' vector. This means that SNOMEDconcept vectors will remain as 
+#' SNOMEDconcept vectors when these functions are used.
+#'
+#' @param x SNOMEDconcept vector
+#' @param y SNOMEDconcept vector, or an object that can be coerced
+#    to one by as.SNOMEDconcept
+#' @return an integer64 vector of SNOMEDconcept class
+#' @export
+#' @examples
+#' sys_acute <- SNOMEDconcept(c('Systolic heart failure',
+#'   'Acute heart failure'), SNOMED = sampleSNOMED())
+#' acute_left_right <- SNOMEDconcept(c('Acute heart failure',
+#'   'Left heart failure', 'Right heart failure'),
+#'   SNOMED = sampleSNOMED())
+#' union(sys_acute, acute_left_right) 
+#' intersect(sys_acute, acute_left_right)
+#' setdiff(sys_acute, acute_left_right)
+union.SNOMEDconcept <- function(x, y){
+	out <- unique(c(x, as.SNOMEDconcept(y)))
+	class(out) <- c('SNOMEDconcept', 'integer64')
+	out
+}
+
+#' @rdname union.SNOMEDconcept
+#' @family SNOMEDconcept functions
+#' @export
+union <- function (x, y){
+	UseMethod('union', x)
+}
+
+#' @rdname union.SNOMEDconcept
+#' @family SNOMEDconcept functions
+#' @method union default
+#' @export
+union.default <- function(x, y){
+	base::union(x, y)
+}
+
+#' @rdname union.SNOMEDconcept
+#' @family SNOMEDconcept functions
+#' @method intersect SNOMEDconcept
+#' @export
+intersect.SNOMEDconcept <- function(x, y){
+	out <- unique(x[x %in% as.SNOMEDconcept(y)])
+	class(out) <- c('SNOMEDconcept', 'integer64')
+	out
+}
+
+#' @rdname union.SNOMEDconcept
+#' @family SNOMEDconcept functions
+#' @export
+intersect <- function (x, y){
+	UseMethod('intersect', x)
+}
+
+#' @rdname union.SNOMEDconcept
+#' @family SNOMEDconcept functions
+#' @method intersect default
+#' @export
+intersect.default <- function(x, y){
+	base::intersect(x, y)
+}
+
+#' @rdname union.SNOMEDconcept
+#' @family SNOMEDconcept functions
+#' @method setdiff SNOMEDconcept
+#' @export
+setdiff.SNOMEDconcept <- function(x, y){
+	out <- x[!(x %in% as.SNOMEDconcept(y))]
+	class(out) <- c('SNOMEDconcept', 'integer64')
+	out
+}
+
+#' @rdname union.SNOMEDconcept
+#' @family SNOMEDconcept functions
+#' @export
+setdiff <- function(x, y){
+	UseMethod('setdiff', x)
+}
+
+#' @rdname union.SNOMEDconcept
+#' @family SNOMEDconcept functions
+#' @method setdiff default
+#' @export
+setdiff.default <- function(x, y){
+	base::setdiff(x, y)
+}
+
+#' Concatenate vectors of SNOMED CT concepts
+#'
+#' SNOMEDconcept is an S3 class for vectors of SNOMED concept IDs
+#' as 64-bit integers. This function concatenates two or more
+#' SNOMEDconcept vectors.
+#'
+#' @param ... SNOMEDconcept vectors
+#' @return concatenation of vectors
+#' @family SNOMEDconcept functions
+#' @method c SNOMEDconcept
+#' @export
+#' @examples
+#' hf <- SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED())
+#' hf2 <- c(hf, hf)
+c.SNOMEDconcept <- function(...){
+	out <- bit64::c.integer64(...)
+	if (bit64::is.integer64(out)){
+		class(out) <- c('SNOMEDconcept', 'integer64')
+	}
+	out
+}
+
+#' Unique vector of SNOMED CT concepts
+#'
+#' SNOMEDconcept is an S3 class for vectors of SNOMED concept IDs
+#' as 64-bit integers. This function returns a vector containing only
+#' unique SNOMEDconcept values.
+#'
+#' @param x SNOMEDconcept vector
+#' @return SNOMEDconcept vector with duplicates removed
+#' @family SNOMEDconcept functions
+#' @method unique SNOMEDconcept
+#' @export
+#' @examples
+#' hf <- SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED())
+#' hf2 <- c(hf, hf)
+#' unique(hf2)
+unique.SNOMEDconcept <- function(x, ...){
+	class(x) <- 'integer64'
+	out <- bit64::unique.integer64(x, ...)
+	class(out) <- c('SNOMEDconcept', 'integer64')
+	out
+}
 

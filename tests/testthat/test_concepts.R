@@ -54,3 +54,50 @@ test_that('Check concept ID', {
 	expect_error(as.SNOMEDconcept(12345))
 	expect_error(as.SNOMEDconcept(list(as.integer64('1234'))))
 })
+
+test_that('Generic set functions for strings', {
+	sys_acute <- c('sys', 'acute')
+	acute_left_right <- c('acute', 'left', 'right')
+	expect_equal(union(sys_acute, acute_left_right),
+		c('sys', 'acute', 'left', 'right'))
+	expect_equal(intersect(sys_acute, acute_left_right), 'acute')
+	expect_equal(setdiff(sys_acute, acute_left_right), 'sys')
+})
+
+test_that('Generic set functions for numbers', {
+	sys_acute <- c(1, 2, 3, 4, 4)
+	acute_left_right <- c(3, 5, 6, 7, 7, 8)
+	expect_equal(union(sys_acute, acute_left_right), 1:8)
+	expect_equal(union(sys_acute, acute_left_right),
+		base::union(sys_acute, acute_left_right))
+	expect_equal(intersect(sys_acute, acute_left_right), 3)
+	expect_equal(intersect(sys_acute, acute_left_right),
+		base::intersect(sys_acute, acute_left_right))
+	expect_equal(setdiff(sys_acute, acute_left_right), c(1, 2, 4))
+	expect_equal(setdiff(sys_acute, acute_left_right),
+		base::setdiff(sys_acute, acute_left_right))
+})
+
+test_that('SNOMEDconcept set functions', {
+	sys_acute <- SNOMEDconcept(c('Systolic heart failure',
+		'Acute heart failure'), SNOMED = sampleSNOMED())
+	acute_left_right <- SNOMEDconcept(c('Acute heart failure',
+		'Left heart failure', 'Right heart failure'),
+		SNOMED = sampleSNOMED())
+	expect_equal(union(sys_acute, acute_left_right),
+		SNOMEDconcept(c('Systolic heart failure', 'Acute heart failure',
+		'Left heart failure', 'Right heart failure'),
+		SNOMED = sampleSNOMED()))
+	expect_equal(intersect(sys_acute, acute_left_right),
+		SNOMEDconcept('Acute heart failure', SNOMED = sampleSNOMED()))
+	expect_equal(setdiff(sys_acute, acute_left_right),
+		SNOMEDconcept('Systolic heart failure', SNOMED = sampleSNOMED()))
+})
+
+test_that('Concatenate SNOMEDconcept objects', {
+	hf <- SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED())
+	hf2 <- rep(bit64::as.integer64('84114007'), 2)
+	class(hf2) <- c('SNOMEDconcept', 'integer64')
+	expect_equal(unique(c(hf, hf)), hf)
+	expect_equal(c(hf, hf), hf2)
+})

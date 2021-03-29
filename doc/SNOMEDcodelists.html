@@ -163,7 +163,7 @@ hr {
 </head>
 
 <body>
-<p>This package is designed to make it easier to use SNOMED CT in R, including searching the SNOMED CT dictionary and relations, and creating and manipulaing SNOMED CT codelists.</p>
+<p>This package is designed to make it easier to use SNOMED CT in R, including searching the SNOMED CT dictionary and relations, and creating and manipulating SNOMED CT codelists.</p>
 
 <h2>Basic introduction to SNOMED CT</h2>
 
@@ -209,7 +209,7 @@ TEST &lt;- sampleSNOMED()
 for (table in c(&#39;Concept&#39;, &#39;Description&#39;, &#39;Relationship&#39;,
   &#39;StatedRelationship&#39;)){
   write.table(get(toupper(table), envir = TEST), paste0(tempdir(),
-    &#39;/&#39;, table, &#39;.txt&#39;), row.names = FALSE, sep = &#39;\t&#39;, quote = FALSE)
+    &#39;/sct_&#39;, table, &#39;_test.txt&#39;), row.names = FALSE, sep = &#39;\t&#39;, quote = FALSE)
 }
 
 # Import using the loadSNOMED function
@@ -220,79 +220,84 @@ SNOMED &lt;- loadSNOMED(tempdir(), active_only = FALSE)
 
 <p>SNOMED CT concept IDs are long integers which need to be represented using the integer64 data type in R. This is not available in base R but is provided in the bit64 package which is automatically loaded with this package. They must not be stored as short integer or numeric values because they cannot be stored precisely and may be incorrect.</p>
 
-<p>This package makes it easier to use SNOMED CT concept IDs because they can be supplied as character vectors and are automatically converted to integer64 by the relevant functions.</p>
+<p>This package makes it easier to use SNOMED CT concept IDs because they can be supplied as character vectors and converted to &#39;SNOMEDconcept&#39; vectors. The SNOMEDconcept class is a 64-bit integer class which can faithfully store SNOMED CT concept IDs, and is more memory-efficient than storing them as character vectors. If the SNOMED dictionary is available in the R environment, the concepts are displayed with their description in the default print method.</p>
 
-<p>The function &#39;conceptId&#39; can be used to retrieve the SNOMED concept ID matching a description.</p>
+<p>The function &#39;as.SNOMEDconcept&#39; can be used to retrieve the SNOMED concept ID matching a description. This function also converts SNOMED CT concept IDs in other formats (numeric, 64-bit integer or character) into SNOMEDconcept objects.</p>
 
 <pre><code># Make sure the SNOMED environment is available and contains the SNOMED dictionary
-conceptId(&#39;Heart failure&#39;, SNOMED = SNOMED)
+as.SNOMEDconcept(&#39;Heart failure&#39;, SNOMED = SNOMED)
 
 # To use the sample SNOMED dictionary for testing
-conceptId(&#39;Heart failure&#39;, SNOMED = sampleSNOMED())
+as.SNOMEDconcept(&#39;Heart failure&#39;, SNOMED = sampleSNOMED())
 
 # If an object named SNOMED containing the SNOMED dictionary is available
 # in the current environment, it does not need to be stated in the
 # function call
-conceptId(&#39;Heart failure&#39;)
+SNOMED &lt;- sampleSNOMED()
+as.SNOMEDconcept(&#39;Heart failure&#39;)
 
 # The argument &#39;exact&#39; can be used to specify whether a regular expression
 # search should be done, e.g.
-conceptId(&#39;Heart f&#39;, exact = FALSE)
+as.SNOMEDconcept(&#39;Heart f&#39;, exact = FALSE)
 
 # The &#39;description&#39; function can be used to return the descriptions of
 # the concepts found. It returns a data.table with the fully specified 
-# name for each term
-description(conceptId(&#39;Heart f&#39;, exact = FALSE))
+# name for each term.
+description(as.SNOMEDconcept(&#39;Heart f&#39;, exact = FALSE))
 
 # The &#39;semantic type&#39; function returns the semantic type of the concept
 # from the Fully Specified Name
-semanticType(conceptId(&#39;Heart failure&#39;))
+semanticType(as.SNOMEDconcept(&#39;Heart failure&#39;))
+
+# Functions which expect a SNOMEDconcept object, such as semanticType,
+# will automatically convert their argument to SNOMEDconcept using the
+# function as.SNOMEDconcept
+semanticType(&#39;Heart failure&#39;)
 </code></pre>
 
-<p>Some of the base R functions such as &#39;setdiff&#39;, &#39;unlist&#39;, &#39;intersect&#39; and &#39;union&#39; do not work with integer64 data. However, the functions &#39;c&#39;, &#39;unique&#39; and &#39;%in%&#39; do work correctly, and can be used to construct set operations as needed.</p>
+<h2>Set operations using SNOMEDconcept</h2>
 
-<pre><code>SNOMED &lt;- sampleSNOMED()
+<p>This package provides versions of the set functions &#39;setdiff&#39;, &#39;intersect&#39; and &#39;union&#39; which work with SNOMEDconcept objects.</p>
 
-# A list of concepts with a description containing the term &#39;heart&#39;
+<pre><code># A list of concepts with a description containing the term &#39;heart&#39;
 # (not that all synonyms are searched, not just the Fully Specified Names)
-heart &lt;- conceptId(&#39;Heart|heart&#39;, exact = FALSE, SNOMED = sampleSNOMED())
+heart &lt;- as.SNOMEDconcept(&#39;Heart|heart&#39;, exact = FALSE, SNOMED = sampleSNOMED())
 
 # A list of concepts containing the term &#39;fail&#39;
-fail &lt;- conceptId(&#39;Fail|fail&#39;, exact = FALSE, SNOMED = sampleSNOMED())
+fail &lt;- as.SNOMEDconcept(&#39;Fail|fail&#39;, exact = FALSE, SNOMED = sampleSNOMED())
 
-# Concepts with heart and fail (cannot use intersect)
-description(heart[heart %in% fail])
+# Concepts with heart and fail
+intersect(heart, fail)
 
-# Heart without fail (cannot use setdiff)
-description(heart[!heart %in% fail])
+# Concepts with heart and not fail
+setdiff(heart, fail)
 
-# Heart or fail (cannot use union)
-unique(c(heart, fail))
+# Concepts with heart or fail
+union(heart, fail)
 </code></pre>
 
 <p>These set operations can be used to create lists of SNOMED CT concepts of interest, similar to the way researchers use Read codes. However, SNOMED CT also allows the use of hierarchies and relationships to locate concepts by their meaning</p>
 
 <h2>Using relationships between SNOMED CT concepts</h2>
 
-<p>The most important relationship is the &#39;Is a&#39; relationship, also known as parent and child. This makes it easy to find all specific concepts that are a subtype of a more general concept.</p>
+<p>The most important relationship is the &#39;Is a&#39; relationship, also known as parent and child. This makes it easy to find all specific concepts that are a subtype of a more general concept. The relationship functions (parents, ancestors, children and descendants) all take a SNOMEDconcept object as input, or attempt to convert their argument to SNOMEDconcept.</p>
 
 <pre><code>SNOMED &lt;- sampleSNOMED()
 
-# Parents
-description(parents(conceptId(&#39;Acute heart failure&#39;)))
+# Parents (immediate ancestors)
+parents(&#39;Acute heart failure&#39;)
 
 # Ancestors
-description(ancestors(conceptId(&#39;Acute heart failure&#39;)))
+ancestors(&#39;Acute heart failure&#39;)
 
-# Children
-description(children(conceptId(&#39;Acute heart failure&#39;)))
+# Children (immediate descendants)
+children(&#39;Acute heart failure&#39;)
 
 # Descendants
-description(descendants(conceptId(&#39;Acute heart failure&#39;)))
-
-# List all the attributes of a concept
-print(attrConcept(conceptId(&#39;Heart failure&#39;)))
+descendants(&#39;Acute heart failure&#39;)
 </code></pre>
+
+<h2>Attributes of SNOMED CT concepts</h2>
 
 <p>The &#39;hasAttributes&#39; function can be used to find terms with particular attributes. For example, to find all disorders with a finding site of the heart, we can use the relatedConcepts function, which retrieves relationships from the RELATIONSHIP and STATEDRELATIONSHIP tables. </p>
 
@@ -300,13 +305,14 @@ print(attrConcept(conceptId(&#39;Heart failure&#39;)))
 
 <pre><code>SNOMED &lt;- sampleSNOMED()
 
+# List all the attributes of a concept
+print(attrConcept(&#39;Heart failure&#39;))
+
 # &#39;Finding site&#39; of a particular disorder
-description(relatedConcepts(conceptId(&#39;Heart failure&#39;),
-    conceptId(&#39;Finding site&#39;)))
+relatedConcepts(&#39;Heart failure&#39;,&#39;Finding site&#39;)
 
 # Disorders with a &#39;Finding site&#39; of &#39;Heart&#39;
-description(relatedConcepts(conceptId(&#39;Heart&#39;),
-    conceptId(&#39;Finding site&#39;), reverse = TRUE))
+relatedConcepts(&#39;Heart&#39;, &#39;Finding site&#39;, reverse = TRUE)
 </code></pre>
 
 <h2>SNOMED CT codelists</h2>
@@ -316,15 +322,27 @@ description(relatedConcepts(conceptId(&#39;Heart&#39;),
 <pre><code>SNOMED &lt;- sampleSNOMED()
 
 # Create a codelist containing all the descendants of
-my_heart_failure_codelist &lt;- SNOMEDcodelist(
-    data.table(conceptId = conceptId(&#39;Heart failure&#39;), include_desc = TRUE))
+my_heart_failure_codelist &lt;- SNOMEDcodelist(as.SNOMEDconcept(&#39;Heart failure&#39;), include_desc = TRUE)
 
 # Original codelist
 print(my_heart_failure_codelist)
 
 # Expanded codelist
-print(expandSNOMED(my_heart_failure_codelist))
+expanded &lt;- expandSNOMED(my_heart_failure_codelist)
+print(expanded)
+
+# Contract codelist
+contracted &lt;- contractSNOMED(expanded)
+print(contracted)
 </code></pre>
+
+<h2>More information</h2>
+
+<p>For more information about SNOMED CT, visit the SNOMED CT international website: <a href="https://www.snomed.org/">https://www.snomed.org/</a></p>
+
+<p>SNOMED CT (UK edition) can be downloaded from the NHS Digital site: <a href="https://isd.digital.nhs.uk/trud3/user/guest/group/0/home">https://isd.digital.nhs.uk/trud3/user/guest/group/0/home</a></p>
+
+<p>The NHS Digital terminology browser can be used to search for terms interactively: <a href="https://termbrowser.nhs.uk/">https://termbrowser.nhs.uk/</a></p>
 
 </body>
 

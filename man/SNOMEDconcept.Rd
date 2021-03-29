@@ -56,11 +56,17 @@ as.SNOMEDconcept('900000000000003001')
 }
 \seealso{
 Other SNOMEDconcept functions: 
+\code{\link{c.SNOMEDconcept}()},
 \code{\link{is.SNOMEDconcept}()},
-\code{\link{print.SNOMEDconcept}()}
+\code{\link{print.SNOMEDconcept}()},
+\code{\link{union.SNOMEDconcept}()},
+\code{\link{unique.SNOMEDconcept}()}
 
 Other SNOMEDconcept functions: 
+\code{\link{c.SNOMEDconcept}()},
 \code{\link{is.SNOMEDconcept}()},
-\code{\link{print.SNOMEDconcept}()}
+\code{\link{print.SNOMEDconcept}()},
+\code{\link{union.SNOMEDconcept}()},
+\code{\link{unique.SNOMEDconcept}()}
 }
 \concept{SNOMEDconcept functions}
