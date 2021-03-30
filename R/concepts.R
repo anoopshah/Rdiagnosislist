@@ -57,7 +57,7 @@ SNOMEDconcept <- function(terms, active_only = TRUE,
 	exact_match = TRUE, unique = TRUE,
 	SNOMED = get('SNOMED', envir = globalenv())){
 	# Declare names to be used for non-standard evaluation for R CMD check
-	active <- NULL
+	active <- conceptId <- NULL
 	
 	if ('integer64' %in% class(terms)){
 		# correct format for a SNOMED CT concept ID
@@ -167,7 +167,7 @@ is.SNOMEDconcept <- function(x){
 #' @family SNOMEDconcept functions
 #' @method print SNOMEDconcept
 #' @export
-print.SNOMEDconcept <- function(x, ...){
+print.SNOMEDconcept <- function(x){
 	SNOMED <- NULL
 	try(SNOMED <- get('SNOMED', envir = globalenv()), silent = TRUE)
 	
@@ -187,7 +187,8 @@ print.SNOMEDconcept <- function(x, ...){
 				x
 			}
 			
-			show(truncateChar(output, getOption("width") - 7))
+			cat(paste(truncateChar(output, getOption("width") - 7),
+				collapse = '\n'))
 			return(invisible(output))
 		}
 	} else {
@@ -222,24 +223,24 @@ description <- function(conceptIds,
 	# Synonym '900000000000013009'
 	
 	# Declare names used for non-standard evaluation for R CMD check
-	id <- term <- active <- typeId <- NULL
+	id <- term <- active <- typeId <- conceptId <- NULL
 	
 	CONCEPTS <- data.table(conceptId = as.SNOMEDconcept(conceptIds),
 		order = seq_along(conceptIds))
 	TOMATCH <- data.table(conceptId = unique(CONCEPTS$conceptId))
 	if (include_synonyms == FALSE){
 		OUT <- SNOMED$DESCRIPTION[TOMATCH, on = 'conceptId'][
-			typeId == as.integer64('900000000000003001')][,
+			typeId == bit64::as.integer64('900000000000003001')][,
 			list(id, conceptId, term, active)]
 	} else {
 		OUT <- SNOMED$DESCRIPTION[TOMATCH, on = 'conceptId'][,
-			list(id, conceptId,
-			type = ifelse(typeId == as.integer64('900000000000003001'),
+			list(id, conceptId, type = ifelse(
+			typeId == bit64::as.integer64('900000000000003001'),
 			'Fully specified name', 'Synonym'), term, active)]
 	}
 	# Restore original order
 	OUT <- OUT[CONCEPTS, on = 'conceptId']
-	data.table::setkey(OUT, order)
+	data.table::setkeyv(OUT, 'order')
 	OUT[, order := NULL]
 	# Remove inactive terms if necessary
 	if (active_only){

@@ -6,7 +6,7 @@
 \alias{as.SNOMEDconcept}
 \title{Returns the SNOMED CT concept IDs for a set of terms}
 \usage{
-\method{as.data.frame}{SNOMEDconcept}(x, ...)
+\method{as.data.frame}{SNOMEDconcept}(x, optional = NULL, stringsAsFactors = NULL)
 
 SNOMEDconcept(
   terms,
@@ -19,9 +19,6 @@ SNOMEDconcept(
 as.SNOMEDconcept(x, ...)
 }
 \arguments{
-\item{...}{additional arguments to send to grepl if using
-regular expression matching}
-
 \item{terms}{character vector of terms to match, or
 character vector containing SNOMED CT concept IDs, or
 64-bit integer vector containing SNOMED CT concept IDs}
@@ -37,6 +34,9 @@ SNOMED CT concept}
 
 \item{SNOMED}{environment containing SNOMED dictionary. Defaults
 to an object named 'SNOMED' in the global environment}
+
+\item{...}{additional arguments to send to grepl if using
+regular expression matching}
 }
 \value{
 a SNOMEDconcept object (vector of 64-bit integers) containing

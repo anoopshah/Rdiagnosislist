@@ -28,7 +28,7 @@ TEST <- sampleSNOMED()
 for (table in c('Concept', 'Description', 'Relationship',
   'StatedRelationship')){
   write.table(get(toupper(table), envir = TEST), paste0(tempdir(),
-    '/', table, '.txt'), row.names = FALSE, sep = '\t', quote = FALSE)
+    '/sct_', table, '_text.txt'), row.names = FALSE, sep = '\t', quote = FALSE)
 }
 
 # Try to import using the loadSNOMED function

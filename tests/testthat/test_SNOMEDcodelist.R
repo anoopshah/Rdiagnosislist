@@ -8,8 +8,9 @@ context('SNOMED codelists')
 test_that('Creating codelists from concept IDs or tables', {
 	myconcepts <- SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED())
 	concept_codelist <- SNOMEDcodelist(myconcepts, SNOMED = sampleSNOMED())
-	table_codelist <- SNOMEDcodelist(data.frame(conceptId = myconcepts,
-		include_desc = TRUE), SNOMED = sampleSNOMED())
+	table_codelist <- data.frame(conceptId = myconcepts,
+		include_desc = TRUE)
+	table_codelist <- as.SNOMEDcodelist(table_codelist, SNOMED = sampleSNOMED())
 	expect_equal(all.equal(concept_codelist, table_codelist), TRUE)
 })
 

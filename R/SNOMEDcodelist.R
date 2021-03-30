@@ -4,6 +4,7 @@
 #' It consists of conceptId and include_desc columns. The 
 #' option to include descendants allows the creation of more succinct
 #' SNOMED codelists.
+#' 
 #' Input is a data.frame or data.table with column names 'conceptId'
 #' and optionally 'include_desc', which is FALSE by default, but if
 #' TRUE then the codelist automatically includes all descendants of that
@@ -15,9 +16,12 @@
 #' @param x vector of SNOMED CT concept IDs, something which can
 #'   be coerced to a SNOMEDconcept object, or a data.frame with
 #'   a column 'conceptId' containing SNOMED CT concept concept IDs
-#'   in integer64 or text format. 
+#'   in integer64 or text format and optional column 'include_desc'
+#'   (Boolean) stating whether descendants of the term should be
+#'   included.
 #' @param include_desc Boolean vector stating whether descendants
-#'   are included, recycled if necessary. Default = TRUE
+#'   are included, recycled if necessary. Default = TRUE.
+#'   Ignored if 
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param ... other arguments to pass to SNOMEDcodelist
 #' @return An object of class 'SNOMEDcodelist'
@@ -26,14 +30,15 @@
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #'
-#' my_concepts <- conceptId('Heart failure')
+#' my_concepts <- SNOMEDconcept('Heart failure')
 #' SNOMEDcodelist(my_concepts)
 #' SNOMEDcodelist(data.frame(conceptId = my_concepts))
 #' as.SNOMEDcodelist(data.frame(conceptId = my_concepts,
 #'   include_desc = TRUE))
 SNOMEDcodelist <- function(x, include_desc = TRUE,
 	SNOMED = get('SNOMED', envir = globalenv())){
-	term <- NULL
+	term <- conceptId <- NULL
+	
 	if (!is.list(x)){
 		conceptIds <- unique(as.SNOMEDconcept(x, SNOMED = SNOMED))
 		conceptIds <- conceptIds[!is.na(conceptIds)]
@@ -53,26 +58,35 @@ SNOMEDcodelist <- function(x, include_desc = TRUE,
 	x[, conceptId := as.SNOMEDconcept(conceptId, SNOMED = SNOMED)]
 	if ('include_desc' %in% names(x)){
 		x[, include_desc := as.logical(include_desc)]
-		setattr(x, 'Expanded', FALSE)
 	} else {
-		x[, include_desc := as.logical(FALSE)]
-		setattr(x, 'Expanded', TRUE)
+		global_include_desc <- include_desc
+		x[, include_desc := global_include_desc]
 	}
 	if (!('term' %in% names(x))){
 		# Add SNOMED terms (fully specified names)
 		x[, term := description(x$conceptId, SNOMED = SNOMED)$term]
 	}
-	class(x) <- c('SNOMEDcodelist', 'data.table', 'data.frame')
-	setkey(x, conceptId)
+	data.table::setattr(x, 'class', c('SNOMEDcodelist', 'data.table', 'data.frame'))
+	data.table::setattr(x, 'Expanded', FALSE)
+	data.table::setkeyv(x, 'conceptId')
 	x
 }
 
 #' @rdname SNOMEDconcept
 #' @family SNOMEDconcept functions
 #' @export
-as.data.frame.SNOMEDconcept <- function(x, ...){
-	setattr(x, 'class', 'integer64')
-	as.data.frame(x, ...)
+as.data.frame.SNOMEDconcept <- function(x, optional = NULL,
+	stringsAsFactors = NULL){
+	data.table::setattr(x, 'class', 'integer64')
+	bit64::as.data.frame.integer64(x)
+}
+
+#' @rdname SNOMEDconcept
+#' @family SNOMEDconcept functions
+#' @export
+as.integer64.SNOMEDconcept <- function(x){
+	data.table::setattr(x, 'class', 'integer64')
+	bit64::as.integer64(x)
 }
 
 #' @rdname SNOMEDcodelist
@@ -102,7 +116,7 @@ as.SNOMEDcodelist <- function(x, ...){
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #'
-#' my_concepts <- conceptId('Heart failure')
+#' my_concepts <- SNOMEDconcept('Heart failure')
 #' my_codelist <- SNOMEDcodelist(data.frame(conceptId = my_concepts,
 #'   include_desc = TRUE))
 #' expanded_codelist <- expandSNOMED(my_codelist)
@@ -127,9 +141,9 @@ expandSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 		term = description(desc_conceptIds, SNOMED = SNOMED)$term,
 		include_desc = as.logical(NA)))
 	# Restore SNOMEDcodelist class
-	class(x) <- c('SNOMEDcodelist', 'data.table', 'data.frame')
-	setattr(x, 'Expanded', TRUE)
-	setkey(x, conceptId)
+	data.table::setattr(x, 'class', c('SNOMEDcodelist', 'data.table', 'data.frame'))
+	data.table::setattr(x, 'Expanded', TRUE)
+	data.table::setkeyv(x, 'conceptId')
 	x
 }
 
@@ -149,8 +163,8 @@ contractSNOMED <- function(x){
 		return(x)
 	}
 	x <- x[!is.na(include_desc)]
-	setattr(x, 'Expanded', FALSE)
-	setkey(x, conceptId)
+	data.table::setattr(x, 'Expanded', FALSE)
+	data.table::setkeyv(x, 'conceptId')
 	x
 }
 

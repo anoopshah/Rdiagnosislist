@@ -27,7 +27,7 @@ form contains all concepts.
 \examples{
 SNOMED <- sampleSNOMED()
 
-my_concepts <- conceptId('Heart failure')
+my_concepts <- SNOMEDconcept('Heart failure')
 my_codelist <- SNOMEDcodelist(data.frame(conceptId = my_concepts,
   include_desc = TRUE))
 expanded_codelist <- expandSNOMED(my_codelist)

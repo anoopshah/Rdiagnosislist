@@ -4,7 +4,7 @@
 \alias{print.SNOMEDconcept}
 \title{Display a SNOMEDconcept object with descriptions}
 \usage{
-\method{print}{SNOMEDconcept}(x, ...)
+\method{print}{SNOMEDconcept}(x)
 }
 \arguments{
 \item{x}{SNOMEDconcept object, or something that can be

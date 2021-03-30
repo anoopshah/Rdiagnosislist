@@ -6,7 +6,7 @@
 \usage{
 relatedConcepts(
   conceptIds,
-  typeId = as.integer64("116680003"),
+  typeId = bit64::as.integer64("116680003"),
   tables = c("RELATIONSHIP", "STATEDRELATIONSHIP"),
   reverse = FALSE,
   recursive = FALSE,

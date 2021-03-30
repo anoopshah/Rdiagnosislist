@@ -50,9 +50,9 @@ test_that('Match not found', {
 
 test_that('Check concept ID', {
 	expect_equal(as.SNOMEDconcept('900000000000003001'),
-		as.SNOMEDconcept(as.integer64('900000000000003001')))
+		as.SNOMEDconcept(bit64::as.integer64('900000000000003001')))
 	expect_error(as.SNOMEDconcept(12345))
-	expect_error(as.SNOMEDconcept(list(as.integer64('1234'))))
+	expect_error(as.SNOMEDconcept(list(bit64::as.integer64('1234'))))
 })
 
 test_that('Generic set functions for strings', {

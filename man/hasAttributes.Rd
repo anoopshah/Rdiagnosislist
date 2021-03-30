@@ -7,7 +7,7 @@
 hasAttributes(
   sourceIds,
   destinationIds,
-  typeIds = as.integer64("116680003"),
+  typeIds = bit64::as.integer64("116680003"),
   SNOMED = get("SNOMED", envir = globalenv()),
   tables = c("RELATIONSHIP", "STATEDRELATIONSHIP")
 )

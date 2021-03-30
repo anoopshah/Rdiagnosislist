@@ -29,7 +29,7 @@
 #' description(findingSite('Heart failure'))
 #' # Heart structure (body structure)
 relatedConcepts <- function(conceptIds,
-	typeId = as.integer64('116680003'),
+	typeId = bit64::as.integer64('116680003'),
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP'),
 	reverse = FALSE, recursive = FALSE, active_only = TRUE,
 	SNOMED = get('SNOMED', envir = globalenv())){
@@ -113,7 +113,7 @@ parents <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
 	parentIds <- relatedConcepts(conceptIds = conceptIds,
-		typeId = as.integer64('116680003'),
+		typeId = bit64::as.integer64('116680003'),
 		reverse = FALSE, recursive = FALSE, SNOMED = SNOMED, ...)
 	# Exclude originals (note cannot use setdiff function with int64)
 	return(as.SNOMEDconcept(parentIds[!(parentIds %in% conceptIds)]))
@@ -125,7 +125,7 @@ ancestors <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
 	parentIds <- relatedConcepts(conceptIds = conceptIds,
-		typeId = as.integer64('116680003'),
+		typeId = bit64::as.integer64('116680003'),
 		reverse = FALSE, recursive = TRUE, SNOMED = SNOMED, ...)
 	# Exclude originals (note cannot use setdiff function with int64)
 	return(as.SNOMEDconcept(parentIds[!(parentIds %in% conceptIds)]))
@@ -137,7 +137,7 @@ children <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
 	childIds <- relatedConcepts(conceptIds = conceptIds,
-		typeId = as.integer64('116680003'),
+		typeId = bit64::as.integer64('116680003'),
 		reverse = TRUE, recursive = FALSE, SNOMED = SNOMED, ...)
 	# Exclude originals (note cannot use setdiff function with int64)
 	return(as.SNOMEDconcept(childIds[!(childIds %in% conceptIds)]))
@@ -149,7 +149,7 @@ descendants <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv()), ...){
 	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
 	childIds <- relatedConcepts(conceptIds = conceptIds,
-		typeId = as.integer64('116680003'),
+		typeId = bit64::as.integer64('116680003'),
 		reverse = TRUE, recursive = TRUE, SNOMED = SNOMED, ...)
 	# Exclude originals (note cannot use setdiff function with int64)
 	return(as.SNOMEDconcept(childIds[!(childIds %in% conceptIds)]))
@@ -178,7 +178,7 @@ descendants <- function(conceptIds,
 #'   c('Heart structure', 'Heart failure'),
 #'   c('Finding site', 'Is a'))
 hasAttributes <- function(sourceIds, destinationIds,
-	typeIds = as.integer64('116680003'),
+	typeIds = bit64::as.integer64('116680003'),
 	SNOMED = get('SNOMED', envir = globalenv()), 
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
 	TOMATCH <- data.table(sourceId = as.SNOMEDconcept(sourceIds),
@@ -310,7 +310,9 @@ semanticType <- function(conceptIds,
 simplify <- function(conceptIds, ancestorIds,
 	SNOMED = get('SNOMED', envir = globalenv()), 
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
-	
+	found <- keep_orig <- anymatch <- originalId <- NULL
+	ancestorId <- conceptId <- NULL
+
 	DATA <- data.table(conceptId = conceptIds,
 		originalId = conceptIds, found = FALSE, anymatch = FALSE,
 		keep_orig = FALSE, order = 1:length(conceptIds))
@@ -320,7 +322,6 @@ simplify <- function(conceptIds, ancestorIds,
 	# found = whether this row is a match to closest ancestor
 	# anymatch = whether any match is found for this concept
 	# keep_orig = whether to keep original because 0 or > 1 matches
-	found <- keep_orig <- anymatch <- originalId <- ancestorId <- NULL
 
 	recursionlimit <- 10
 	# Loop while any of the concepts are unmatched and recursion
@@ -354,7 +355,7 @@ simplify <- function(conceptIds, ancestorIds,
 	setkey(DATA, order)
 	# Now there should be one row per order
 	stopifnot(DATA$order == seq_along(conceptIds))
-	setnames(DATA, 'conceptId', 'ancestorId')
+	data.table::setnames(DATA, 'conceptId', 'ancestorId')
 	DATA[keep_orig == TRUE, ancestorId := originalId]
 	DATA[, order := NULL]
 	DATA[, keep_orig := NULL]

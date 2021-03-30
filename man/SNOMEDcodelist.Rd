@@ -17,10 +17,13 @@ as.SNOMEDcodelist(x, ...)
 \item{x}{vector of SNOMED CT concept IDs, something which can
 be coerced to a SNOMEDconcept object, or a data.frame with
 a column 'conceptId' containing SNOMED CT concept concept IDs
-in integer64 or text format.}
+in integer64 or text format and optional column 'include_desc'
+(Boolean) stating whether descendants of the term should be
+included.}
 
 \item{include_desc}{Boolean vector stating whether descendants
-are included, recycled if necessary. Default = TRUE}
+are included, recycled if necessary. Default = TRUE.
+Ignored if}
 
 \item{SNOMED}{environment containing a SNOMED dictionary}
 
@@ -34,19 +37,20 @@ SNOMEDcodelist is an S3 class for lists of SNOMED codes.
 It consists of conceptId and include_desc columns. The 
 option to include descendants allows the creation of more succinct
 SNOMED codelists.
+}
+\details{
 Input is a data.frame or data.table with column names 'conceptId'
 and optionally 'include_desc', which is FALSE by default, but if
 TRUE then the codelist automatically includes all descendants of that
 concept.
-}
-\details{
+
 as.SNOMEDcodelist converts its argument into a SNOMEDcodelist but
   leaves it unchanged if it is already a SNOMEDcodelist.
 }
 \examples{
 SNOMED <- sampleSNOMED()
 
-my_concepts <- conceptId('Heart failure')
+my_concepts <- SNOMEDconcept('Heart failure')
 SNOMEDcodelist(my_concepts)
 SNOMEDcodelist(data.frame(conceptId = my_concepts))
 as.SNOMEDcodelist(data.frame(conceptId = my_concepts,
