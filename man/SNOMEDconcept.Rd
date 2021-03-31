@@ -2,11 +2,14 @@
 % Please edit documentation in R/SNOMEDcodelist.R, R/concepts.R
 \name{as.data.frame.SNOMEDconcept}
 \alias{as.data.frame.SNOMEDconcept}
+\alias{as.integer64.SNOMEDconcept}
 \alias{SNOMEDconcept}
 \alias{as.SNOMEDconcept}
 \title{Returns the SNOMED CT concept IDs for a set of terms}
 \usage{
-\method{as.data.frame}{SNOMEDconcept}(x, optional = NULL, stringsAsFactors = NULL)
+\method{as.data.frame}{SNOMEDconcept}(x, ...)
+
+\method{as.integer64}{SNOMEDconcept}(x)
 
 SNOMEDconcept(
   terms,
@@ -19,6 +22,9 @@ SNOMEDconcept(
 as.SNOMEDconcept(x, ...)
 }
 \arguments{
+\item{...}{additional arguments to send to grepl if using
+regular expression matching}
+
 \item{terms}{character vector of terms to match, or
 character vector containing SNOMED CT concept IDs, or
 64-bit integer vector containing SNOMED CT concept IDs}
@@ -34,9 +40,6 @@ SNOMED CT concept}
 
 \item{SNOMED}{environment containing SNOMED dictionary. Defaults
 to an object named 'SNOMED' in the global environment}
-
-\item{...}{additional arguments to send to grepl if using
-regular expression matching}
 }
 \value{
 a SNOMEDconcept object (vector of 64-bit integers) containing
@@ -55,6 +58,13 @@ SNOMEDconcept('900000000000003001')
 as.SNOMEDconcept('900000000000003001')
 }
 \seealso{
+Other SNOMEDconcept functions: 
+\code{\link{c.SNOMEDconcept}()},
+\code{\link{is.SNOMEDconcept}()},
+\code{\link{print.SNOMEDconcept}()},
+\code{\link{union.SNOMEDconcept}()},
+\code{\link{unique.SNOMEDconcept}()}
+
 Other SNOMEDconcept functions: 
 \code{\link{c.SNOMEDconcept}()},
 \code{\link{is.SNOMEDconcept}()},

@@ -47,6 +47,7 @@ inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 #' @return a SNOMEDconcept object (vector of 64-bit integers) containing
 #'   unique SNOMED CT concept IDs
 #' @import data.table
+#' @import bit64
 #' @export
 #' @examples
 #' SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED()) -> hf
@@ -187,8 +188,8 @@ print.SNOMEDconcept <- function(x){
 				x
 			}
 			
-			cat(paste(truncateChar(output, getOption("width") - 7),
-				collapse = '\n'))
+			cat(paste0(paste(truncateChar(output, getOption("width") - 7),
+				collapse = '\n'), '\n'))
 			return(invisible(output))
 		}
 	} else {
@@ -252,10 +253,9 @@ description <- function(conceptIds,
 	OUT[]
 }
 
-
 #' Set operations for SNOMEDconcept vectors
 #'
-#' The default functions in the base package do not handle integer64
+#' The default set functions in the base package do not handle integer64
 #' vectors correctly, so this package also provides new generic functions
 #' for union, intersect and setdiff, which enable the appropriate
 #' object-specific function to be called according to the class of the
@@ -264,7 +264,7 @@ description <- function(conceptIds,
 #'
 #' @param x SNOMEDconcept vector
 #' @param y SNOMEDconcept vector, or an object that can be coerced
-#    to one by as.SNOMEDconcept
+#'   to SNOMEDconcept by as.SNOMEDconcept
 #' @return an integer64 vector of SNOMEDconcept class
 #' @export
 #' @examples

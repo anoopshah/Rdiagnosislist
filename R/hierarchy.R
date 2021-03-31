@@ -38,6 +38,12 @@ relatedConcepts <- function(conceptIds,
 	active <- sourceId <- destinationId <- NULL
 
 	conceptIds <- as.SNOMEDconcept(conceptIds)
+	
+	# If no concepts supplied, return an empty vector
+	if (length(conceptIds) == 0){
+		return(conceptIds)
+	}
+	
 	typeId <- as.SNOMEDconcept(typeId)
 	if (reverse){
 		TOLINK <- data.table(destinationId = conceptIds, typeId = typeId)
@@ -115,7 +121,7 @@ parents <- function(conceptIds,
 	parentIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = FALSE, recursive = FALSE, SNOMED = SNOMED, ...)
-	# Exclude originals (note cannot use setdiff function with int64)
+	# Exclude originals
 	return(as.SNOMEDconcept(parentIds[!(parentIds %in% conceptIds)]))
 }
 
@@ -127,7 +133,7 @@ ancestors <- function(conceptIds,
 	parentIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = FALSE, recursive = TRUE, SNOMED = SNOMED, ...)
-	# Exclude originals (note cannot use setdiff function with int64)
+	# Exclude originals
 	return(as.SNOMEDconcept(parentIds[!(parentIds %in% conceptIds)]))
 }
 
@@ -139,7 +145,7 @@ children <- function(conceptIds,
 	childIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = TRUE, recursive = FALSE, SNOMED = SNOMED, ...)
-	# Exclude originals (note cannot use setdiff function with int64)
+	# Exclude originals
 	return(as.SNOMEDconcept(childIds[!(childIds %in% conceptIds)]))
 }
 
@@ -151,7 +157,7 @@ descendants <- function(conceptIds,
 	childIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = TRUE, recursive = TRUE, SNOMED = SNOMED, ...)
-	# Exclude originals (note cannot use setdiff function with int64)
+	# Exclude originals
 	return(as.SNOMEDconcept(childIds[!(childIds %in% conceptIds)]))
 }
 

@@ -39,53 +39,51 @@ SNOMEDcodelist <- function(x, include_desc = TRUE,
 	SNOMED = get('SNOMED', envir = globalenv())){
 	term <- conceptId <- NULL
 	
-	if (!is.list(x)){
-		conceptIds <- unique(as.SNOMEDconcept(x, SNOMED = SNOMED))
-		conceptIds <- conceptIds[!is.na(conceptIds)]
-		# remove any missing concepts
+	if (!is.data.frame(x)){
+		conceptIds <- SNOMEDconcept(x, SNOMED = SNOMED)
 		message(paste0('Converting ', length(conceptIds),
 			' concept(s) to a codelist'))
-		x <- data.table(conceptId = conceptIds,
-			include_desc = include_desc)
+		x <- as.data.frame(conceptIds)
+		names(x) <- 'conceptId'
 	}
-	if (!is.data.frame(x)){
-		stop('x must be a data.frame')
+	if (!is.data.frame(x) | !('conceptId' %in% names(x))){
+		stop('x must be a data.frame with a column named conceptId')
 	}
-	x <- as.data.table(x)
-	if (!('conceptId' %in% names(x))){
+	out <- as.data.table(x)
+	if (!('conceptId' %in% names(out))){
 		stop('the SNOMED conceptId must be in a column named conceptId')
 	}
-	x[, conceptId := as.SNOMEDconcept(conceptId, SNOMED = SNOMED)]
-	if ('include_desc' %in% names(x)){
-		x[, include_desc := as.logical(include_desc)]
+	out[, conceptId := as.SNOMEDconcept(conceptId, SNOMED = SNOMED)]
+	if ('include_desc' %in% names(out)){
+		out[, include_desc := as.logical(include_desc)]
 	} else {
 		global_include_desc <- include_desc
-		x[, include_desc := global_include_desc]
+		out[, include_desc := global_include_desc]
 	}
-	if (!('term' %in% names(x))){
+	if (!('term' %in% names(out))){
 		# Add SNOMED terms (fully specified names)
-		x[, term := description(x$conceptId, SNOMED = SNOMED)$term]
+		out[, term := description(out$conceptId, SNOMED = SNOMED)$term]
 	}
-	data.table::setattr(x, 'class', c('SNOMEDcodelist', 'data.table', 'data.frame'))
-	data.table::setattr(x, 'Expanded', FALSE)
-	data.table::setkeyv(x, 'conceptId')
-	x
+	data.table::setcolorder(out, c('conceptId', 'include_desc', 'term'))
+	data.table::setattr(out, 'class', c('SNOMEDcodelist', 'data.table', 'data.frame'))
+	data.table::setattr(out, 'Expanded', FALSE)
+	data.table::setkeyv(out, 'conceptId')
+	out[]
 }
 
 #' @rdname SNOMEDconcept
 #' @family SNOMEDconcept functions
 #' @export
-as.data.frame.SNOMEDconcept <- function(x, optional = NULL,
-	stringsAsFactors = NULL){
-	data.table::setattr(x, 'class', 'integer64')
-	bit64::as.data.frame.integer64(x)
+as.data.frame.SNOMEDconcept <- function(x, ...){
+	class(x) <- 'integer64'
+	bit64::as.data.frame.integer64(x, ...)
 }
 
 #' @rdname SNOMEDconcept
 #' @family SNOMEDconcept functions
 #' @export
 as.integer64.SNOMEDconcept <- function(x){
-	data.table::setattr(x, 'class', 'integer64')
+	class(x) <- 'integer64'
 	bit64::as.integer64(x)
 }
 
@@ -126,32 +124,37 @@ expandSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 	# Terms are added with include_desc = NA, which shows that they
 	# were automatically added, and can be removed by contractSNOMED
 	
+	# Declare names to be used for non-standard evaluation for R CMD check
 	include_desc <- NULL
 	
 	if (!is.SNOMEDcodelist(x)){
 		stop('x must be a SNOMEDcodelist')
 	}
-	if (attr(x, 'Expanded') == TRUE){
-		return(x)
+	if (!is.null(attr(x, 'Expanded'))){
+		if (attr(x, 'Expanded') == TRUE){
+			return(x)
+		}
 	}
 	# Otherwise perform the expansion
 	desc_conceptIds <- descendants(x[include_desc == TRUE]$conceptId,
 		SNOMED = SNOMED)
-	x <- rbind(x, data.table(conceptId = desc_conceptIds,
-		term = description(desc_conceptIds, SNOMED = SNOMED)$term,
-		include_desc = as.logical(NA)))
+	out <- rbind(x, data.table(conceptId = desc_conceptIds,
+		include_desc = as.logical(rep(NA, length(desc_conceptIds))),
+		term = description(desc_conceptIds, SNOMED = SNOMED)$term))
 	# Restore SNOMEDcodelist class
-	data.table::setattr(x, 'class', c('SNOMEDcodelist', 'data.table', 'data.frame'))
-	data.table::setattr(x, 'Expanded', TRUE)
-	data.table::setkeyv(x, 'conceptId')
-	x
+	data.table::setcolorder(out, c('conceptId', 'include_desc', 'term'))
+	data.table::setattr(out, 'class', c('SNOMEDcodelist', 'data.table', 'data.frame'))
+	data.table::setattr(out, 'Expanded', TRUE)
+	data.table::setkeyv(out, 'conceptId')
+	out[]
 }
 
 #' @rdname expandSNOMED
 #' @family SNOMEDcodelist functions
 #' @export
 contractSNOMED <- function(x){
-	# Remove terms with include_desc = NA
+	# Remove terms with include_desc = NA as long as they are a
+	# descendant of a term with include_desc = TRUE
 	
 	# Declare names to be used for non-standard evaluation for R CMD check
 	include_desc <- NULL
@@ -159,13 +162,19 @@ contractSNOMED <- function(x){
 	if (!is.SNOMEDcodelist(x)){
 		stop('x must be a SNOMEDcodelist')
 	}
-	if (attr(x, 'Expanded') == FALSE){
-		return(x)
+	if (!is.null(attr(x, 'Expanded'))){
+		if (attr(x, 'Expanded') == FALSE){
+			return(x)
+		}
 	}
-	x <- x[!is.na(include_desc)]
-	data.table::setattr(x, 'Expanded', FALSE)
-	data.table::setkeyv(x, 'conceptId')
-	x
+	desclist <- x[include_desc == TRUE]$conceptId
+	desclist <- union(desclist, descendants(desclist))
+	toremove <- x[is.na(include_desc) & conceptId %in% desclist]
+	out <- x[!toremove]
+	data.table::setcolorder(out, c('conceptId', 'include_desc', 'term'))
+	data.table::setattr(out, 'Expanded', FALSE)
+	data.table::setkeyv(out, 'conceptId')
+	out[]
 }
 
 #' Check if an object is a SNOMEDcodelist

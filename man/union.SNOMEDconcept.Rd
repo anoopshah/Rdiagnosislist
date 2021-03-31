@@ -33,13 +33,14 @@ setdiff(x, y)
 \arguments{
 \item{x}{SNOMEDconcept vector}
 
-\item{y}{SNOMEDconcept vector, or an object that can be coerced}
+\item{y}{SNOMEDconcept vector, or an object that can be coerced
+to SNOMEDconcept by as.SNOMEDconcept}
 }
 \value{
 an integer64 vector of SNOMEDconcept class
 }
 \description{
-The default functions in the base package do not handle integer64
+The default set functions in the base package do not handle integer64
 vectors correctly, so this package also provides new generic functions
 for union, intersect and setdiff, which enable the appropriate
 object-specific function to be called according to the class of the
