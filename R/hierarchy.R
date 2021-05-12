@@ -96,7 +96,7 @@ relatedConcepts <- function(conceptIds,
 	}
 }
 
-#' Anceestors and descendants of SNOMED CT concepts
+#' Ancestors and descendants of SNOMED CT concepts
 #'
 #' Returns concepts with 'Is a' or inverse 'Is a'
 #' relationship with a set of target concepts. 
@@ -121,8 +121,12 @@ parents <- function(conceptIds,
 	parentIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = FALSE, recursive = FALSE, SNOMED = SNOMED, ...)
-	# Exclude originals
-	return(as.SNOMEDconcept(parentIds[!(parentIds %in% conceptIds)]))
+	# Exclude originals	
+	if (length(parentIds) > 0){
+		return(as.SNOMEDconcept(parentIds[!(parentIds %in% conceptIds)]))
+	} else {
+		return(parentIds)
+	}
 }
 
 #' @rdname parents
@@ -133,8 +137,12 @@ ancestors <- function(conceptIds,
 	parentIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = FALSE, recursive = TRUE, SNOMED = SNOMED, ...)
-	# Exclude originals
-	return(as.SNOMEDconcept(parentIds[!(parentIds %in% conceptIds)]))
+	# Exclude originals	
+	if (length(parentIds) > 0){
+		return(as.SNOMEDconcept(parentIds[!(parentIds %in% conceptIds)]))
+	} else {
+		return(parentIds)
+	}
 }
 
 #' @rdname parents
@@ -146,7 +154,11 @@ children <- function(conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = TRUE, recursive = FALSE, SNOMED = SNOMED, ...)
 	# Exclude originals
-	return(as.SNOMEDconcept(childIds[!(childIds %in% conceptIds)]))
+	if (length(childIds) > 0){
+		return(as.SNOMEDconcept(childIds[!(childIds %in% conceptIds)]))
+	} else {
+		return(childIds)
+	}
 }
 
 #' @rdname parents
@@ -158,7 +170,11 @@ descendants <- function(conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = TRUE, recursive = TRUE, SNOMED = SNOMED, ...)
 	# Exclude originals
-	return(as.SNOMEDconcept(childIds[!(childIds %in% conceptIds)]))
+	if (length(childIds) > 0){
+		return(as.SNOMEDconcept(childIds[!(childIds %in% conceptIds)]))
+	} else {
+		return(childIds)
+	}
 }
 
 #' Whether SNOMED CT concepts have particular attributes

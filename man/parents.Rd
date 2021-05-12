@@ -5,7 +5,7 @@
 \alias{ancestors}
 \alias{children}
 \alias{descendants}
-\title{Anceestors and descendants of SNOMED CT concepts}
+\title{Ancestors and descendants of SNOMED CT concepts}
 \usage{
 parents(conceptIds, SNOMED = get("SNOMED", envir = globalenv()), ...)
 

@@ -201,7 +201,7 @@ createSNOMEDindices <- function(SNOMED){
 #' @examples
 #' TEST <- sampleSNOMED()
 #' inactiveIncluded(TEST)
-#' conceptId('Heart failure', SNOMED = TEST)
+#' SNOMEDconcept('Heart failure', SNOMED = TEST)
 #'
 #' # To display metadata for this SNOMED CT dictionary
 #' sampleSNOMED()$metadata

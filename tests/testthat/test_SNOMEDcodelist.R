@@ -83,10 +83,21 @@ test_that('Expand and contract codelists', {
 	my_codelist <- SNOMEDcodelist(data.frame(conceptId = my_concepts,
 		include_desc = TRUE), SNOMED = sampleSNOMED())
 	expanded_codelist <- expandSNOMED(my_codelist, SNOMED = sampleSNOMED())
-	roundtrip_codelist <- contractSNOMED(expanded_codelist)
+	roundtrip_codelist <- contractSNOMED(expanded_codelist, SNOMED = sampleSNOMED())
 	setindex(my_codelist, NULL)
 	setindex(roundtrip_codelist, NULL)
 	expect_equal(all.equal(my_codelist, roundtrip_codelist), TRUE)
+})
+
+test_that('Related concepts for a NULL list', {
+	my_concepts <- as.SNOMEDconcept('0')[-1]
+	related_concepts <- relatedConcepts(my_concepts,
+		SNOMED = sampleSNOMED())
+	expect_equal(my_concepts, related_concepts)
+	expect_equal(my_concepts, parents(related_concepts))
+	expect_equal(my_concepts, children(related_concepts))
+	expect_equal(my_concepts, ancestors(related_concepts))
+	expect_equal(my_concepts, descendants(related_concepts))
 })
 
 test_that('Expand codelist with nothing to expand', {
@@ -101,6 +112,7 @@ test_that('Expand codelist with nothing to expand', {
 		SNOMED = sampleSNOMED())
 	setindex(my_codelist, NULL)
 	setindex(roundtrip_codelist, NULL)
+	expect_true(attr(expanded_codelist, 'Expanded'))
 	expect_equal(all.equal(my_codelist, roundtrip_codelist), TRUE)
 	expect_false(attr(my_codelist, 'Expanded'))
 	expect_false(attr(roundtrip_codelist, 'Expanded'))
@@ -112,7 +124,8 @@ test_that('Expand codelist with nothing to expand', {
 
 test_that('Safely contract codelist', {
 	my_codelist <- as.SNOMEDcodelist(data.frame(
-		conceptId = SNOMEDconcept(c('Heart failure', 'Is a')),
+		conceptId = SNOMEDconcept(c('Heart failure', 'Is a'),
+		SNOMED = sampleSNOMED()),
 		include_desc = c(TRUE, NA)), SNOMED = sampleSNOMED())
 	expanded_codelist <- expandSNOMED(my_codelist,
 		SNOMED = sampleSNOMED())

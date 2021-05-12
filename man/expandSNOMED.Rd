@@ -7,7 +7,7 @@
 \usage{
 expandSNOMED(x, SNOMED = get("SNOMED", envir = globalenv()))
 
-contractSNOMED(x)
+contractSNOMED(x, SNOMED = get("SNOMED", envir = globalenv()))
 }
 \arguments{
 \item{x}{SNOMEDcodelist to expand or contract}

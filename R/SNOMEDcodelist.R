@@ -119,7 +119,8 @@ as.SNOMEDcodelist <- function(x, ...){
 #'   include_desc = TRUE))
 #' expanded_codelist <- expandSNOMED(my_codelist)
 #' contractSNOMED(expanded_codelist)
-expandSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
+expandSNOMED <- function(x,
+	SNOMED = get('SNOMED', envir = globalenv())){
 	# Adds descendants of terms marked include_desc = TRUE
 	# Terms are added with include_desc = NA, which shows that they
 	# were automatically added, and can be removed by contractSNOMED
@@ -152,25 +153,29 @@ expandSNOMED <- function(x, SNOMED = get('SNOMED', envir = globalenv())){
 #' @rdname expandSNOMED
 #' @family SNOMEDcodelist functions
 #' @export
-contractSNOMED <- function(x){
+contractSNOMED <- function(x,
+	SNOMED = get('SNOMED', envir = globalenv())){
 	# Remove terms with include_desc = NA as long as they are a
 	# descendant of a term with include_desc = TRUE
 	
 	# Declare names to be used for non-standard evaluation for R CMD check
 	include_desc <- NULL
+	out <- copy(x)
 	
-	if (!is.SNOMEDcodelist(x)){
+	if (!is.SNOMEDcodelist(out)){
 		stop('x must be a SNOMEDcodelist')
 	}
-	if (!is.null(attr(x, 'Expanded'))){
-		if (attr(x, 'Expanded') == FALSE){
-			return(x)
+	if (!is.null(attr(out, 'Expanded'))){
+		if (attr(out, 'Expanded') == FALSE){
+			return(out)
 		}
 	}
-	desclist <- x[include_desc == TRUE]$conceptId
-	desclist <- union(desclist, descendants(desclist))
-	toremove <- x[is.na(include_desc) & conceptId %in% desclist]
-	out <- x[!toremove]
+	desclist <- out[include_desc == TRUE]$conceptId
+	desclist <- union(desclist, descendants(desclist, SNOMED = SNOMED))
+	if (length(desclist) > 0){
+		toremove <- out[is.na(include_desc) & conceptId %in% desclist]
+		out <- out[!toremove]
+	}
 	data.table::setcolorder(out, c('conceptId', 'include_desc', 'term'))
 	data.table::setattr(out, 'Expanded', FALSE)
 	data.table::setkeyv(out, 'conceptId')
