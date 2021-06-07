@@ -84,8 +84,8 @@ test_that('Expand and contract codelists', {
 		include_desc = TRUE), SNOMED = sampleSNOMED())
 	expanded_codelist <- expandSNOMED(my_codelist, SNOMED = sampleSNOMED())
 	roundtrip_codelist <- contractSNOMED(expanded_codelist, SNOMED = sampleSNOMED())
-	setindex(my_codelist, NULL)
-	setindex(roundtrip_codelist, NULL)
+	data.table::setindex(my_codelist, NULL)
+	data.table::setindex(roundtrip_codelist, NULL)
 	expect_equal(all.equal(my_codelist, roundtrip_codelist), TRUE)
 })
 
@@ -110,15 +110,22 @@ test_that('Expand codelist with nothing to expand', {
 		SNOMED = sampleSNOMED())
 	roundtrip_codelist <- contractSNOMED(expanded_codelist,
 		SNOMED = sampleSNOMED())
-	setindex(my_codelist, NULL)
-	setindex(roundtrip_codelist, NULL)
+	
+	# Check that the roundtrip codelist is same as the original
+	# (ignore indices)
+	data.table::setindex(my_codelist, NULL)
+	data.table::setindex(roundtrip_codelist, NULL)
 	expect_true(attr(expanded_codelist, 'Expanded'))
 	expect_equal(all.equal(my_codelist, roundtrip_codelist), TRUE)
+	
+	# Check that attributes are as expected
 	expect_false(attr(my_codelist, 'Expanded'))
 	expect_false(attr(roundtrip_codelist, 'Expanded'))
 	expect_true(attr(expanded_codelist, 'Expanded'))
 	# If the attribute is changed, expanded is equal to original
 	data.table::setattr(expanded_codelist, 'Expanded', FALSE)
+	data.table::setindex(my_codelist, NULL)
+	data.table::setindex(expanded_codelist, NULL)
 	expect_equal(all.equal(my_codelist, expanded_codelist), TRUE)
 })
 
@@ -131,7 +138,7 @@ test_that('Safely contract codelist', {
 		SNOMED = sampleSNOMED())
 	roundtrip_codelist <- contractSNOMED(expanded_codelist,
 		SNOMED = sampleSNOMED())
-	setindex(my_codelist, NULL)
-	setindex(roundtrip_codelist, NULL)
+	data.table::setindex(my_codelist, NULL)
+	data.table::setindex(roundtrip_codelist, NULL)
 	expect_equal(all.equal(my_codelist, roundtrip_codelist), TRUE)
 })
