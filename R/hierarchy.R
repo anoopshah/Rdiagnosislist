@@ -35,7 +35,7 @@ relatedConcepts <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv())){
 	# Returns the original concepts and the linked concepts
 
-	active <- sourceId <- destinationId <- NULL
+	active <- sourceId <- destinationId <- conceptId <- NULL
 
 	conceptIds <- as.SNOMEDconcept(conceptIds)
 	
