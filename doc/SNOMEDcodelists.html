@@ -17,7 +17,45 @@ window.onload = function() {
 };
 </script>
 
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
 
+   pre .literal {
+     color: #990073
+   }
+
+   pre .number {
+     color: #099;
+   }
+
+   pre .comment {
+     color: #998;
+     font-style: italic
+   }
+
+   pre .keyword {
+     color: #900;
+     font-weight: bold
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: #d14;
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
 
 
 
@@ -185,7 +223,7 @@ hr {
 <li>Preferred - these is the synonym that is preferred for clinical display in a particular language, and is recorded in the language-specific reference set</li>
 </ul>
 
-<p>Each concept also has a semantic tag, which denotes what type of concept it is (e.g. &#39;disorder&#39; or &#39;organism&#39;). This is currently recorded in parentheses at the end of the Fully Specified Name, but can be extracted using the semanticType function in this package.</p>
+<p>Each concept also has a semantic tag, which denotes what type of concept it is (e.g. &#39;disorder&#39; or &#39;organism&#39;). This is currently recorded in parentheses at the end of the Fully Specified Name, and can be extracted using the semanticType function in this package.</p>
 
 <h2>Loading the SNOMED CT dictionaries</h2>
 
@@ -193,18 +231,35 @@ hr {
 
 <p>For most users the &#39;Snapshot&#39; files, containing the current versions of the entries, will be the most useful, and the sample dictionaries in this package are based on the Snapshot file format. The &#39;Delta&#39; files contain changes since the previous version, and the &#39;Full&#39; files contain a history of the changes to each entry.</p>
 
-<p>The SNOMED CT dictionary files are loaded into an R &#39;environment&#39;, which is an object that can contain other objects. This is a convenient way in R to store a group of objects without cluttering up the global environment with too many individual objects. It also allows different versions of SNOMED CT dictionaries to be used side by side, by loading them into different environments. For ease of use, many of the functions in the package will search for the dictionaries in an environment named &#39;SNOMED&#39; by default, but for programming use I recommend specifying the environment explicitly to avoid unexpected errors. </p>
+<p>When the NHS Digital SNOMED CT files are extracted, they will be in a folder such as &#39;SnomedCT_InternationalRF2_PRODUCTION_20200731T120000Z&#39;, and the relevant tables will be in the subfolder &#39;Snapshot/Terminology&#39;. Code such as the following can be used to load the tables into R (the file paths should be changed to the actual file paths on your system).</p>
+
+<pre><code># Load UK and International SNOMED CT release files into an
+# R environment called &#39;SNOMED&#39;
+SNOMED &lt;- loadSNOMED(c(
+  &#39;SnomedCT_InternationalRF2_PRODUCTION_20200731T120000Z/Snapshot/Terminology&#39;,
+  &#39;SnomedCT_UKClinicalRF2_PRODUCTION_20210317T000001Z/Snapshot/Terminology&#39;))
+
+# Save the &#39;SNOMED&#39; environment to a file on disk
+saveRDS(SNOMED, file = &#39;mySNOMED.RDS&#39;)
+
+# Reload the &#39;SNOMED&#39; environment from file
+SNOMED &lt;- readRDS(&#39;mySNOMED.RDS&#39;)
+</code></pre>
+
+<h2>Using R environments</h2>
+
+<p>The SNOMED CT dictionary files are loaded into an R &#39;environment&#39;, which is an object that can contain other objects. This is a convenient way in R to store a group of objects without cluttering up the global environment with too many individual objects. It also allows different versions of SNOMED CT dictionaries to be used side by side, by loading them into different environments. For ease of use, many of the functions in the package will search for the dictionaries in an environment named &#39;SNOMED&#39; by default, but for programming use it is recommended to specify the environment explicitly in function calls to avoid unexpected errors. </p>
 
 <p>For the purpose of this vignette, we will create a sample set of SNOMED CT files from the sample dictionaries included with the package. </p>
 
-<pre><code># The sampleSNOMED() function returns an environment containing
+<pre><code class="r"># The sampleSNOMED() function returns an environment containing
 # the sample dictionaries
 TEST &lt;- sampleSNOMED()
 
-# TEST is now the environment. Objects within the environment can be
-# retrieved using the $ operator or the &#39;get&#39; function. We will export
-# the sample dictionaries to a temporary folder in order to retrieve
-# them using loadSNOMED()
+# TEST is now an environment containing the sample SNOMED CT dictionary.
+# Objects within the environment can be retrieved using the $ operator
+# or the &#39;get&#39; function. We will export the sample dictionaries to a
+# temporary folder to show how to reload them using loadSNOMED()
 
 for (table in c(&#39;Concept&#39;, &#39;Description&#39;, &#39;Relationship&#39;,
   &#39;StatedRelationship&#39;)){
@@ -212,8 +267,99 @@ for (table in c(&#39;Concept&#39;, &#39;Description&#39;, &#39;Relationship&#39;
     &#39;/sct_&#39;, table, &#39;_test.txt&#39;), row.names = FALSE, sep = &#39;\t&#39;, quote = FALSE)
 }
 
+# loadSNOMED searches for files containing _Concept_, _Description_,
+# _Relationship_ or _StatedRelationship_, as in the actual SNOMED CT
+# release files.
+
 # Import using the loadSNOMED function
 SNOMED &lt;- loadSNOMED(tempdir(), active_only = FALSE)
+</code></pre>
+
+<pre><code>## Attempting to load from /tmp/RtmpFGnDop
+</code></pre>
+
+<pre><code>## Attempting to load sct_Concept_test.txt
+</code></pre>
+
+<pre><code>##   Loaded 62 rows.
+</code></pre>
+
+<pre><code>##   Converted effectiveTime to IDate.
+</code></pre>
+
+<pre><code>##   Converting active to logical.
+</code></pre>
+
+<pre><code>##   Naming as CONCEPT
+</code></pre>
+
+<pre><code>## Attempting to load sct_Description_test.txt
+</code></pre>
+
+<pre><code>##   Loaded 183 rows.
+</code></pre>
+
+<pre><code>##   Converted effectiveTime to IDate.
+</code></pre>
+
+<pre><code>##   Converting active to logical.
+</code></pre>
+
+<pre><code>##   Naming as DESCRIPTION
+</code></pre>
+
+<pre><code>## Attempting to load sct_StatedRelationship_test.txt
+</code></pre>
+
+<pre><code>##   Loaded 61 rows.
+</code></pre>
+
+<pre><code>##   Converted effectiveTime to IDate.
+</code></pre>
+
+<pre><code>##   Converting destinationId to integer64.
+</code></pre>
+
+<pre><code>##   Converting typeId to integer64.
+</code></pre>
+
+<pre><code>##   Converting active to logical.
+</code></pre>
+
+<pre><code>##   Naming as STATEDRELATIONSHIP
+</code></pre>
+
+<pre><code>## Attempting to load sct_Relationship_test.txt
+</code></pre>
+
+<pre><code>##   Loaded 77 rows.
+</code></pre>
+
+<pre><code>##   Converted effectiveTime to IDate.
+</code></pre>
+
+<pre><code>##   Converting destinationId to integer64.
+</code></pre>
+
+<pre><code>##   Converting typeId to integer64.
+</code></pre>
+
+<pre><code>##   Naming as RELATIONSHIP
+</code></pre>
+
+<pre><code>## 
+## SNOMED CT tables loaded into environment:
+##                  NAME NROW NCOL MB
+## 1:            CONCEPT   62    5  0
+## 2:        DESCRIPTION  183    9  0
+## 3:       RELATIONSHIP   77   10  0
+## 4: STATEDRELATIONSHIP   61   10  0
+##                                                               COLS KEY
+## 1:             id,moduleId,definitionStatusId,effectiveTime,active    
+## 2:              id,moduleId,conceptId,languageCode,typeId,term,...    
+## 3: id,active,moduleId,sourceId,destinationId,relationshipGroup,...    
+## 4: id,moduleId,sourceId,destinationId,relationshipGroup,typeId,...    
+## Total: 0MB
 </code></pre>
 
 <h2>SNOMED CT concepts IDs in R</h2>
@@ -224,42 +370,102 @@ SNOMED &lt;- loadSNOMED(tempdir(), active_only = FALSE)
 
 <p>The function &#39;as.SNOMEDconcept&#39; can be used to retrieve the SNOMED concept ID matching a description. This function also converts SNOMED CT concept IDs in other formats (numeric, 64-bit integer or character) into SNOMEDconcept objects.</p>
 
-<pre><code># Make sure the SNOMED environment is available and contains the SNOMED dictionary
+<pre><code class="r"># Make sure the SNOMED environment is available and contains the SNOMED dictionary
 as.SNOMEDconcept(&#39;Heart failure&#39;, SNOMED = SNOMED)
+</code></pre>
 
-# To use the sample SNOMED dictionary for testing
+<pre><code>## [1] &quot;84114007 | Heart failure (disorder)&quot;
+</code></pre>
+
+<pre><code class="r"># To use the sample SNOMED dictionary for testing
 as.SNOMEDconcept(&#39;Heart failure&#39;, SNOMED = sampleSNOMED())
+</code></pre>
 
-# If an object named SNOMED containing the SNOMED dictionary is available
+<pre><code>## [1] &quot;84114007 | Heart failure (disorder)&quot;
+</code></pre>
+
+<pre><code class="r"># If an object named SNOMED containing the SNOMED dictionary is available
 # in the current environment, it does not need to be stated in the
 # function call
 SNOMED &lt;- sampleSNOMED()
 as.SNOMEDconcept(&#39;Heart failure&#39;)
+</code></pre>
 
-# The argument &#39;exact&#39; can be used to specify whether a regular expression
+<pre><code>## [1] &quot;84114007 | Heart failure (disorder)&quot;
+</code></pre>
+
+<pre><code class="r"># The argument &#39;exact&#39; can be used to specify whether a regular expression
 # search should be done, e.g.
 as.SNOMEDconcept(&#39;Heart f&#39;, exact = FALSE)
+</code></pre>
 
-# The &#39;description&#39; function can be used to return the descriptions of
+<pre><code>##  [1] &quot;84114007 | Heart failure (disorder)&quot;                                 
+##  [2] &quot;89819002 | Cardiac insufficiency during AND/OR resulting from a p...&quot;
+##  [3] &quot;233924009 | Heart failure as a complication of care (disorder)&quot;      
+##  [4] &quot;309634009 | History of heart failure in last year (situation)&quot;       
+##  [5] &quot;390868005 | Heart failure screen (procedure)&quot;                        
+##  [6] &quot;394927007 | Heart failure excluded (situation)&quot;                      
+##  [7] &quot;395105005 | Heart failure confirmed (situation)&quot;                     
+##  [8] &quot;423475008 | Heart failure education (procedure)&quot;                     
+##  [9] &quot;446221000 | Heart failure with normal ejection fraction (disorder)&quot;  
+## [10] &quot;471880001 | Heart failure due to end stage congenital heart disea...&quot;
+## [11] &quot;703272007 | Heart failure with reduced ejection fraction (disorder)&quot;
+</code></pre>
+
+<pre><code class="r"># The &#39;description&#39; function can be used to return the descriptions of
 # the concepts found. It returns a data.table with the fully specified 
 # name for each term.
 description(as.SNOMEDconcept(&#39;Heart f&#39;, exact = FALSE))
+</code></pre>
 
-# The &#39;semantic type&#39; function returns the semantic type of the concept
+<pre><code>##             id conceptId
+##  1:  825890014  84114007
+##  2:  832792011  89819002
+##  3:  622176015 233924009
+##  4: 2987039012 309634009
+##  5: 1465046015 390868005
+##  6: 2612836016 394927007
+##  7: 2612834018 395105005
+##  8: 2641521019 423475008
+##  9: 2881211010 446221000
+## 10: 2950980013 471880001
+## 11: 3008153015 703272007
+##                                                                          term
+##  1:                                                  Heart failure (disorder)
+##  2: Cardiac insufficiency during AND/OR resulting from a procedure (disorder)
+##  3:                        Heart failure as a complication of care (disorder)
+##  4:                         History of heart failure in last year (situation)
+##  5:                                          Heart failure screen (procedure)
+##  6:                                        Heart failure excluded (situation)
+##  7:                                       Heart failure confirmed (situation)
+##  8:                                       Heart failure education (procedure)
+##  9:                    Heart failure with normal ejection fraction (disorder)
+## 10:        Heart failure due to end stage congenital heart disease (disorder)
+## 11:                   Heart failure with reduced ejection fraction (disorder)
+</code></pre>
+
+<pre><code class="r"># The &#39;semantic type&#39; function returns the semantic type of the concept
 # from the Fully Specified Name
 semanticType(as.SNOMEDconcept(&#39;Heart failure&#39;))
+</code></pre>
 
-# Functions which expect a SNOMEDconcept object, such as semanticType,
+<pre><code>## [1] &quot;disorder&quot;
+</code></pre>
+
+<pre><code class="r"># Functions which expect a SNOMEDconcept object, such as semanticType,
 # will automatically convert their argument to SNOMEDconcept using the
 # function as.SNOMEDconcept
 semanticType(&#39;Heart failure&#39;)
+</code></pre>
+
+<pre><code>## [1] &quot;disorder&quot;
 </code></pre>
 
 <h2>Set operations using SNOMEDconcept</h2>
 
 <p>This package provides versions of the set functions &#39;setdiff&#39;, &#39;intersect&#39; and &#39;union&#39; which work with SNOMEDconcept objects.</p>
 
-<pre><code># A list of concepts with a description containing the term &#39;heart&#39;
+<pre><code class="r"># A list of concepts with a description containing the term &#39;heart&#39;
 # (not that all synonyms are searched, not just the Fully Specified Names)
 heart &lt;- as.SNOMEDconcept(&#39;Heart|heart&#39;, exact = FALSE, SNOMED = sampleSNOMED())
 
@@ -268,12 +474,91 @@ fail &lt;- as.SNOMEDconcept(&#39;Fail|fail&#39;, exact = FALSE, SNOMED = sampleS
 
 # Concepts with heart and fail
 intersect(heart, fail)
+</code></pre>
 
-# Concepts with heart and not fail
+<pre><code>##  [1] &quot;446221000 | Heart failure with normal ejection fraction (disorder)&quot;  
+##  [2] &quot;813991000000101 | Education about deteriorating heart failure (pr...&quot;
+##  [3] &quot;10091002 | High output heart failure (disorder)&quot;                     
+##  [4] &quot;25544003 | Low output heart failure (disorder)&quot;                      
+##  [5] &quot;42343007 | Congestive heart failure (disorder)&quot;                      
+##  [6] &quot;46113002 | Hypertensive heart failure (disorder)&quot;                    
+##  [7] &quot;48447003 | Chronic heart failure (disorder)&quot;                         
+##  [8] &quot;56675007 | Acute heart failure (disorder)&quot;                           
+##  [9] &quot;84114007 | Heart failure (disorder)&quot;                                 
+## [10] &quot;85232009 | Left heart failure (disorder)&quot;                            
+## [11] &quot;89819002 | Cardiac insufficiency during AND/OR resulting from a p...&quot;
+## [12] &quot;128404006 | Right heart failure (disorder)&quot;                          
+## [13] &quot;161505003 | History of heart failure (situation)&quot;                    
+## [14] &quot;233924009 | Heart failure as a complication of care (disorder)&quot;      
+## [15] &quot;309634009 | History of heart failure in last year (situation)&quot;       
+## [16] &quot;314206003 | Refractory heart failure (disorder)&quot;                     
+## [17] &quot;390868005 | Heart failure screen (procedure)&quot;                        
+## [18] &quot;394887005 | Suspected heart failure (situation)&quot;                     
+## [19] &quot;394927007 | Heart failure excluded (situation)&quot;                      
+## [20] &quot;395105005 | Heart failure confirmed (situation)&quot;                     
+## [21] &quot;418304008 | Diastolic heart failure (disorder)&quot;                      
+## [22] &quot;417996009 | Systolic heart failure (disorder)&quot;                       
+## [23] &quot;423475008 | Heart failure education (procedure)&quot;                     
+## [24] &quot;429959009 | Family history of heart failure (situation)&quot;             
+## [25] &quot;462172006 | Fetal heart failure (disorder)&quot;                          
+## [26] &quot;471880001 | Heart failure due to end stage congenital heart disea...&quot;
+## [27] &quot;703272007 | Heart failure with reduced ejection fraction (disorder)&quot; 
+## [28] &quot;718287008 | Provision of written information about heart failure ...&quot;
+</code></pre>
+
+<pre><code class="r"># Concepts with heart and not fail
 setdiff(heart, fail)
+</code></pre>
 
-# Concepts with heart or fail
+<pre><code>## [1] &quot;80891009 | Heart structure (body structure)&quot;
+## [2] &quot;57809008 | Myocardial disease (disorder)&quot;
+</code></pre>
+
+<pre><code class="r"># Concepts with heart or fail
 union(heart, fail)
+</code></pre>
+
+<pre><code>##  [1] &quot;446221000 | Heart failure with normal ejection fraction (disorder)&quot;  
+##  [2] &quot;813991000000101 | Education about deteriorating heart failure (pr...&quot;
+##  [3] &quot;10091002 | High output heart failure (disorder)&quot;                     
+##  [4] &quot;25544003 | Low output heart failure (disorder)&quot;                      
+##  [5] &quot;42343007 | Congestive heart failure (disorder)&quot;                      
+##  [6] &quot;46113002 | Hypertensive heart failure (disorder)&quot;                    
+##  [7] &quot;48447003 | Chronic heart failure (disorder)&quot;                         
+##  [8] &quot;56675007 | Acute heart failure (disorder)&quot;                           
+##  [9] &quot;80891009 | Heart structure (body structure)&quot;                         
+## [10] &quot;84114007 | Heart failure (disorder)&quot;                                 
+## [11] &quot;85232009 | Left heart failure (disorder)&quot;                            
+## [12] &quot;89819002 | Cardiac insufficiency during AND/OR resulting from a p...&quot;
+## [13] &quot;128404006 | Right heart failure (disorder)&quot;                          
+## [14] &quot;161505003 | History of heart failure (situation)&quot;                    
+## [15] &quot;233924009 | Heart failure as a complication of care (disorder)&quot;      
+## [16] &quot;309634009 | History of heart failure in last year (situation)&quot;       
+## [17] &quot;314206003 | Refractory heart failure (disorder)&quot;                     
+## [18] &quot;57809008 | Myocardial disease (disorder)&quot;                            
+## [19] &quot;390868005 | Heart failure screen (procedure)&quot;                        
+## [20] &quot;394887005 | Suspected heart failure (situation)&quot;                     
+## [21] &quot;394927007 | Heart failure excluded (situation)&quot;                      
+## [22] &quot;395105005 | Heart failure confirmed (situation)&quot;                     
+## [23] &quot;418304008 | Diastolic heart failure (disorder)&quot;                      
+## [24] &quot;417996009 | Systolic heart failure (disorder)&quot;                       
+## [25] &quot;423475008 | Heart failure education (procedure)&quot;                     
+## [26] &quot;429959009 | Family history of heart failure (situation)&quot;             
+## [27] &quot;462172006 | Fetal heart failure (disorder)&quot;                          
+## [28] &quot;471880001 | Heart failure due to end stage congenital heart disea...&quot;
+## [29] &quot;703272007 | Heart failure with reduced ejection fraction (disorder)&quot; 
+## [30] &quot;718287008 | Provision of written information about heart failure ...&quot;
+## [31] &quot;55565007 | Cardiac failure after obstetrical surgery AND/OR other...&quot;
+## [32] &quot;195111005 | Decompensated cardiac failure (disorder)&quot;                
+## [33] &quot;195112003 | Compensated cardiac failure (disorder)&quot;                  
+## [34] &quot;206586007 | Congenital cardiac failure (disorder)&quot;                   
+## [35] &quot;276514007 | Neonatal cardiac failure (disorder)&quot;                     
+## [36] &quot;277639002 | Sepsis-associated right ventricular failure (disorder)&quot;  
+## [37] &quot;313389004 | No cardiac failure (situation)&quot;                          
+## [38] &quot;367363000 | Right ventricular failure (disorder)&quot;                    
+## [39] &quot;410431009 | Cardiorespiratory failure (disorder)&quot;                    
+## [40] &quot;609507007 | Induced termination of pregnancy complicated by cardi...&quot;
+## [41] &quot;722095005 | Acute kidney injury due to circulatory failure (disor...&quot;
 </code></pre>
 
 <p>These set operations can be used to create lists of SNOMED CT concepts of interest, similar to the way researchers use Read codes. However, SNOMED CT also allows the use of hierarchies and relationships to locate concepts by their meaning</p>
@@ -282,19 +567,35 @@ union(heart, fail)
 
 <p>The most important relationship is the &#39;Is a&#39; relationship, also known as parent and child. This makes it easy to find all specific concepts that are a subtype of a more general concept. The relationship functions (parents, ancestors, children and descendants) all take a SNOMEDconcept object as input, or attempt to convert their argument to SNOMEDconcept.</p>
 
-<pre><code>SNOMED &lt;- sampleSNOMED()
+<pre><code class="r">SNOMED &lt;- sampleSNOMED()
 
 # Parents (immediate ancestors)
 parents(&#39;Acute heart failure&#39;)
+</code></pre>
 
-# Ancestors
+<pre><code>## [1] &quot;84114007 | Heart failure (disorder)&quot;
+</code></pre>
+
+<pre><code class="r"># Ancestors
 ancestors(&#39;Acute heart failure&#39;)
+</code></pre>
 
-# Children (immediate descendants)
+<pre><code>## [1] &quot;84114007 | Heart failure (disorder)&quot;                
+## [2] &quot;105981003 | Disorder of cardiac function (disorder)&quot;
+</code></pre>
+
+<pre><code class="r"># Children (immediate descendants)
 children(&#39;Acute heart failure&#39;)
+</code></pre>
 
-# Descendants
+<pre><code>## [1] &quot;722095005 | Acute kidney injury due to circulatory failure (disor...&quot;
+</code></pre>
+
+<pre><code class="r"># Descendants
 descendants(&#39;Acute heart failure&#39;)
+</code></pre>
+
+<pre><code>## [1] &quot;722095005 | Acute kidney injury due to circulatory failure (disor...&quot;
 </code></pre>
 
 <h2>Attributes of SNOMED CT concepts</h2>
@@ -303,37 +604,189 @@ descendants(&#39;Acute heart failure&#39;)
 
 <p>In order to find the finding site of a disorder, we use the &#39;forward&#39; relationship. In order to find disorders with a particular finding site, we use the relationship in the &#39;reverse&#39; direction.</p>
 
-<pre><code>SNOMED &lt;- sampleSNOMED()
+<pre><code class="r">SNOMED &lt;- sampleSNOMED()
 
 # List all the attributes of a concept
 print(attrConcept(&#39;Heart failure&#39;))
+</code></pre>
 
-# &#39;Finding site&#39; of a particular disorder
+<pre><code>##    sourceId destinationId    typeId relationshipGroup
+## 1: 84114007     105981003 116680003                 0
+## 2: 84114007      80891009 363698007                 0
+## 3: 84114007      57809008 116680003                 0
+## 4: 84114007     105981003 116680003                 0
+## 5: 84114007      74281007 363698007                 0
+## 6: 84114007      80891009 363698007                 0
+##                  sourceDesc                         destinationDesc
+## 1: Heart failure (disorder) Disorder of cardiac function (disorder)
+## 2: Heart failure (disorder)        Heart structure (body structure)
+## 3: Heart failure (disorder)           Myocardial disease (disorder)
+## 4: Heart failure (disorder) Disorder of cardiac function (disorder)
+## 5: Heart failure (disorder)   Myocardium structure (body structure)
+## 6: Heart failure (disorder)        Heart structure (body structure)
+##                    typeDesc
+## 1:         Is a (attribute)
+## 2: Finding site (attribute)
+## 3:         Is a (attribute)
+## 4:         Is a (attribute)
+## 5: Finding site (attribute)
+## 6: Finding site (attribute)
+</code></pre>
+
+<pre><code class="r"># &#39;Finding site&#39; of a particular disorder
 relatedConcepts(&#39;Heart failure&#39;,&#39;Finding site&#39;)
+</code></pre>
 
-# Disorders with a &#39;Finding site&#39; of &#39;Heart&#39;
+<pre><code>## [1] &quot;80891009 | Heart structure (body structure)&quot;
+</code></pre>
+
+<pre><code class="r"># Disorders with a &#39;Finding site&#39; of &#39;Heart&#39;
 relatedConcepts(&#39;Heart&#39;, &#39;Finding site&#39;, reverse = TRUE)
+</code></pre>
+
+<pre><code>##  [1] &quot;10091002 | High output heart failure (disorder)&quot;                     
+##  [2] &quot;105981003 | Disorder of cardiac function (disorder)&quot;                 
+##  [3] &quot;314206003 | Refractory heart failure (disorder)&quot;                     
+##  [4] &quot;25544003 | Low output heart failure (disorder)&quot;                      
+##  [5] &quot;367363000 | Right ventricular failure (disorder)&quot;                    
+##  [6] &quot;46113002 | Hypertensive heart failure (disorder)&quot;                    
+##  [7] &quot;48447003 | Chronic heart failure (disorder)&quot;                         
+##  [8] &quot;55565007 | Cardiac failure after obstetrical surgery AND/OR other...&quot;
+##  [9] &quot;56675007 | Acute heart failure (disorder)&quot;                           
+## [10] &quot;84114007 | Heart failure (disorder)&quot;                                 
+## [11] &quot;89819002 | Cardiac insufficiency during AND/OR resulting from a p...&quot;
+## [12] &quot;195111005 | Decompensated cardiac failure (disorder)&quot;                
+## [13] &quot;195112003 | Compensated cardiac failure (disorder)&quot;                  
+## [14] &quot;195130005 | Post cardiac operation functional disturbance (disorder)&quot;
+## [15] &quot;233924009 | Heart failure as a complication of care (disorder)&quot;      
+## [16] &quot;410431009 | Cardiorespiratory failure (disorder)&quot;                    
+## [17] &quot;276514007 | Neonatal cardiac failure (disorder)&quot;                     
+## [18] &quot;418304008 | Diastolic heart failure (disorder)&quot;                      
+## [19] &quot;417996009 | Systolic heart failure (disorder)&quot;                       
+## [20] &quot;68583001 | Auricular dilatation (disorder)&quot;                          
+## [21] &quot;445236007 | Cardiorenal syndrome (disorder)&quot;                         
+## [22] &quot;446221000 | Heart failure with normal ejection fraction (disorder)&quot;  
+## [23] &quot;462172006 | Fetal heart failure (disorder)&quot;                          
+## [24] &quot;471880001 | Heart failure due to end stage congenital heart disea...&quot;
+## [25] &quot;609507007 | Induced termination of pregnancy complicated by cardi...&quot;
+## [26] &quot;206586007 | Congenital cardiac failure (disorder)&quot;                   
+## [27] &quot;703272007 | Heart failure with reduced ejection fraction (disorder)&quot; 
+## [28] &quot;722095005 | Acute kidney injury due to circulatory failure (disor...&quot;
 </code></pre>
 
 <h2>SNOMED CT codelists</h2>
 
 <p>The SNOMED CT codelist data type allows a list of SNOMED CT concepts to be curated. It allows codelists to be expressed in a contracted (simplified) form with descendants implicitly included.</p>
 
-<pre><code>SNOMED &lt;- sampleSNOMED()
+<pre><code class="r">SNOMED &lt;- sampleSNOMED()
 
 # Create a codelist containing all the descendants of
-my_heart_failure_codelist &lt;- SNOMEDcodelist(as.SNOMEDconcept(&#39;Heart failure&#39;), include_desc = TRUE)
+# the concept &#39;Heart failure&#39;
+my_heart_failure_codelist &lt;- SNOMEDcodelist(
+  as.SNOMEDconcept(&#39;Heart failure&#39;), include_desc = TRUE)
+</code></pre>
 
-# Original codelist
+<pre><code>## Converting 1 concept(s) to a codelist
+</code></pre>
+
+<pre><code class="r"># Original codelist
 print(my_heart_failure_codelist)
+</code></pre>
 
-# Expanded codelist
+<pre><code>##    conceptId include_desc                     term
+## 1:  84114007         TRUE Heart failure (disorder)
+</code></pre>
+
+<pre><code class="r"># Expanded codelist
 expanded &lt;- expandSNOMED(my_heart_failure_codelist)
 print(expanded)
+</code></pre>
 
-# Contract codelist
+<pre><code>##     conceptId include_desc
+##  1:  10091002           NA
+##  2:  25544003           NA
+##  3:  42343007           NA
+##  4:  46113002           NA
+##  5:  48447003           NA
+##  6:  55565007           NA
+##  7:  56675007           NA
+##  8:  84114007         TRUE
+##  9:  85232009           NA
+## 10:  89819002           NA
+## 11: 128404006           NA
+## 12: 195111005           NA
+## 13: 195112003           NA
+## 14: 206586007           NA
+## 15: 233924009           NA
+## 16: 276514007           NA
+## 17: 277639002           NA
+## 18: 314206003           NA
+## 19: 367363000           NA
+## 20: 410431009           NA
+## 21: 417996009           NA
+## 22: 418304008           NA
+## 23: 445236007           NA
+## 24: 446221000           NA
+## 25: 462172006           NA
+## 26: 471880001           NA
+## 27: 609507007           NA
+## 28: 703272007           NA
+## 29: 722095005           NA
+##     conceptId include_desc
+##                                                                                               term
+##  1:                                                           High output heart failure (disorder)
+##  2:                                                            Low output heart failure (disorder)
+##  3:                                                            Congestive heart failure (disorder)
+##  4:                                                          Hypertensive heart failure (disorder)
+##  5:                                                               Chronic heart failure (disorder)
+##  6: Cardiac failure after obstetrical surgery AND/OR other procedure including delivery (disorder)
+##  7:                                                                 Acute heart failure (disorder)
+##  8:                                                                       Heart failure (disorder)
+##  9:                                                                  Left heart failure (disorder)
+## 10:                      Cardiac insufficiency during AND/OR resulting from a procedure (disorder)
+## 11:                                                                 Right heart failure (disorder)
+## 12:                                                       Decompensated cardiac failure (disorder)
+## 13:                                                         Compensated cardiac failure (disorder)
+## 14:                                                          Congenital cardiac failure (disorder)
+## 15:                                             Heart failure as a complication of care (disorder)
+## 16:                                                            Neonatal cardiac failure (disorder)
+## 17:                                         Sepsis-associated right ventricular failure (disorder)
+## 18:                                                            Refractory heart failure (disorder)
+## 19:                                                           Right ventricular failure (disorder)
+## 20:                                                           Cardiorespiratory failure (disorder)
+## 21:                                                              Systolic heart failure (disorder)
+## 22:                                                             Diastolic heart failure (disorder)
+## 23:                                                                Cardiorenal syndrome (disorder)
+## 24:                                         Heart failure with normal ejection fraction (disorder)
+## 25:                                                                 Fetal heart failure (disorder)
+## 26:                             Heart failure due to end stage congenital heart disease (disorder)
+## 27:                     Induced termination of pregnancy complicated by cardiac failure (disorder)
+## 28:                                        Heart failure with reduced ejection fraction (disorder)
+## 29:                                      Acute kidney injury due to circulatory failure (disorder)
+##                                                                                               term
+</code></pre>
+
+<pre><code class="r"># Contract codelist
 contracted &lt;- contractSNOMED(expanded)
 print(contracted)
+</code></pre>
+
+<pre><code>##    conceptId include_desc                     term
+## 1:  84114007         TRUE Heart failure (disorder)
+</code></pre>
+
+<pre><code class="r"># Write out codelist to file
+write.csv(my_heart_failure_codelist, file = paste0(tempdir(),
+  &#39;/hf_codes.csv&#39;), row.names = FALSE)
+
+# Reload codelist from file
+reloaded_codelist &lt;- as.SNOMEDcodelist(fread(paste0(tempdir(),
+  &#39;/hf_codes.csv&#39;)))
+print(reloaded_codelist)
+</code></pre>
+
+<pre><code>##    conceptId include_desc                     term
+## 1:  84114007         TRUE Heart failure (disorder)
 </code></pre>
 
 <h2>More information</h2>

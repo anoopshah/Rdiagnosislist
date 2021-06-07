@@ -4,11 +4,13 @@
 \alias{print.SNOMEDconcept}
 \title{Display a SNOMEDconcept object with descriptions}
 \usage{
-\method{print}{SNOMEDconcept}(x)
+\method{print}{SNOMEDconcept}(x, ...)
 }
 \arguments{
 \item{x}{SNOMEDconcept object, or something that can be
 coerced to one}
+
+\item{...}{not required}
 }
 \value{
 invisibly returns a character vector of the SNOMED CT

@@ -28,7 +28,7 @@ Each SNOMED CT concept may have any number of synonyms, but there are the follow
 - Fully Specified Name - this is the most precise description of the concept, but is too verbose for general use.
 - Preferred - these is the synonym that is preferred for clinical display in a particular language, and is recorded in the language-specific reference set
 
-Each concept also has a semantic tag, which denotes what type of concept it is (e.g. 'disorder' or 'organism'). This is currently recorded in parentheses at the end of the Fully Specified Name, but can be extracted using the semanticType function in this package.
+Each concept also has a semantic tag, which denotes what type of concept it is (e.g. 'disorder' or 'organism'). This is currently recorded in parentheses at the end of the Fully Specified Name, and can be extracted using the semanticType function in this package.
 
 Loading the SNOMED CT dictionaries
 ----------------------------------
@@ -37,25 +37,51 @@ This package contains functions to import a set of SNOMED CT release files from 
 
 For most users the 'Snapshot' files, containing the current versions of the entries, will be the most useful, and the sample dictionaries in this package are based on the Snapshot file format. The 'Delta' files contain changes since the previous version, and the 'Full' files contain a history of the changes to each entry.
 
-The SNOMED CT dictionary files are loaded into an R 'environment', which is an object that can contain other objects. This is a convenient way in R to store a group of objects without cluttering up the global environment with too many individual objects. It also allows different versions of SNOMED CT dictionaries to be used side by side, by loading them into different environments. For ease of use, many of the functions in the package will search for the dictionaries in an environment named 'SNOMED' by default, but for programming use I recommend specifying the environment explicitly to avoid unexpected errors. 
+When the NHS Digital SNOMED CT files are extracted, they will be in a folder such as 'SnomedCT_InternationalRF2_PRODUCTION_20200731T120000Z', and the relevant tables will be in the subfolder 'Snapshot/Terminology'. Code such as the following can be used to load the tables into R (the file paths should be changed to the actual file paths on your system).
+
+```
+# Load package
+require(Rdiagnosislist)
+
+# Load UK and International SNOMED CT release files into an
+# R environment called 'SNOMED'
+SNOMED <- loadSNOMED(c(
+  'SnomedCT_InternationalRF2_PRODUCTION_20200731T120000Z/Snapshot/Terminology',
+  'SnomedCT_UKClinicalRF2_PRODUCTION_20210317T000001Z/Snapshot/Terminology'))
+
+# Save the 'SNOMED' environment to a file on disk
+saveRDS(SNOMED, file = 'mySNOMED.RDS')
+
+# Reload the 'SNOMED' environment from file
+SNOMED <- readRDS('mySNOMED.RDS')
+```
+
+Using R environments
+--------------------
+
+The SNOMED CT dictionary files are loaded into an R 'environment', which is an object that can contain other objects. This is a convenient way in R to store a group of objects without cluttering up the global environment with too many individual objects. It also allows different versions of SNOMED CT dictionaries to be used side by side, by loading them into different environments. For ease of use, many of the functions in the package will search for the dictionaries in an environment named 'SNOMED' by default, but for programming use it is recommended to specify the environment explicitly in function calls to avoid unexpected errors. 
 
 For the purpose of this vignette, we will create a sample set of SNOMED CT files from the sample dictionaries included with the package. 
 
-```
+```{r}
 # The sampleSNOMED() function returns an environment containing
 # the sample dictionaries
 TEST <- sampleSNOMED()
 
-# TEST is now the environment. Objects within the environment can be
-# retrieved using the $ operator or the 'get' function. We will export
-# the sample dictionaries to a temporary folder in order to retrieve
-# them using loadSNOMED()
+# TEST is now an environment containing the sample SNOMED CT dictionary.
+# Objects within the environment can be retrieved using the $ operator
+# or the 'get' function. We will export the sample dictionaries to a
+# temporary folder to show how to reload them using loadSNOMED()
 
 for (table in c('Concept', 'Description', 'Relationship',
   'StatedRelationship')){
   write.table(get(toupper(table), envir = TEST), paste0(tempdir(),
     '/sct_', table, '_test.txt'), row.names = FALSE, sep = '\t', quote = FALSE)
 }
+
+# loadSNOMED searches for files containing _Concept_, _Description_,
+# _Relationship_ or _StatedRelationship_, as in the actual SNOMED CT
+# release files.
 
 # Import using the loadSNOMED function
 SNOMED <- loadSNOMED(tempdir(), active_only = FALSE)
@@ -70,7 +96,7 @@ This package makes it easier to use SNOMED CT concept IDs because they can be su
 
 The function 'as.SNOMEDconcept' can be used to retrieve the SNOMED concept ID matching a description. This function also converts SNOMED CT concept IDs in other formats (numeric, 64-bit integer or character) into SNOMEDconcept objects.
 
-```
+```{r}
 # Make sure the SNOMED environment is available and contains the SNOMED dictionary
 as.SNOMEDconcept('Heart failure', SNOMED = SNOMED)
 
@@ -107,8 +133,7 @@ Set operations using SNOMEDconcept
 
 This package provides versions of the set functions 'setdiff', 'intersect' and 'union' which work with SNOMEDconcept objects.
 
-
-```
+```{r}
 # A list of concepts with a description containing the term 'heart'
 # (not that all synonyms are searched, not just the Fully Specified Names)
 heart <- as.SNOMEDconcept('Heart|heart', exact = FALSE, SNOMED = sampleSNOMED())
@@ -133,7 +158,7 @@ Using relationships between SNOMED CT concepts
 
 The most important relationship is the 'Is a' relationship, also known as parent and child. This makes it easy to find all specific concepts that are a subtype of a more general concept. The relationship functions (parents, ancestors, children and descendants) all take a SNOMEDconcept object as input, or attempt to convert their argument to SNOMEDconcept.
 
-```
+```{r}
 SNOMED <- sampleSNOMED()
 
 # Parents (immediate ancestors)
@@ -156,7 +181,7 @@ The 'hasAttributes' function can be used to find terms with particular attribute
 
 In order to find the finding site of a disorder, we use the 'forward' relationship. In order to find disorders with a particular finding site, we use the relationship in the 'reverse' direction.
 
-```
+```{r}
 SNOMED <- sampleSNOMED()
 
 # List all the attributes of a concept
@@ -174,11 +199,13 @@ SNOMED CT codelists
 
 The SNOMED CT codelist data type allows a list of SNOMED CT concepts to be curated. It allows codelists to be expressed in a contracted (simplified) form with descendants implicitly included.
 
-```
+```{r}
 SNOMED <- sampleSNOMED()
 
 # Create a codelist containing all the descendants of
-my_heart_failure_codelist <- SNOMEDcodelist(as.SNOMEDconcept('Heart failure'), include_desc = TRUE)
+# the concept 'Heart failure'
+my_heart_failure_codelist <- SNOMEDcodelist(
+  as.SNOMEDconcept('Heart failure'), include_desc = TRUE)
 
 # Original codelist
 print(my_heart_failure_codelist)
@@ -190,6 +217,15 @@ print(expanded)
 # Contract codelist
 contracted <- contractSNOMED(expanded)
 print(contracted)
+
+# Write out codelist to file
+write.csv(my_heart_failure_codelist, file = paste0(tempdir(),
+  '/hf_codes.csv'), row.names = FALSE)
+
+# Reload codelist from file
+reloaded_codelist <- as.SNOMEDcodelist(fread(paste0(tempdir(),
+  '/hf_codes.csv')))
+print(reloaded_codelist)
 ```
 
 More information

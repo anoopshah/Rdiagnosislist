@@ -8,6 +8,8 @@
 }
 \arguments{
 \item{x}{SNOMEDconcept vector}
+
+\item{...}{other variables to pass on to the underlying 'unique' function}
 }
 \value{
 SNOMEDconcept vector with duplicates removed

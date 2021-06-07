@@ -14,12 +14,12 @@ Description: R package for manipulating lists of SNOMED CT diagnoses.
     'SNOMEDconcept' S3 class for a vector of SNOMED CT concepts (stored
     as 64-bit integers) and the 'SNOMEDcodelist' S3 class for a table
     of concepts IDs with descriptions.
-License: GPL-3 + file LICENSE
-Imports: data.table, bit64
+License: GPL-3
+Imports: data.table, bit64, methods
 Suggests: knitr, rmarkdown, testthat
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
-Author: Anoop Shah [aut, cre]
+Author: Anoop Shah [aut, cre] (0000-0002-8907-5724)
 Maintainer: Anoop Shah <anoop@doctors.org.uk>
 VignetteBuilder: knitr

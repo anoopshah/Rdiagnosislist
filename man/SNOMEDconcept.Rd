@@ -12,7 +12,7 @@
 \method{as.integer64}{SNOMEDconcept}(x)
 
 SNOMEDconcept(
-  terms,
+  x,
   active_only = TRUE,
   exact_match = TRUE,
   unique = TRUE,
@@ -22,12 +22,12 @@ SNOMEDconcept(
 as.SNOMEDconcept(x, ...)
 }
 \arguments{
-\item{...}{additional arguments to send to grepl if using
-regular expression matching}
-
-\item{terms}{character vector of terms to match, or
+\item{x}{character vector of terms to match, or
 character vector containing SNOMED CT concept IDs, or
 64-bit integer vector containing SNOMED CT concept IDs}
+
+\item{...}{additional arguments to send to grepl if using
+regular expression matching}
 
 \item{active_only}{whether or not to include inactive concepts}
 
@@ -48,8 +48,8 @@ a SNOMEDconcept object (vector of 64-bit integers) containing
 \description{
 Carries out an exact or regular expression match to
 return the concept ID for a set of search terms, or
-converts a character or integer64 vector to a SNOMEDconcept
-object.
+converts a character, integer or integer64 vector to a
+SNOMEDconcept object.
 }
 \examples{
 SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED()) -> hf
