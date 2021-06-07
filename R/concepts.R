@@ -28,10 +28,10 @@ inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 #'
 #' Carries out an exact or regular expression match to
 #' return the concept ID for a set of search terms, or
-#' converts a character or integer64 vector to a SNOMEDconcept
-#' object.
+#' converts a character, integer or integer64 vector to a
+#' SNOMEDconcept object.
 #'
-#' @param terms character vector of terms to match, or
+#' @param x character vector of terms to match, or
 #'   character vector containing SNOMED CT concept IDs, or
 #'   64-bit integer vector containing SNOMED CT concept IDs
 #' @param active_only whether or not to include inactive concepts
@@ -54,42 +54,47 @@ inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 #' is.SNOMEDconcept(hf)
 #' SNOMEDconcept('900000000000003001')
 #' as.SNOMEDconcept('900000000000003001')
-SNOMEDconcept <- function(terms, active_only = TRUE,
+SNOMEDconcept <- function(x, active_only = TRUE,
 	exact_match = TRUE, unique = TRUE,
 	SNOMED = get('SNOMED', envir = globalenv())){
 	# Declare names to be used for non-standard evaluation for R CMD check
 	active <- conceptId <- NULL
 	
-	if ('integer64' %in% class(terms)){
+	if ('integer64' %in% class(x)){
 		# correct format for a SNOMED CT concept ID
-		out <- terms
+		out <- x
 		class(out) <- c('SNOMEDconcept', 'integer64')
 		return(out)
-	} else if ('character' %in% class(terms)){
-		if (all(grepl('^[0-9]+$', terms))){
+	} else if ('integer' %in% class(x)){
+		# convert to integer64
+		out <- bit64::as.integer64(x)
+		class(out) <- c('SNOMEDconcept', 'integer64')
+		return(out)
+	} else if ('character' %in% class(x)){
+		if (all(grepl('^[0-9]+$', x))){
 			# concept ID in character format 
-			out <- bit64::as.integer64(terms)
+			out <- bit64::as.integer64(x)
 			class(out) <- c('SNOMEDconcept', 'integer64')
 			return(out)
 		}
 	} else {
-		stop('term to match must be character or integer64; ',
-			class(terms), ' is not acceptable.')
+		stop('term to match must be character, integer or integer64; ',
+			class(x), ' is not acceptable.')
 	}
 
 	# Try to match a term description
 	if (exact_match){
 		if (inactiveIncluded(SNOMED)){
-			MATCHED <- SNOMED$DESCRIPTION[data.table(term = terms),
+			MATCHED <- SNOMED$DESCRIPTION[data.table(term = x),
 				list(active, conceptId), on = 'term']
 		} else {
-			MATCHED <- SNOMED$DESCRIPTION[data.table(term = terms),
+			MATCHED <- SNOMED$DESCRIPTION[data.table(term = x),
 				list(conceptId), on = 'term']
 		}
 	} else {
 		matched <- rep(FALSE, nrow(SNOMED$DESCRIPTION))
-		for (x in terms){
-			matched <- matched | grepl(x, SNOMED$DESCRIPTION$term)
+		for (i in x){
+			matched <- matched | grepl(i, SNOMED$DESCRIPTION$term)
 		}
 		if (inactiveIncluded(SNOMED)){
 			MATCHED <- SNOMED$DESCRIPTION[matched, list(active, conceptId)]
@@ -163,12 +168,13 @@ is.SNOMEDconcept <- function(x){
 #'
 #' @param x SNOMEDconcept object, or something that can be
 #'   coerced to one
+#' @param ... not required
 #' @return invisibly returns a character vector of the SNOMED CT
 #'   concepts with descriptions separated by pipe (|)
 #' @family SNOMEDconcept functions
 #' @method print SNOMEDconcept
 #' @export
-print.SNOMEDconcept <- function(x){
+print.SNOMEDconcept <- function(x, ...){
 	SNOMED <- NULL
 	try(SNOMED <- get('SNOMED', envir = globalenv()), silent = TRUE)
 	
@@ -176,7 +182,7 @@ print.SNOMEDconcept <- function(x){
 		if (is.null(SNOMED)){
 			out <- as.SNOMEDconcept(x)
 			class(out) <- 'integer64'
-			show(out)
+			methods::show(out)
 			return(invisible(out))
 		} else {
 			x <- as.SNOMEDconcept(x, SNOMED = SNOMED)
@@ -188,12 +194,11 @@ print.SNOMEDconcept <- function(x){
 				x
 			}
 			
-			cat(paste0(paste(truncateChar(output, getOption("width") - 7),
-				collapse = '\n'), '\n'))
+			methods::show(truncateChar(output, getOption("width") - 7))
 			return(invisible(output))
 		}
 	} else {
-		cat('No SNOMED CT concepts\n')
+		message('No SNOMED CT concepts\n')
 		return(character(0))
 	}
 }
@@ -376,6 +381,7 @@ c.SNOMEDconcept <- function(...){
 #' unique SNOMEDconcept values.
 #'
 #' @param x SNOMEDconcept vector
+#' @param ... other variables to pass on to the underlying 'unique' function
 #' @return SNOMEDconcept vector with duplicates removed
 #' @family SNOMEDconcept functions
 #' @method unique SNOMEDconcept
