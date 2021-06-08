@@ -159,7 +159,7 @@ contractSNOMED <- function(x,
 	# descendant of a term with include_desc = TRUE
 	
 	# Declare names to be used for non-standard evaluation for R CMD check
-	include_desc <- NULL
+	include_desc <- conceptId <- NULL
 	out <- copy(x)
 	
 	if (!is.SNOMEDcodelist(out)){

@@ -13,7 +13,7 @@ test_that('Related concepts', {
 		as.SNOMEDconcept('Heart structure', SNOMED = sampleSNOMED()))
 })
 
-test_that('Attributes', {
+test_that('hasAttributes', {
 	expect_equal(hasAttributes(
 		as.SNOMEDconcept(c('Heart failure', 'Acute heart failure'),
 		SNOMED = sampleSNOMED()),
@@ -21,6 +21,14 @@ test_that('Attributes', {
 		SNOMED = sampleSNOMED()),
 		as.SNOMEDconcept(c('Finding site', 'Is a'), SNOMED = sampleSNOMED()),
 		SNOMED = sampleSNOMED()), c(TRUE, TRUE))
+})
+
+test_that('attrConcept', {
+	attrTable <- attrConcept(as.SNOMEDconcept('Heart failure',
+		SNOMED = sampleSNOMED()))
+	expect_true(attrTable[,
+		all(sourceId == as.SNOMEDconcept('Heart failure') |
+		destinationId == as.SNOMEDconcept('Heart failure'))])
 })
 
 test_that('Ancestors', {

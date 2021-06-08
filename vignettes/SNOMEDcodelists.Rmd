@@ -66,6 +66,7 @@ For the purpose of this vignette, we will create a sample set of SNOMED CT files
 ```{r}
 # The sampleSNOMED() function returns an environment containing
 # the sample dictionaries
+require(Rdiagnosislist)
 TEST <- sampleSNOMED()
 
 # TEST is now an environment containing the sample SNOMED CT dictionary.
@@ -182,13 +183,14 @@ The 'hasAttributes' function can be used to find terms with particular attribute
 In order to find the finding site of a disorder, we use the 'forward' relationship. In order to find disorders with a particular finding site, we use the relationship in the 'reverse' direction.
 
 ```{r}
+require(Rdiagnosislist)
 SNOMED <- sampleSNOMED()
 
 # List all the attributes of a concept
 print(attrConcept('Heart failure'))
 
 # 'Finding site' of a particular disorder
-relatedConcepts('Heart failure','Finding site')
+relatedConcepts('Heart failure', 'Finding site')
 
 # Disorders with a 'Finding site' of 'Heart'
 relatedConcepts('Heart', 'Finding site', reverse = TRUE)
@@ -223,8 +225,8 @@ write.csv(my_heart_failure_codelist, file = paste0(tempdir(),
   '/hf_codes.csv'), row.names = FALSE)
 
 # Reload codelist from file
-reloaded_codelist <- as.SNOMEDcodelist(fread(paste0(tempdir(),
-  '/hf_codes.csv')))
+reloaded_codelist <- as.SNOMEDcodelist(
+  data.table::fread(paste0(tempdir(), '/hf_codes.csv')))
 print(reloaded_codelist)
 ```
 

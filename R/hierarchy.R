@@ -258,8 +258,7 @@ attrConcept <- function(conceptIds,
 			list(sourceId, destinationId, typeId, relationshipGroup)]
 		}), use.names = TRUE, fill = TRUE),
 		rbindlist(lapply(tables, function(table){
-			get(table, envir = SNOMED)[
-			sourceId %in% conceptIds | destinationId %in% conceptIds,
+			get(table, envir = SNOMED)[MATCHDEST, on = 'destinationId',
 			list(sourceId, destinationId, typeId, relationshipGroup)]
 		}), use.names = TRUE, fill = TRUE)
 	)
