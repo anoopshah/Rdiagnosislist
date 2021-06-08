@@ -25,10 +25,12 @@ test_that('hasAttributes', {
 
 test_that('attrConcept', {
 	attrTable <- attrConcept(as.SNOMEDconcept('Heart failure',
-		SNOMED = sampleSNOMED()))
+		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED())
 	expect_true(attrTable[,
-		all(sourceId == as.SNOMEDconcept('Heart failure') |
-		destinationId == as.SNOMEDconcept('Heart failure'))])
+		all(sourceId == as.SNOMEDconcept('Heart failure',
+		SNOMED = sampleSNOMED()) |
+		destinationId == as.SNOMEDconcept('Heart failure',
+		SNOMED = sampleSNOMED()))])
 })
 
 test_that('Ancestors', {

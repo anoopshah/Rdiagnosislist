@@ -251,8 +251,10 @@ attrConcept <- function(conceptIds,
 	sourceId <- destinationId <- typeId <- relationshipGroup <- NULL
 	sourceDesc <- destinationDesc <- typeDesc <- NULL
 
-	MATCHSOURCE <- data.table(sourceId = as.SNOMEDconcept(conceptIds))
-	MATCHDEST <- data.table(destinationId = as.SNOMEDconcept(conceptIds))
+	MATCHSOURCE <- data.table(sourceId =
+		as.SNOMEDconcept(conceptIds, SNOMED = SNOMED))
+	MATCHDEST <- data.table(destinationId =
+		as.SNOMEDconcept(conceptIds, SNOMED = SNOMED))
 	OUT <- rbind(rbindlist(lapply(tables, function(table){
 			get(table, envir = SNOMED)[MATCHSOURCE, on = 'sourceId',
 			list(sourceId, destinationId, typeId, relationshipGroup)]
@@ -262,9 +264,10 @@ attrConcept <- function(conceptIds,
 			list(sourceId, destinationId, typeId, relationshipGroup)]
 		}), use.names = TRUE, fill = TRUE)
 	)
-	OUT[, sourceDesc := description(sourceId)$term]
-	OUT[, destinationDesc := description(destinationId)$term]
-	OUT[, typeDesc := description(typeId)$term]
+	OUT[, sourceDesc := description(sourceId, SNOMED = SNOMED)$term]
+	OUT[, destinationDesc := description(destinationId,
+		SNOMED = SNOMED)$term]
+	OUT[, typeDesc := description(typeId, SNOMED = SNOMED)$term]
 	return(OUT[])
 }
 
