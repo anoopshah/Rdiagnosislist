@@ -22,6 +22,18 @@ test_that('Single term matching', {
 		as.SNOMEDconcept('84114007'))
 })
 
+test_that('Ensure that only concepts in the concept table are returned', {
+	TEST <- sampleSNOMED()
+	# Create an alternative (deprecated) concept for heart failure
+	TEST$DESCRIPTION[term == 'Heart failure (disorder)',
+		conceptId := as.integer64('155374007')]
+	TEST$DESCRIPTION[term == 'Heart failure (disorder)',
+		term := 'Heart failure']
+	# Add a description without a concept in the concept table
+	expect_equal(as.SNOMEDconcept('Heart failure', SNOMED = TEST),
+		as.SNOMEDconcept('84114007'))
+})
+
 test_that('Duplicates', {
 	expect_equal(as.SNOMEDconcept(c('Heart failure', 'Weak heart'),
 		SNOMED = sampleSNOMED()), as.SNOMEDconcept('84114007'))
