@@ -9,6 +9,9 @@ vignette: >
 \usepackage[utf8]{inputenc}
 ---
 
+Using SNOMED dictionaries and codelists
+=======================================
+
 This package is designed to make it easier to use SNOMED CT in R, including searching the SNOMED CT dictionary and relations, and creating and manipulating SNOMED CT codelists.
 
 Basic introduction to SNOMED CT
@@ -152,7 +155,7 @@ setdiff(heart, fail)
 union(heart, fail)
 ```
 
-These set operations can be used to create lists of SNOMED CT concepts of interest, similar to the way researchers use Read codes. However, SNOMED CT also allows the use of hierarchies and relationships to locate concepts by their meaning
+These set operations can be used to create lists of SNOMED CT concepts of interest, similar to the way researchers use Read codes. However, SNOMED CT also allows the use of hierarchies and relationships to locate concepts by their meaning.
 
 Using relationships between SNOMED CT concepts
 ----------------------------------------------
