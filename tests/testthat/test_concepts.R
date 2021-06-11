@@ -29,6 +29,7 @@ test_that('Ensure that only concepts in the concept table are returned', {
 		conceptId := as.integer64('155374007')]
 	TEST$DESCRIPTION[term == 'Heart failure (disorder)',
 		term := 'Heart failure']
+	TEST$metadata$active_only <- TRUE
 	# Add a description without a concept in the concept table
 	expect_equal(as.SNOMEDconcept('Heart failure', SNOMED = TEST),
 		as.SNOMEDconcept('84114007'))
@@ -46,6 +47,11 @@ test_that('Duplicates', {
 test_that('Regular expressions', {
 	expect_equal(as.SNOMEDconcept('hfnef|HFNEF', exact = FALSE,
 		SNOMED = sampleSNOMED()), as.SNOMEDconcept('446221000'))
+})
+
+test_that('Semantic types', {
+	expect_equal(semanticType(c('Heart failure', 'Is a'),
+		SNOMED = sampleSNOMED()), c('disorder', 'attribute'))
 })
 
 test_that('Pattern matching', {
@@ -75,6 +81,9 @@ test_that('Check concept ID', {
 })
 
 test_that('Generic set functions for strings', {
+	# These tests are essential to ensure that the new
+	# generic functions work just like the base functions
+	# for data other than SNOMEDconcept objects
 	sys_acute <- c('sys', 'acute')
 	acute_left_right <- c('acute', 'left', 'right')
 	expect_equal(union(sys_acute, acute_left_right),
@@ -84,6 +93,9 @@ test_that('Generic set functions for strings', {
 })
 
 test_that('Generic set functions for numbers', {
+	# These tests are essential to ensure that the new
+	# generic functions work just like the base functions
+	# for data other than SNOMEDconcept objects
 	sys_acute <- c(1, 2, 3, 4, 4)
 	acute_left_right <- c(3, 5, 6, 7, 7, 8)
 	expect_equal(union(sys_acute, acute_left_right), 1:8)

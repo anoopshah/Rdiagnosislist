@@ -114,8 +114,8 @@ SNOMEDconcept <- function(x, active_only = TRUE,
 			out <- SNOMED$CONCEPT[MATCHED[, list(id = conceptId)],
 				on = 'id'][active == TRUE]$id
 		} else {
-			out <- unique(SNOMED$CONCEPT[MATCHED[, list(id = conceptId)],
-				on = 'id']$id)
+			out <- merge(SNOMED$CONCEPT, MATCHED[, list(id = conceptId)],
+				by = 'id')$id
 		}
 		if (unique){
 			out <- unique(out)

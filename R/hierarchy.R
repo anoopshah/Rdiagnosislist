@@ -286,7 +286,7 @@ semanticType <- function(conceptIds,
 	SNOMED = get('SNOMED', envir = globalenv())){
 	tag <- term <- NULL
 	
-	conceptIds <- as.SNOMEDconcept(conceptIds)
+	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
 	DESC <- description(conceptIds, SNOMED = SNOMED)
 	DESC[, tag := sub('^.*\\(([[:alnum:]\\/\\+ ]+)\\)$', '\\1', term)]
 	return(DESC$tag)
