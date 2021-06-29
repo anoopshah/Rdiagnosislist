@@ -1,8 +1,8 @@
 #' Rdiagnosislist: A package for manipulating SNOMED CT diagnosis lists
 #'
 #' The Rdiagnosislist package makes it easy to load a SNOMED dictionary
-#' into R and use the hierarchies to search for terms and navigate
-#' relations between terms.
+#' into R and use the hierarchies to search for concepts and navigate
+#' relations between concepts.
 #'
 #' @docType package
 #' @name Rdiagnosislist
