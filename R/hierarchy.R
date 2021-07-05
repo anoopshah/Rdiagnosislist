@@ -32,7 +32,7 @@ relatedConcepts <- function(conceptIds,
 	typeId = bit64::as.integer64('116680003'),
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP'),
 	reverse = FALSE, recursive = FALSE, active_only = TRUE,
-	SNOMED = get('SNOMED', envir = globalenv())){
+	SNOMED = getSNOMED()){
 	# Returns the original concepts and the linked concepts
 
 	active <- sourceId <- destinationId <- conceptId <- NULL
@@ -116,7 +116,7 @@ relatedConcepts <- function(conceptIds,
 #' ancestors('Heart failure')
 #' descendants('Heart failure')
 parents <- function(conceptIds,
-	SNOMED = get('SNOMED', envir = globalenv()), ...){
+	SNOMED = getSNOMED(), ...){
 	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
 	parentIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
@@ -132,7 +132,7 @@ parents <- function(conceptIds,
 #' @rdname parents
 #' @export
 ancestors <- function(conceptIds,
-	SNOMED = get('SNOMED', envir = globalenv()), ...){
+	SNOMED = getSNOMED(), ...){
 	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
 	parentIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
@@ -148,7 +148,7 @@ ancestors <- function(conceptIds,
 #' @rdname parents
 #' @export
 children <- function(conceptIds,
-	SNOMED = get('SNOMED', envir = globalenv()), ...){
+	SNOMED = getSNOMED(), ...){
 	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
 	childIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
@@ -164,7 +164,7 @@ children <- function(conceptIds,
 #' @rdname parents
 #' @export
 descendants <- function(conceptIds,
-	SNOMED = get('SNOMED', envir = globalenv()), ...){
+	SNOMED = getSNOMED(), ...){
 	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
 	childIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
@@ -201,7 +201,7 @@ descendants <- function(conceptIds,
 #'   c('Finding site', 'Is a'))
 hasAttributes <- function(sourceIds, destinationIds,
 	typeIds = bit64::as.integer64('116680003'),
-	SNOMED = get('SNOMED', envir = globalenv()), 
+	SNOMED = getSNOMED(), 
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
 	TOMATCH <- data.table(sourceId = as.SNOMEDconcept(sourceIds),
 		destinationId = as.SNOMEDconcept(destinationIds),
@@ -244,7 +244,7 @@ hasAttributes <- function(sourceIds, destinationIds,
 #'
 #' attrConcept(as.SNOMEDconcept('Heart failure'))
 attrConcept <- function(conceptIds,
-	SNOMED = get('SNOMED', envir = globalenv()), 
+	SNOMED = getSNOMED(), 
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
 	# Retrieves a table of attributes for a given set of concepts
 	# add matches and combine Boolean
@@ -283,7 +283,7 @@ attrConcept <- function(conceptIds,
 #'
 #' semanticType(as.SNOMEDconcept(c('Heart failure', 'Is a')))
 semanticType <- function(conceptIds,
-	SNOMED = get('SNOMED', envir = globalenv())){
+	SNOMED = getSNOMED()){
 	tag <- term <- NULL
 	
 	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
@@ -332,7 +332,7 @@ semanticType <- function(conceptIds,
 #'   'Cardiorenal syndrome (disorder)')))
 #' print(cbind(original_terms, description(ancestors$ancestorId)$term))
 simplify <- function(conceptIds, ancestorIds,
-	SNOMED = get('SNOMED', envir = globalenv()), 
+	SNOMED = getSNOMED(), 
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
 	found <- keep_orig <- anymatch <- originalId <- NULL
 	ancestorId <- conceptId <- NULL

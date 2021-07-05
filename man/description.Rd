@@ -8,7 +8,7 @@ description(
   conceptIds,
   include_synonyms = FALSE,
   active_only = TRUE,
-  SNOMED = get("SNOMED", envir = globalenv())
+  SNOMED = getSNOMED()
 )
 }
 \arguments{

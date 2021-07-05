@@ -36,7 +36,7 @@
 #' as.SNOMEDcodelist(data.frame(conceptId = my_concepts,
 #'   include_desc = TRUE))
 SNOMEDcodelist <- function(x, include_desc = TRUE,
-	SNOMED = get('SNOMED', envir = globalenv())){
+	SNOMED = getSNOMED()){
 	term <- conceptId <- NULL
 	
 	if (!is.data.frame(x)){
@@ -120,7 +120,7 @@ as.SNOMEDcodelist <- function(x, ...){
 #' expanded_codelist <- expandSNOMED(my_codelist)
 #' contractSNOMED(expanded_codelist)
 expandSNOMED <- function(x,
-	SNOMED = get('SNOMED', envir = globalenv())){
+	SNOMED = getSNOMED()){
 	# Adds descendants of terms marked include_desc = TRUE
 	# Terms are added with include_desc = NA, which shows that they
 	# were automatically added, and can be removed by contractSNOMED
@@ -154,7 +154,7 @@ expandSNOMED <- function(x,
 #' @family SNOMEDcodelist functions
 #' @export
 contractSNOMED <- function(x,
-	SNOMED = get('SNOMED', envir = globalenv())){
+	SNOMED = getSNOMED()){
 	# Remove terms with include_desc = NA as long as they are a
 	# descendant of a term with include_desc = TRUE
 	

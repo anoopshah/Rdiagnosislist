@@ -4,7 +4,7 @@
 \alias{inactiveIncluded}
 \title{Check if inactive terms are included in SNOMED CT dictionary}
 \usage{
-inactiveIncluded(SNOMED = get("SNOMED", envir = globalenv()))
+inactiveIncluded(SNOMED = getSNOMED())
 }
 \arguments{
 \item{SNOMED}{environment containing SNOMED dictionary, defaults

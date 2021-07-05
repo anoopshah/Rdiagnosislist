@@ -7,13 +7,13 @@
 \alias{descendants}
 \title{Ancestors and descendants of SNOMED CT concepts}
 \usage{
-parents(conceptIds, SNOMED = get("SNOMED", envir = globalenv()), ...)
+parents(conceptIds, SNOMED = getSNOMED(), ...)
 
-ancestors(conceptIds, SNOMED = get("SNOMED", envir = globalenv()), ...)
+ancestors(conceptIds, SNOMED = getSNOMED(), ...)
 
-children(conceptIds, SNOMED = get("SNOMED", envir = globalenv()), ...)
+children(conceptIds, SNOMED = getSNOMED(), ...)
 
-descendants(conceptIds, SNOMED = get("SNOMED", envir = globalenv()), ...)
+descendants(conceptIds, SNOMED = getSNOMED(), ...)
 }
 \arguments{
 \item{conceptIds}{character or integer64 vector of SNOMED concept IDs}

@@ -4,7 +4,7 @@
 \alias{semanticType}
 \title{Retrieves semantic types using the text 'tag' in the description}
 \usage{
-semanticType(conceptIds, SNOMED = get("SNOMED", envir = globalenv()))
+semanticType(conceptIds, SNOMED = getSNOMED())
 }
 \arguments{
 \item{conceptIds}{character or integer64 vector of SNOMED concept IDs}

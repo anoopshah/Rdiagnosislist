@@ -6,7 +6,7 @@
 \usage{
 attrConcept(
   conceptIds,
-  SNOMED = get("SNOMED", envir = globalenv()),
+  SNOMED = getSNOMED(),
   tables = c("RELATIONSHIP", "STATEDRELATIONSHIP")
 )
 }

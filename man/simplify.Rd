@@ -8,7 +8,7 @@ concepts}
 simplify(
   conceptIds,
   ancestorIds,
-  SNOMED = get("SNOMED", envir = globalenv()),
+  SNOMED = getSNOMED(),
   tables = c("RELATIONSHIP", "STATEDRELATIONSHIP")
 )
 }

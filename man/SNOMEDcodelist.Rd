@@ -5,11 +5,7 @@
 \alias{as.SNOMEDcodelist}
 \title{Convert a data.frame to a SNOMEDcodelist object}
 \usage{
-SNOMEDcodelist(
-  x,
-  include_desc = TRUE,
-  SNOMED = get("SNOMED", envir = globalenv())
-)
+SNOMEDcodelist(x, include_desc = TRUE, SNOMED = getSNOMED())
 
 as.SNOMEDcodelist(x, ...)
 }

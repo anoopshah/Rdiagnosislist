@@ -14,7 +14,7 @@
 #' inactiveIncluded(TEST)
 #' assign('metadata', list(active_only = TRUE), envir = TEST)
 #' inactiveIncluded(TEST)
-inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
+inactiveIncluded <- function(SNOMED = getSNOMED()){
 	if (is.null(SNOMED$metadata$active_only)){
 		TRUE
 	} else if (SNOMED$metadata$active_only == TRUE){
@@ -56,7 +56,7 @@ inactiveIncluded <- function(SNOMED = get('SNOMED', envir = globalenv())){
 #' as.SNOMEDconcept('900000000000003001')
 SNOMEDconcept <- function(x, active_only = TRUE,
 	exact_match = TRUE, unique = TRUE,
-	SNOMED = get('SNOMED', envir = globalenv())){
+	SNOMED = getSNOMED()){
 	# Declare names to be used for non-standard evaluation for R CMD check
 	active <- conceptId <- NULL
 	
@@ -176,7 +176,7 @@ is.SNOMEDconcept <- function(x){
 #' @export
 print.SNOMEDconcept <- function(x, ...){
 	SNOMED <- NULL
-	try(SNOMED <- get('SNOMED', envir = globalenv()), silent = TRUE)
+	try(SNOMED <- getSNOMED(), silent = TRUE)
 	
 	if (length(x) > 0){
 		if (is.null(SNOMED)){
@@ -223,7 +223,7 @@ print.SNOMEDconcept <- function(x, ...){
 #' description(hf, include_synonyms = FALSE, SNOMED = sampleSNOMED())
 description <- function(conceptIds,
 	include_synonyms = FALSE, active_only = TRUE,
-	SNOMED = get('SNOMED', envir = globalenv())){
+	SNOMED = getSNOMED()){
 	# Check that conceptIds is a vector of strings or integer64 values
 	# FSN     '900000000000003001'
 	# Synonym '900000000000013009'

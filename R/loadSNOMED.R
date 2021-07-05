@@ -216,3 +216,46 @@ sampleSNOMED <- function(){
 		active_only = FALSE), envir = SNOMED)
 	return(SNOMED)
 }
+
+#' Retrieves SNOMED CT dictionary from the global environment
+#'
+#' Returns an object named 'SNOMED' from the global
+#' environment. Returns an error if no such object exists,
+#' or if it is not an environment containing tables named
+#' CONCEPT, RELATIONSHIP, STATEDRELATIONSHIP and DESCRIPTION.
+#' There is no attempt to check that these tables are actually, if available. environment containing a selection of SNOMED CT
+#' terms, their relationships and descriptions which are
+#' provided with the package
+#'
+#' @return SNOMED environment from the global environment
+#'
+#' @examples
+#' SNOMED <- sampleSNOMED()
+#' SNOMED2 <- Rdiagnosislist::getSNOMED()
+#'
+#' # To display metadata for this SNOMED CT dictionary
+#' SNOMED2()$metadata
+getSNOMED <- function(){
+	SNOMED <- NULL
+	SNOMED <- get('SNOMED', env = globalenv())
+	if (is.null(SNOMED)){
+		stop('No object SNOMED found in global environment')
+	}
+	if (!is.environment(SNOMED)){
+		stop('SNOMED is not an environment')
+	}
+	if (!('CONCEPT' %in% tables(env = SNOMED)$NAME)){
+		stop('No table named CONCEPT in SNOMED environment')
+	}
+	if (!('RELATIONSHIP' %in% tables(env = SNOMED)$NAME)){
+		stop('No table named RELATIONSHIP in SNOMED environment')
+	}
+	if (!('STATEDRELATIONSHIP' %in% tables(env = SNOMED)$NAME)){
+		stop('No table named STATEDRELATIONSHIP in SNOMED environment')
+	}
+	if (!('DESCRIPTION' %in% tables(env = SNOMED)$NAME)){
+		stop('No table named DESCRIPTION in SNOMED environment')
+	}
+	# Return the retrieved environment
+	SNOMED
+}

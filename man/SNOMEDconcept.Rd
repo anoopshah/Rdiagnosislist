@@ -16,7 +16,7 @@ SNOMEDconcept(
   active_only = TRUE,
   exact_match = TRUE,
   unique = TRUE,
-  SNOMED = get("SNOMED", envir = globalenv())
+  SNOMED = getSNOMED()
 )
 
 as.SNOMEDconcept(x, ...)

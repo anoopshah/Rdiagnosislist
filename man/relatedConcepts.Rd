@@ -11,7 +11,7 @@ relatedConcepts(
   reverse = FALSE,
   recursive = FALSE,
   active_only = TRUE,
-  SNOMED = get("SNOMED", envir = globalenv())
+  SNOMED = getSNOMED()
 )
 }
 \arguments{

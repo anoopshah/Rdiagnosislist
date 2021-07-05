@@ -5,9 +5,9 @@
 \alias{contractSNOMED}
 \title{Expand or contract a SNOMEDcodelist}
 \usage{
-expandSNOMED(x, SNOMED = get("SNOMED", envir = globalenv()))
+expandSNOMED(x, SNOMED = getSNOMED())
 
-contractSNOMED(x, SNOMED = get("SNOMED", envir = globalenv()))
+contractSNOMED(x, SNOMED = getSNOMED())
 }
 \arguments{
 \item{x}{SNOMEDcodelist to expand or contract}
