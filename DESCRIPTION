@@ -1,5 +1,5 @@
 Package: Rdiagnosislist
-Title: Manipulate SNOMED CT Diagnosis and Problem Lists
+Title: Manipulate SNOMED CT Diagnosis Lists
 Version: 0.1
 Authors@R: 
     person(given = "Anoop",
@@ -7,13 +7,14 @@ Authors@R:
            role = c("aut", "cre"),
            email = "anoop@doctors.org.uk",
            comment = structure("0000-0002-8907-5724", .Names = "ORCID"))
-Description: R package for manipulating lists of SNOMED CT diagnoses.
+Description: Functions and methods for manipulating SNOMED CT concepts.
     The package contains functions for loading the SNOMED CT release into
     a convenient R environment, selecting SNOMED CT concepts using regular
     expressions, and navigating the SNOMED CT ontology. It provides the
     'SNOMEDconcept' S3 class for a vector of SNOMED CT concepts (stored
     as 64-bit integers) and the 'SNOMEDcodelist' S3 class for a table
-    of concepts IDs with descriptions.
+    of concepts IDs with descriptions. For more information about SNOMED CT
+    visit <https://www.snomed.org/>.
 License: GPL-3
 Imports: data.table, bit64, methods
 Suggests: knitr, rmarkdown, testthat

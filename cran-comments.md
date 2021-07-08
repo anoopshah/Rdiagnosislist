@@ -12,9 +12,12 @@ New submission
 
 ## Changes after initial CRAN submission
 
-Description text modified as per guidance.
+Description text modified as per recommendations.
 Description of SNOMED CT added with website reference.
-No objects are in .GlobalEnv are created or modified. Now
-all references to .GlobalEnv are in a single function and
-the only interaction with .GlobalEnv is to retrieve an
-object to assist with interactive use of the functions.
+
+The package does not modify the .GlobalEnv. The only
+reference to .GlobalEnv is to enable the user to retrieve an
+object from the global environment for convenience.
+
+Now the only interaction with .GlobalEnv is in the function
+getSNOMED in loadSNOMED.R.
