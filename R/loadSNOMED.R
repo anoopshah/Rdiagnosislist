@@ -228,16 +228,16 @@ sampleSNOMED <- function(){
 #' provided with the package
 #'
 #' @return SNOMED environment from the global environment
-#'
+#' @export
 #' @examples
 #' SNOMED <- sampleSNOMED()
-#' SNOMED2 <- Rdiagnosislist::getSNOMED()
+#' SNOMED2 <- getSNOMED()
 #'
 #' # To display metadata for this SNOMED CT dictionary
-#' SNOMED2()$metadata
+#' SNOMED2$metadata
 getSNOMED <- function(){
 	SNOMED <- NULL
-	SNOMED <- get('SNOMED', env = globalenv())
+	SNOMED <- get('SNOMED', envir = globalenv())
 	if (is.null(SNOMED)){
 		stop('No object SNOMED found in global environment')
 	}
