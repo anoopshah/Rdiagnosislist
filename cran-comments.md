@@ -12,7 +12,7 @@ New submission
 
 ## Changes after initial CRAN submission (12/07/2021)
 
-Alopodies - incorrect version uploaded on 9/7/2021.
+Apologies - incorrect version uploaded on 9/7/2021.
 
 Description text modified as per recommendations.
 Description of SNOMED CT added with website reference.
