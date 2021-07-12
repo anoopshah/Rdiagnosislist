@@ -20,8 +20,8 @@ provided with the package
 }
 \examples{
 SNOMED <- sampleSNOMED()
-SNOMED2 <- Rdiagnosislist::getSNOMED()
+SNOMED2 <- getSNOMED()
 
 # To display metadata for this SNOMED CT dictionary
-SNOMED2()$metadata
+SNOMED2$metadata
 }
