@@ -1,0 +1,28 @@
+#' Sample mappings from Read to SNOMED CT
+#'
+#' A sample of a mapping table derived from NHS Digital maps. 
+#' Contains concepts in Read Clinical Terms Version 2 and 
+#' Clinical Terms Version 3 that map to a set of SNOMED CT
+#' concepts, according to a supplied mapping file.
+#' 
+#' @name MAPS
+#' @importFrom utils data
+#' @docType data
+#' @usage data(MAPS)
+#' @format An object of class \code{"data.table"}
+#' @keywords datasets
+#'
+#' @details
+#' \itemize{
+#'   \item{conceptId}{ integer64: SNOMED CT conceptId (primary key)} 
+#'   \item{v2_code}{ list: character list of 7-character Read V2 codes}
+#'   \item{v2_term}{ list: character list of Read V2 terms}
+#'   \item{v3_concept}{ list: character list of CTV3 concept codes}
+#'   \item{v3_termid}{ list: character list of CTV3 term description codes}
+#' }
+#' 
+#' @examples
+#' # Show properties of the MAPS table
+#' data(MAPS)
+#' str(MAPS)
+"MAPS"

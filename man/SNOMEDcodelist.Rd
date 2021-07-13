@@ -19,7 +19,7 @@ included.}
 
 \item{include_desc}{Boolean vector stating whether descendants
 are included, recycled if necessary. Default = TRUE.
-Ignored if}
+Ignored if x contains a column 'include_desc'}
 
 \item{SNOMED}{environment containing a SNOMED dictionary}
 

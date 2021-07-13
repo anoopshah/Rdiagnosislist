@@ -21,7 +21,7 @@
 #'   included.
 #' @param include_desc Boolean vector stating whether descendants
 #'   are included, recycled if necessary. Default = TRUE.
-#'   Ignored if 
+#'   Ignored if x contains a column 'include_desc'
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param ... other arguments to pass to SNOMEDcodelist
 #' @return An object of class 'SNOMEDcodelist'

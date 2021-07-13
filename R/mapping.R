@@ -1,0 +1,43 @@
+#' Obtain mapped Read V2 and CTV3 concepts for SNOMED CT concepts
+#'
+#' Returns concepts in Read Clinical Terms Version 2 and 
+#' Clinical Terms Version 3 that map to a set of SNOMED CT
+#' concepts, according to a supplied mapping file.
+#'
+#' We recommend this function is used with a mapping file
+#' containing 'forward' mappings from V2 and CTV3 codes to
+#' SNOMED CT. These are intended for converting individual
+#' entries in electronic health records to SNOMED CT. The maps
+#' can be used in the reverse direction to 
+#' derived from the NHS Digital 'Data Migration' pack. The
+#' mapping file must be a data.table object with columns:
+#' conceptId (integer64, unique),
+#' v2_code (character list of 7-character Read V2 codes),
+#' v2_term (character list of Read V2 terms),
+#' v3_concept (character list of CTV3 concept codes),
+#' v3_termid (character list of CTV3 term description codes)
+#'
+#' @param x SNOMEDcodelist or SNOMEDconcept object
+#' @param mappingtable data.table containing mapping file
+#'
+#' @return a data.table with the following columns: conceptId,
+#'   mapped 
+#' @export
+#' @seealso MAPS
+#' @examples
+#' # Load sample SNOMED CT dictionary
+#' SNOMED <- sampleSNOMED()
+#' 
+#' # Example: Mapping a single concept
+#' getMaps(SNOMEDconcept('Heart failure'))
+#' # Example: Mapping a concept and its descendants
+#' getMaps(descendants(SNOMEDconcept('Heart failure')))
+getMaps <- function(conceptIds, mappingtable, 
+	SNOMED = getSNOMED()){
+	# Returns the original concepts and the linked concepts
+	if (is.SNOMEDconcept(x)){
+		mappingtable[data.table(conceptId = x), on = 'conceptId']
+	} else if (is.SNOMEDcodelist(x)){
+		merge(mappingtable[x, on = 'conceptId'])
+	}
+}
