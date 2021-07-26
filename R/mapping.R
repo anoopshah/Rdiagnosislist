@@ -65,7 +65,7 @@ getMaps <- function(x, mappingtable, to = c('read2', 'ctv3'),
 	}
 		MAPPED <- mappingtable[data.table(conceptId = x), on = 'conceptId']
 		MAPPED
-	} else if (is.SNOMEDcodelist(x)){
+	} else (is.SNOMEDcodelist(x)){
 		MAPPED <- merge(mappingtable[x, on = 'conceptId'])
 	}
 }
