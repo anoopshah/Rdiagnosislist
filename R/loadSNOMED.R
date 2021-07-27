@@ -1,6 +1,6 @@
-#' Load SNOMED files from a folder(s) into R data.table objects
+#' Load SNOMED CT files from a folder(s) into R data.table objects
 #'
-#' Identifies relevant SNOMED files from a distribution and loads 
+#' Identifies relevant SNOMED CT files from a distribution and loads 
 #' them into an R environment. Files from two folders (e.g.
 #' International and UK versions) can be loaded together and appended.
 #'
@@ -262,4 +262,96 @@ getSNOMED <- function(){
 	}
 	# Return the retrieved environment
 	SNOMED
+}
+
+
+#' Load mappings from Read to SNOMED CT into an R data.table
+#'
+#' Creates a mapping table derived from NHS Digital
+#' Data Migration distribution. These tables are available from
+#' the Technology Reference data Update Distribution
+#' \url{https://isd.digital.nhs.uk/trud3/user/guest/group/0/pack/9/subpack/9/releases}
+#' 
+#' The final release was in April 2020. The mapping tables are
+#' intended for converting entires in clinical records from
+#' Read Version 2 (Read 2) to SNOMED CT, and Clinical Terms
+#' Version 3 (CTV3) to SNOMED CT.
+#' 
+#' These maps can be used for converting SNOMED CT codelists into
+#' Read 2 or CTV3 format for running queries, such as to characterise
+#' patient phenotypes or identify patient populations for research.
+#' They cannot be used in the reverse direction (to map a Read 2/CTV3
+#' codelist to SNOMED CT) because some of the SNOMED CT terms will
+#' be missed out, and the list will be incomplete.
+#'
+#' This function uses the following three mapping files:
+#' \itemize{
+#'    \item{not_assured_rcsctmap_uk}{ File containing Read 2 codes
+#'      mapped to SNOMED CT, in file:
+#'      'Not Clinically Assured/rcsctmap_uk_20200401000001.txt'}
+#'    \item{not_assured_rctermsctmap_uk}{ File containing Read 2 terms
+#'      mapped to SNOMED CT, in file:
+#'      'Not Clinically Assured/rctermsctmap_uk_20200401000001.txt'}
+#'    \item{assured_ctv3sctmap2_uk}{ File containing CTV3 concepts
+#'      and terms mapped to SNOMED CT, in file:
+#'      'Clinically Assured/ctv3sctmap2_uk_20200401000001.txt'}
+#' }
+#' 
+#' The output data.table has the following columns:
+#' \itemize{
+#'   \item{conceptId}{ integer64: SNOMED CT conceptId (primary key)} 
+#'   \item{read2_code}{ list: character list of 7-character Read 2 codes}
+#'   \item{read2_term}{ list: character list of Read 2 terms}
+#'   \item{ctv3_concept}{ list: character list of CTV3 concept codes}
+#'   \item{ctv3_termid}{ list: character list of CTV3 term description codes}
+#' }
+#'
+#' @param not_assured_rcsctmap_uk File containing Read 2 codes
+#'      mapped to SNOMED CT, in file:
+#'      'Not Clinically Assured/rcsctmap_uk_20200401000001.txt'
+#' @param not_assured_rctermsctmap_uk File containing Read 2 terms
+#'      mapped to SNOMED CT, in file:
+#'      'Not Clinically Assured/rctermsctmap_uk_20200401000001.txt'
+#' @param assured_ctv3sctmap2_uk File containing CTV3 concepts
+#'      and terms mapped to SNOMED CT, in file:
+#'      'Clinically Assured/ctv3sctmap2_uk_20200401000001.txt'
+#' @return A data.table with columns conceptId, read2_code,
+#'   ctv3_concept, ctv3_termid
+#' @seealso MAPS, getMaps
+#' @export
+#' @examples
+#'
+loadMAPS <- function(not_assured_rcsctmap_uk,
+	not_assured_rctermsctmap_uk, assured_ctv3sctmap2_uk){
+		
+	S_READCODE <- fread(not_assured_rcsctmap_uk)
+	S_READTERM <- fread(not_assured_rctermsctmap_uk, quote = '')
+	S_V3 <- fread(assured_ctv3sctmap2_uk)
+
+	S_READCODE[MapStatus == 1,
+		keep := EffectiveDate == max(EffectiveDate),
+		by = .(MapId, ConceptId)]
+	S_READCODE[, read2_code := paste0(ReadCode, TermCode)]
+	S_V3[MAPSTATUS == 1, keep := EFFECTIVEDATE == max(EFFECTIVEDATE),
+		by = .(MAPID, SCT_CONCEPTID)]
+
+	# Keep the longest (most descriptive) Read term
+	S_READTERM[, keep := nchar(Term) == max(nchar(Term)), by = MapId]
+
+	V2MAPS <- merge(S_READCODE[keep == TRUE,
+		.(conceptId = as.integer64(ConceptId), read2_code, MapId)],
+		S_READTERM[keep == TRUE, .(MapId, read2_term = Term)],
+		by = 'MapId')
+	V3MAPS <- S_V3[keep == TRUE,
+		.(conceptId = as.integer64(SCT_CONCEPTID),
+		ctv3_concept = CTV3_CONCEPTID,
+		ctv3_termid = CTV3_TERMID)]
+
+	# Now convert into a one-row-per-concept table
+	MAPS <- merge(V2MAPS[, .(read2_code = list(read2_code),
+		read2_term = list(read2_term)), by = conceptId],
+		V3MAPS[, .(ctv3_concept = list(ctv3_concept),
+		ctv3_termid = list(ctv3_termid)),
+		by = conceptId], by = 'conceptId')
+	MAPS
 }
