@@ -41,14 +41,16 @@
 #' @export
 #' @seealso MAPS
 #' @examples
-#' # Load sample SNOMED CT dictionary
+#' # Load sample SNOMED CT dictionary and sample mapping file
 #' SNOMED <- sampleSNOMED()
 #' data(MAPS)
 #' 
 #' # Example: Mapping a single concept
-#' getMaps(SNOMEDconcept('Heart failure'), mappingtable = MAPS, to = 'read')
+#' getMaps(SNOMEDconcept('Heart failure'), mappingtable = MAPS,
+#'   to = 'read2')
 #' # Example: Mapping a concept and its descendants
-#' getMaps(descendants(SNOMEDconcept('Heart failure')), mappingtable = MAPS, to = 'read')
+#' getMaps(descendants(SNOMEDconcept('Heart failure')),
+#'   mappingtable = MAPS, to = 'read2')
 #' # Example: Mapping a codelist
 #' getMaps(SNOMEDcodelist(SNOMEDconcept('Heart failure')),
 #'   mappingtable = MAPS, to = 'ctv3')
@@ -63,10 +65,23 @@ getMaps <- function(x, mappingtable, to = c('read2', 'ctv3'),
 	if (is.SNOMEDconcept(x)){
 		x <- SNOMEDcodelist(x, include_desc = FALSE)
 	}
-		MAPPED <- mappingtable[data.table(conceptId = x), on = 'conceptId']
-		MAPPED
-	} else if (is.SNOMEDcodelist(x)){
-		MAPPED <- merge(mappingtable[x, on = 'conceptId'])
+	if (is.SNOMEDcodelist(x)){
+		x <- expandSNOMED(x, SNOMED)
+	} else {
+		stop('x must be a SNOMEDcodelist or SNOMEDconcept')
 	}
+	# Extract the relevant codeset
+	if (to == 'read2'){
+		MAPPED <- merge(mappingtable[,
+			.(read2_code = unlist(read2_code),
+			read2_term = unlist(read2_term)), by = conceptId], x,
+			on = 'conceptId')
+	} else {
+		MAPPED <- merge(mappingtable[,
+			.(ctv3_concept = unlist(ctv3_concept),
+			ctv3_termid = unlist(ctv3_termid)), by = conceptId], x,
+			on = 'conceptId')
+	}
+	MAPPED
 }
 

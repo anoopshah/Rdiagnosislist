@@ -19,10 +19,10 @@ concepts, according to a supplied mapping file.
 \details{
 \itemize{
   \item{conceptId}{ integer64: SNOMED CT conceptId (primary key)} 
-  \item{v2_code}{ list: character list of 7-character Read V2 codes}
-  \item{v2_term}{ list: character list of Read V2 terms}
-  \item{v3_concept}{ list: character list of CTV3 concept codes}
-  \item{v3_termid}{ list: character list of CTV3 term description codes}
+  \item{read2_code}{ list: character list of 7-character Read V2 codes}
+  \item{read2_term}{ list: character list of Read V2 terms}
+  \item{ctv3_concept}{ list: character list of CTV3 concept codes}
+  \item{ctv3_termid}{ list: character list of CTV3 term description codes}
 }
 }
 \examples{

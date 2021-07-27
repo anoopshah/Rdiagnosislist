@@ -244,16 +244,20 @@ getSNOMED <- function(){
 	if (!is.environment(SNOMED)){
 		stop('SNOMED is not an environment')
 	}
-	if (!('CONCEPT' %in% data.table::tables(env = SNOMED)$NAME)){
+	if (!('CONCEPT' %in% data.table::tables(env = SNOMED,
+		silent = TRUE)$NAME)){
 		stop('No table named CONCEPT in SNOMED environment')
 	}
-	if (!('RELATIONSHIP' %in% data.table::tables(env = SNOMED)$NAME)){
+	if (!('RELATIONSHIP' %in% data.table::tables(env = SNOMED,
+		silent = TRUE)$NAME)){
 		stop('No table named RELATIONSHIP in SNOMED environment')
 	}
-	if (!('STATEDRELATIONSHIP' %in% data.table::tables(env = SNOMED)$NAME)){
+	if (!('STATEDRELATIONSHIP' %in% data.table::tables(env = SNOMED,
+		silent = TRUE)$NAME)){
 		stop('No table named STATEDRELATIONSHIP in SNOMED environment')
 	}
-	if (!('DESCRIPTION' %in% data.table::tables(env = SNOMED)$NAME)){
+	if (!('DESCRIPTION' %in% data.table::tables(env = SNOMED,
+		silent = TRUE)$NAME)){
 		stop('No table named DESCRIPTION in SNOMED environment')
 	}
 	# Return the retrieved environment

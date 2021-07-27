@@ -3,7 +3,7 @@
 #' A sample of a mapping table derived from NHS Digital maps. 
 #' Contains concepts in Read Clinical Terms Version 2 and 
 #' Clinical Terms Version 3 that map to a set of SNOMED CT
-#' concepts, according to a supplied mapping file.
+#' concepts, according to a supplied mapping file. 
 #' 
 #' @name MAPS
 #' @importFrom utils data
