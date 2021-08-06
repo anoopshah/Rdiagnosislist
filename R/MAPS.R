@@ -4,6 +4,9 @@
 #' Contains concepts in Read Clinical Terms Version 2 and 
 #' Clinical Terms Version 3 that map to a set of SNOMED CT
 #' concepts, according to a supplied mapping file. 
+#' The source data are available from the NHS Digital Technology
+#' Reference data Update Distribution
+#' \url{https://isd.digital.nhs.uk/trud3/user/guest/group/0/pack/9/subpack/9/releases}.
 #' 
 #' @name MAPS
 #' @importFrom utils data
@@ -21,6 +24,7 @@
 #'   \item{ctv3_termid}{ list: character list of CTV3 term description codes}
 #' }
 #' 
+#' @seealso loadMAPS, getMaps
 #' @examples
 #' # Show properties of the MAPS table
 #' data(MAPS)

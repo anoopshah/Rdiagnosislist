@@ -2,7 +2,7 @@
 % Please edit documentation in R/loadSNOMED.R
 \name{loadSNOMED}
 \alias{loadSNOMED}
-\title{Load SNOMED files from a folder(s) into R data.table objects}
+\title{Load SNOMED CT files from a folder(s) into R data.table objects}
 \usage{
 loadSNOMED(folders, active_only = TRUE)
 }
@@ -16,7 +16,7 @@ An environment containing data.table objects: CONCEPT,
   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
 }
 \description{
-Identifies relevant SNOMED files from a distribution and loads 
+Identifies relevant SNOMED CT files from a distribution and loads 
 them into an R environment. Files from two folders (e.g.
 International and UK versions) can be loaded together and appended.
 }
@@ -28,7 +28,7 @@ TEST <- sampleSNOMED()
 for (table in c('Concept', 'Description', 'Relationship',
   'StatedRelationship')){
   write.table(get(toupper(table), envir = TEST), paste0(tempdir(),
-    '/sct_', table, '_text.txt'), row.names = FALSE, sep = '\t', quote = FALSE)
+    '/sct_', table, '_text.txt'), row.names = FALSE, sep = '|', quote = FALSE)
 }
 
 # Try to import using the loadSNOMED function
@@ -39,4 +39,7 @@ all.equal(TEST$CONCEPT, TEST2$CONCEPT)
 all.equal(TEST$DESCRIPTION, TEST2$DESCRIPTION)
 all.equal(TEST$RELATIONSHIP, TEST2$RELATIONSHIP)
 all.equal(TEST$STATEDRELATIONSHIP, TEST2$STATEDRELATIONSHIP)
+}
+\seealso{
+loadMAPS, CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, sampleSNOMED, getSNOMED
 }

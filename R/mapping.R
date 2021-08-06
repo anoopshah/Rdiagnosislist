@@ -29,20 +29,37 @@
 #'
 #' @param x SNOMEDcodelist or SNOMEDconcept object. If it is a
 #'   SNOMEDconcept object it is first converted to a SNOMEDcodelist.
-#' @param mappingtable data.table containing mapping in the format above.
-#'   It must contain a unique field 'conceptId' and fields named
+#'   If it is a SNOMEDcodelist it is expanded, and any existing columns
+#'   named 'read2_code' or 'read2_term' (if adding Read 2 maps) or
+#'   'ctv3_concept' or ctv3_termid' (if adding CTV3 maps) will be
+#'   overwritten.
+#' @param mappingtable data.table containing mapping in the format
+#'   described in 'Details'. The MAPS dataset in this package provides
+#'   a sample.
+#'   It must contain a unique field 'conceptId', and fields named
 #'   'read2_code' and 'read2_term' (for mapping to Read 2)
 #'   or 'ctv3_concept' and 'ctv3_termid' (for mapping to CTV3).
+#' @param to character vector stating which terminologies to map to,
+#'   either 'read2' or 'ctv3'; include both if both maps are required.
+#'   Beware that including both maps may result in a significant expansion
+#'   of the number of rows if single_row_per_concept is FALSE.
+#' @param single_row_per_concept (logical) if TRUE (default), the function
+#'   returns a single row per concept with Read 2 and CTV3 maps returned
+#'   as lists (i.e. multiple entries within a single cell). This means
+#'   the output is a valid SNOMEDcodelist object. If FALSE, returns
+#'   multiple rows per concept (one for each map).
 #' @return a data.table containing the columns conceptId and either
 #'   'read2_code' and 'read2_term' (for mapping to Read 2)
 #'   or 'ctv3_concept' and 'ctv3_termid' (for mapping to CTV3).
 #'   There may be multiple rows per conceptId; also each Read 2 or CTV3 
 #'   term may be mapped to multiple SNOMED CT concepts.
 #' @export
-#' @seealso MAPS
+#' @seealso MAPS, loadMAPS
 #' @examples
-#' # Load sample SNOMED CT dictionary and sample mapping file
+#' # Load sample SNOMED CT dictionary into the global environment
+#' # so it is available to the functions in this example
 #' SNOMED <- sampleSNOMED()
+#' # Use the sample MAPS table in this package
 #' data(MAPS)
 #' 
 #' # Example: Mapping a single concept
@@ -55,33 +72,50 @@
 #' getMaps(SNOMEDcodelist(SNOMEDconcept('Heart failure')),
 #'   mappingtable = MAPS, to = 'ctv3')
 getMaps <- function(x, mappingtable, to = c('read2', 'ctv3'),
-	SNOMED = getSNOMED()){
-	to <- to[1]
-	if (!(to %in% c('read2', 'ctv3'))){
-		stop('"to" must be either "read2" or "ctv3"')
+	SNOMED = getSNOMED(), single_row_per_concept = TRUE){
+	if (!(all(to %in% c('read2', 'ctv3')))){
+		stop('each element of "to" must be either "read2" or "ctv3"')
 	}
 	# Returns the original concepts and the linked concepts as a
 	# data.table
 	if (is.SNOMEDconcept(x)){
-		x <- SNOMEDcodelist(x, include_desc = FALSE)
-	}
-	if (is.SNOMEDcodelist(x)){
-		x <- expandSNOMED(x, SNOMED)
+		out <- SNOMEDcodelist(x, include_desc = FALSE, SNOMED = SNOMED)
+	} else if (is.SNOMEDcodelist(x)){
+		out <- copy(expandSNOMED(x, SNOMED = SNOMED))
 	} else {
 		stop('x must be a SNOMEDcodelist or SNOMEDconcept')
 	}
 	# Extract the relevant codeset
-	if (to == 'read2'){
-		MAPPED <- merge(mappingtable[,
-			.(read2_code = unlist(read2_code),
-			read2_term = unlist(read2_term)), by = conceptId], x,
-			on = 'conceptId')
-	} else {
-		MAPPED <- merge(mappingtable[,
-			.(ctv3_concept = unlist(ctv3_concept),
-			ctv3_termid = unlist(ctv3_termid)), by = conceptId], x,
-			on = 'conceptId')
+	if ('read2' %in% to){
+		if ('read2_code' %in% names(out)) out[, read2_code := NULL]
+		if ('read2_term' %in% names(out)) out[, read2_term := NULL]
+		if (single_row_per_concept){
+			out <- as.SNOMEDcodelist(merge(mappingtable[,
+				.(read2_code = read2_code,
+				read2_term = read2_term), by = conceptId], out,
+				on = 'conceptId'))
+		} else {
+			out <- merge(mappingtable[,
+				.(read2_code = unlist(read2_code),
+				read2_term = unlist(read2_term)), by = conceptId], out,
+				on = 'conceptId')
+		}
 	}
-	MAPPED
+	if ('ctv3' %in% to){
+		if ('ctv3_concept' %in% names(out)) out[, ctv3_concept := NULL]
+		if ('ctv3_termid' %in% names(out)) out[, ctv3_termid := NULL]
+		if (single_row_per_concept){
+			out <- as.SNOMEDcodelist(merge(mappingtable[,
+				.(ctv3_concept = ctv3_concept,
+				ctv3_termid = ctv3_termid), by = conceptId], out,
+				on = 'conceptId'))
+		} else {
+			out <- merge(mappingtable[,
+				.(ctv3_concept = unlist(ctv3_concept),
+				ctv3_termid = unlist(ctv3_termid)), by = conceptId], out,
+				on = 'conceptId')
+		}
+	}
+	out
 }
 

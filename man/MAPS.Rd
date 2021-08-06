@@ -14,7 +14,10 @@ data(MAPS)
 A sample of a mapping table derived from NHS Digital maps. 
 Contains concepts in Read Clinical Terms Version 2 and 
 Clinical Terms Version 3 that map to a set of SNOMED CT
-concepts, according to a supplied mapping file.
+concepts, according to a supplied mapping file. 
+The source data are available from the NHS Digital Technology
+Reference data Update Distribution
+\url{https://isd.digital.nhs.uk/trud3/user/guest/group/0/pack/9/subpack/9/releases}.
 }
 \details{
 \itemize{
@@ -29,5 +32,8 @@ concepts, according to a supplied mapping file.
 # Show properties of the MAPS table
 data(MAPS)
 str(MAPS)
+}
+\seealso{
+loadMAPS, getMaps
 }
 \keyword{datasets}

@@ -102,29 +102,29 @@ The function 'as.SNOMEDconcept' can be used to retrieve the SNOMED concept ID ma
 
 ```{r}
 # Make sure the SNOMED environment is available and contains the SNOMED dictionary
-as.SNOMEDconcept('Heart failure', SNOMED = SNOMED)
+SNOMEDconcept('Heart failure', SNOMED = SNOMED)
 
 # To use the sample SNOMED dictionary for testing
-as.SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED())
+SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED())
 
 # If an object named SNOMED containing the SNOMED dictionary is available
 # in the current environment, it does not need to be stated in the
 # function call
 SNOMED <- sampleSNOMED()
-as.SNOMEDconcept('Heart failure')
+SNOMEDconcept('Heart failure')
 
 # The argument 'exact' can be used to specify whether a regular expression
 # search should be done, e.g.
-as.SNOMEDconcept('Heart f', exact = FALSE)
+SNOMEDconcept('Heart f', exact = FALSE)
 
 # The 'description' function can be used to return the descriptions of
 # the concepts found. It returns a data.table with the fully specified 
 # name for each term.
-description(as.SNOMEDconcept('Heart f', exact = FALSE))
+description(SNOMEDconcept('Heart f', exact = FALSE))
 
 # The 'semantic type' function returns the semantic type of the concept
 # from the Fully Specified Name
-semanticType(as.SNOMEDconcept('Heart failure'))
+semanticType(SNOMEDconcept('Heart failure'))
 
 # Functions which expect a SNOMEDconcept object, such as semanticType,
 # will automatically convert their argument to SNOMEDconcept using the
@@ -140,10 +140,10 @@ This package provides versions of the set functions 'setdiff', 'intersect' and '
 ```{r}
 # A list of concepts with a description containing the term 'heart'
 # (not that all synonyms are searched, not just the Fully Specified Names)
-heart <- as.SNOMEDconcept('Heart|heart', exact = FALSE, SNOMED = sampleSNOMED())
+heart <- SNOMEDconcept('Heart|heart', exact = FALSE, SNOMED = sampleSNOMED())
 
 # A list of concepts containing the term 'fail'
-fail <- as.SNOMEDconcept('Fail|fail', exact = FALSE, SNOMED = sampleSNOMED())
+fail <- SNOMEDconcept('Fail|fail', exact = FALSE, SNOMED = sampleSNOMED())
 
 # Concepts with heart and fail
 intersect(heart, fail)
@@ -210,7 +210,7 @@ SNOMED <- sampleSNOMED()
 # Create a codelist containing all the descendants of
 # the concept 'Heart failure'
 my_heart_failure_codelist <- SNOMEDcodelist(
-  as.SNOMEDconcept('Heart failure'), include_desc = TRUE)
+  SNOMEDconcept('Heart failure'), include_desc = TRUE)
 
 # Original codelist
 print(my_heart_failure_codelist)
@@ -231,6 +231,42 @@ write.csv(my_heart_failure_codelist, file = paste0(tempdir(),
 reloaded_codelist <- as.SNOMEDcodelist(
   data.table::fread(paste0(tempdir(), '/hf_codes.csv')))
 print(reloaded_codelist)
+```
+
+Mapping between SNOMED CT and Read Clinical Terminology
+-------------------------------------------------------
+Prior to the introduction of SNOMED CT, the Read Clinical Terminology (version 2 or 3) were used to record clinical information in UK general practice. SNOMED CT terms are partly derived from Read, so all Read terms have a 'forward' mapping to an appropriate SNOMED CT term. NHS Digital provides a set of mappings to enable these conversions in clinical systems that are moving to SNOMED CT. These tables are available from
+the Technology Reference data Update Distribution \url{https://isd.digital.nhs.uk/trud3/user/guest/group/0/pack/9/subpack/9/releases}.
+
+This package provides the 'loadMAPS' function for loading the NHS Digital files into an R data.table, the 'MAPS' sample dataset and the 'getMaps' function for retrieving Read Clinical Terms Version 2 (Read 2) and 
+Clinical Terms Version 3 (CTV3) that map to a set of SNOMED CT concepts.
+
+These maps can be used for converting SNOMED CT codelists into Read 2 or CTV3 format for running queries, such as to characterise patient phenotypes or identify patient populations for research. They cannot be used in the reverse direction (to map a Read 2/CTV3 codelist to SNOMED CT) because some of the SNOMED CT terms will be missed out, and the list will be incomplete.
+
+```{r}
+# Example: creating a Read heart failure codelist using SNOMED CT
+SNOMED <- sampleSNOMED()
+data(MAPS)
+
+# Start off with a SNOMED CT codelist containing the descendants of
+# the concept 'Heart failure'
+my_heart_failure_codelist <- SNOMEDcodelist(
+  SNOMEDconcept('Heart failure'), include_desc = TRUE)
+
+single_row_maps <- getMaps(my_heart_failure_codelist,
+  mappingtable = MAPS, to = c('read2', 'ctv3'),
+  single_row_per_concept = TRUE)
+
+# Display the maps - one row per concept (long terms truncated)
+print(single_row_maps[, list(term = substr(term, 1, 10), read2_code, ctv3_concept)])
+
+multi_row_maps <- getMaps(my_heart_failure_codelist,
+  mappingtable = MAPS, to = 'read2',
+  single_row_per_concept = FALSE)
+
+# Display the maps - multiple rows per concept (long terms truncated)
+print(multi_row_maps[, list(term = substr(term, 1, 10), read2_code,
+  read2_term = substr(read2_term, 1, 30))])
 ```
 
 More information

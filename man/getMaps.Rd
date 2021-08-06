@@ -4,16 +4,39 @@
 \alias{getMaps}
 \title{Obtain mapped Read 2 and CTV3 concepts for SNOMED CT concepts}
 \usage{
-getMaps(x, mappingtable, to = c("read2", "ctv3"), SNOMED = getSNOMED())
+getMaps(
+  x,
+  mappingtable,
+  to = c("read2", "ctv3"),
+  SNOMED = getSNOMED(),
+  single_row_per_concept = TRUE
+)
 }
 \arguments{
 \item{x}{SNOMEDcodelist or SNOMEDconcept object. If it is a
-SNOMEDconcept object it is first converted to a SNOMEDcodelist.}
+SNOMEDconcept object it is first converted to a SNOMEDcodelist.
+If it is a SNOMEDcodelist it is expanded, and any existing columns
+named 'read2_code' or 'read2_term' (if adding Read 2 maps) or
+'ctv3_concept' or ctv3_termid' (if adding CTV3 maps) will be
+overwritten.}
 
-\item{mappingtable}{data.table containing mapping in the format above.
-It must contain a unique field 'conceptId' and fields named
+\item{mappingtable}{data.table containing mapping in the format
+described in 'Details'. The MAPS dataset in this package provides
+a sample.
+It must contain a unique field 'conceptId', and fields named
 'read2_code' and 'read2_term' (for mapping to Read 2)
 or 'ctv3_concept' and 'ctv3_termid' (for mapping to CTV3).}
+
+\item{to}{character vector stating which terminologies to map to,
+either 'read2' or 'ctv3'; include both if both maps are required.
+Beware that including both maps may result in a significant expansion
+of the number of rows if single_row_per_concept is FALSE.}
+
+\item{single_row_per_concept}{(logical) if TRUE (default), the function
+returns a single row per concept with Read 2 and CTV3 maps returned
+as lists (i.e. multiple entries within a single cell). This means
+the output is a valid SNOMEDcodelist object. If FALSE, returns
+multiple rows per concept (one for each map).}
 }
 \value{
 a data.table containing the columns conceptId and either
@@ -52,8 +75,10 @@ ctv3_concept (character list of CTV3 concept codes),
 ctv3_termid (character list of CTV3 term description codes)
 }
 \examples{
-# Load sample SNOMED CT dictionary and sample mapping file
+# Load sample SNOMED CT dictionary into the global environment
+# so it is available to the functions in this example
 SNOMED <- sampleSNOMED()
+# Use the sample MAPS table in this package
 data(MAPS)
 
 # Example: Mapping a single concept
@@ -67,5 +92,5 @@ getMaps(SNOMEDcodelist(SNOMEDconcept('Heart failure')),
   mappingtable = MAPS, to = 'ctv3')
 }
 \seealso{
-MAPS
+MAPS, loadMAPS
 }

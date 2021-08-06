@@ -9,6 +9,7 @@
 #' @return An environment containing data.table objects: CONCEPT,
 #'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
 #' @export
+#' @seealso loadMAPS, CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, sampleSNOMED, getSNOMED
 #' @examples
 #' # Create a TEST environment and load the sample dictionaries
 #' TEST <- sampleSNOMED()
@@ -17,7 +18,7 @@
 #' for (table in c('Concept', 'Description', 'Relationship',
 #'   'StatedRelationship')){
 #'   write.table(get(toupper(table), envir = TEST), paste0(tempdir(),
-#'     '/sct_', table, '_text.txt'), row.names = FALSE, sep = '\t', quote = FALSE)
+#'     '/sct_', table, '_text.txt'), row.names = FALSE, sep = '|', quote = FALSE)
 #' }
 #'
 #' # Try to import using the loadSNOMED function
@@ -159,6 +160,7 @@ loadSNOMED <- function(folders, active_only = TRUE){
 #'
 #' @param SNOMED environment containing data.table objects: CONCEPT,
 #'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
+#' @seealso CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
 #' @return The environment with indices added to each table for
 #'   fast searching
 createSNOMEDindices <- function(SNOMED){
@@ -198,6 +200,7 @@ createSNOMEDindices <- function(SNOMED){
 #'   CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
 #'   and a list named 'metadata'
 #' @export
+#' @seealso CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, loadSNOMED, getSNOMED
 #' @examples
 #' TEST <- sampleSNOMED()
 #' inactiveIncluded(TEST)
@@ -228,6 +231,7 @@ sampleSNOMED <- function(){
 #' provided with the package
 #'
 #' @return SNOMED environment from the global environment
+#' @seealso CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, loadSNOMED, sampleSNOMED
 #' @export
 #' @examples
 #' SNOMED <- sampleSNOMED()
@@ -270,7 +274,7 @@ getSNOMED <- function(){
 #' Creates a mapping table derived from NHS Digital
 #' Data Migration distribution. These tables are available from
 #' the Technology Reference data Update Distribution
-#' \url{https://isd.digital.nhs.uk/trud3/user/guest/group/0/pack/9/subpack/9/releases}
+#' \url{https://isd.digital.nhs.uk/trud3/user/guest/group/0/pack/9/subpack/9/releases}.
 #' 
 #' The final release was in April 2020. The mapping tables are
 #' intended for converting entires in clinical records from
@@ -317,7 +321,7 @@ getSNOMED <- function(){
 #'      'Clinically Assured/ctv3sctmap2_uk_20200401000001.txt'
 #' @return A data.table with columns conceptId, read2_code,
 #'   ctv3_concept, ctv3_termid
-#' @seealso MAPS, getMaps
+#' @seealso MAPS, getMaps, loadSNOMED
 #' @export
 #' @examples
 #'

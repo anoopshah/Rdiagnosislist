@@ -24,3 +24,6 @@ SNOMEDconcept('Heart failure', SNOMED = TEST)
 # To display metadata for this SNOMED CT dictionary
 sampleSNOMED()$metadata
 }
+\seealso{
+CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, loadSNOMED, getSNOMED
+}

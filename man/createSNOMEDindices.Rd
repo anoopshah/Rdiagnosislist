@@ -17,3 +17,6 @@ The environment with indices added to each table for
 \description{
 Creates relevant indices for fast searching of SNOMED CT tables
 }
+\seealso{
+CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
+}

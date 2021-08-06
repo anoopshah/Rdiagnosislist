@@ -25,3 +25,6 @@ SNOMED2 <- getSNOMED()
 # To display metadata for this SNOMED CT dictionary
 SNOMED2$metadata
 }
+\seealso{
+CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, loadSNOMED, sampleSNOMED
+}
