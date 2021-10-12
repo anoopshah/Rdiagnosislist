@@ -7,7 +7,7 @@
 #' @param folders Vector of folder paths containing SNOMED CT files
 #' @param active_only Whether to limit to current (active) SNOMED CT terms
 #' @return An environment containing data.table objects: CONCEPT,
-#'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
+#'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, REFSET, MAPS
 #' @export
 #' @seealso loadMAPS, CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, sampleSNOMED, getSNOMED
 #' @examples
@@ -29,6 +29,9 @@
 #' all.equal(TEST$DESCRIPTION, TEST2$DESCRIPTION)
 #' all.equal(TEST$RELATIONSHIP, TEST2$RELATIONSHIP)
 #' all.equal(TEST$STATEDRELATIONSHIP, TEST2$STATEDRELATIONSHIP)
+
+# To modify this to load Refset and maps into the main SNOMED dictionary
+
 loadSNOMED <- function(folders, active_only = TRUE){
 	.temp <- active <- term <- NULL
 	
@@ -36,7 +39,7 @@ loadSNOMED <- function(folders, active_only = TRUE){
 	append <- FALSE
 	for (folder in folders){
 		message('Attempting to load from ', folder)
-		files <- dir(folder)
+		files <- dir(folder, recursive = TRUE, full.names = TRUE)
 		used <- rep(FALSE, length(files))
 		for (filename in c('Concept', 'Description', 'StatedRelationship',
 			'Relationship')){
