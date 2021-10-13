@@ -75,6 +75,11 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 	'icd10', 'opcs4'), SNOMED = getSNOMED(), single_row_per_concept = TRUE){
 	# OPCS4 and ICD10 maps included in UK SNOMED CT release
 	# Read V2 and CTV3 included in separate mapping table (data migration)
+	read2_code <- read2_term <- NULL
+	ctv3_concept <- ctv3_termid <- NULL
+	icd10_code <- NULL
+	opcs4_code <- NULL
+	
 	if (any(to %in% c('read2', 'ctv3'))){
 		if (is.null(mappingtable)){
 			stop('mappingtable required for mapping to read2 or ctv3')
@@ -98,12 +103,12 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 		if ('read2_term' %in% names(out)) out[, read2_term := NULL]
 		if (single_row_per_concept){
 			out <- as.SNOMEDcodelist(merge(mappingtable[,
-				.(read2_code = read2_code,
+				list(read2_code = read2_code,
 				read2_term = read2_term), by = conceptId], out,
 				on = 'conceptId'))
 		} else {
 			out <- merge(mappingtable[,
-				.(read2_code = unlist(read2_code),
+				list(read2_code = unlist(read2_code),
 				read2_term = unlist(read2_term)), by = conceptId], out,
 				on = 'conceptId')
 		}
@@ -113,42 +118,44 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 		if ('ctv3_termid' %in% names(out)) out[, ctv3_termid := NULL]
 		if (single_row_per_concept){
 			out <- as.SNOMEDcodelist(merge(mappingtable[,
-				.(ctv3_concept = ctv3_concept,
+				list(ctv3_concept = ctv3_concept,
 				ctv3_termid = ctv3_termid), by = conceptId], out,
 				on = 'conceptId'))
 		} else {
 			out <- merge(mappingtable[,
-				.(ctv3_concept = unlist(ctv3_concept),
+				list(ctv3_concept = unlist(ctv3_concept),
 				ctv3_termid = unlist(ctv3_termid)), by = conceptId], out,
 				on = 'conceptId')
 		}
 	}
 	if ('icd10' %in% to){
 		if ('icd10_code' %in% names(out)) out[, icd10_code := NULL]
+		TEMP <- merge(SNOMED$EXTENDEDMAP[mapPriority == 1 & refsetId %in%
+			bit64::as.integer64(c('447562003', '999002271000000101')),
+			list(icd10_code = mapTarget, conceptId =
+			referencedComponentId)], out, by = 'conceptId')
+			
+			list(icd10_code = unique(sub('\\.', '', mapTarget))),
+			by = list(conceptId = referencedComponentId)]
 		if (single_row_per_concept){
-			out <- as.SNOMEDcodelist(merge(SNOMED$EXTENDEDMAP[,
-				.(ctv3_concept = ctv3_concept,
-				ctv3_termid = ctv3_termid), by = conceptId], out,
-				on = 'conceptId'))
+			out <- as.SNOMEDcodelist(merge(TEMP, out, by = 'conceptId'))
 		} else {
-			out <- merge(mappingtable[,
-				.(ctv3_concept = unlist(ctv3_concept),
-				ctv3_termid = unlist(ctv3_termid)), by = conceptId], out,
-				on = 'conceptId')
+			out <- merge(TEMP[,
+				list(icd10_code = unlist(icd10_code)),
+				by = conceptId], out, on = 'conceptId')
 		}
 	}
 	if ('opcs4' %in% to){
 		if ('opcs4_code' %in% names(out)) out[, opcs4_code := NULL]
+		TEMP <- SNOMED$EXTENDEDMAP[, opcs4_code = ]
 		if (single_row_per_concept){
-			out <- as.SNOMEDcodelist(merge(mappingtable[,
-				.(ctv3_concept = ctv3_concept,
-				ctv3_termid = ctv3_termid), by = conceptId], out,
-				on = 'conceptId'))
+			out <- as.SNOMEDcodelist(merge(TEMP[,
+				list(opcs4_code = opcs4_code),
+				by = conceptId], out, on = 'conceptId'))
 		} else {
 			out <- merge(mappingtable[,
-				.(ctv3_concept = unlist(ctv3_concept),
-				ctv3_termid = unlist(ctv3_termid)), by = conceptId], out,
-				on = 'conceptId')
+				list(opcs4_code = unlist(opcs4_code)),
+				by = conceptId], out, on = 'conceptId')
 		}
 	}
 	out

@@ -8,37 +8,18 @@
 #' @param folders Vector of folder paths containing SNOMED CT files
 #' @param active_only Whether to limit to current (active) SNOMED CT terms
 #' @return An environment containing data.table objects: CONCEPT,
-#'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, REFSET_SIMPLE,
-#'   REFSET_SIMPLEMAP, REFSET_EXTENDEDMAP
+#'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, REFSET,
+#'   SIMPLEMAP, EXTENDEDMAP
 #' @export
 #' @seealso loadREADMAPS, CONCEPT, DESCRIPTION, RELATIONSHIP,
-#' STATEDRELATIONSHIP, sampleSNOMED, getSNOMED
+#' STATEDRELATIONSHIP, REFSET, SIMPLEMAP, EXTENDEDMAP,
+#' sampleSNOMED, getSNOMED, exportSNOMEDenvir
 #' @examples
 #' # Create a TEST environment and load the sample dictionaries
 #' TEST <- sampleSNOMED()
 #'
 #' # Export to temporary directory
-#' write.table(get('CONCEPT', envir = TEST), paste0(tempdir(),
-#'   '/_Concept_Snapshot.txt'), row.names = FALSE, sep = '\t',
-#'   quote = FALSE)
-#' write.table(get('DESCRIPTION', envir = TEST), paste0(tempdir(),
-#'   '/_Description_Snapshot.txt'), row.names = FALSE, sep = '\t',
-#'   quote = FALSE)
-#' write.table(get('RELATIONSHIP', envir = TEST), paste0(tempdir(),
-#'   '/_Relationship_Snapshot.txt'), row.names = FALSE, sep = '\t',
-#'   quote = FALSE)
-#' write.table(get('STATEDRELATIONSHIP', envir = TEST), paste0(tempdir(),
-#'   '/_StatedRelationship_Snapshot.txt'), row.names = FALSE, sep = '\t',
-#'   quote = FALSE)
-#' write.table(get('REFSET', envir = TEST), paste0(tempdir(),
-#'   '/Refset_SimpleSnapshot.txt'), row.names = FALSE, sep = '\t',
-#'   quote = FALSE)
-#' write.table(get('SIMPLEMAP', envir = TEST), paste0(tempdir(),
-#'   '/Refset_SimpleMapSnapshot.txt'), row.names = FALSE, sep = '\t',
-#'   quote = FALSE)
-#' write.table(get('EXTENDEDMAP', envir = TEST), paste0(tempdir(),
-#'   '/Refset_ExtendedMapSnapshot.txt'), row.names = FALSE, sep = '\t',
-#'   quote = FALSE)
+#' exportSNOMEDenvir(TEST, tempdir())
 #'
 #' # Try to import using the loadSNOMED function
 #' TEST2 <- loadSNOMED(tempdir(), active_only = FALSE)
@@ -132,6 +113,10 @@ loadSNOMED <- function(folders, active_only = TRUE){
 								data.table::setnames(TEMP, '.temp', 'active')
 							}
 						}
+						# Remove 'id' column for maps and refsets
+						if (thispattern %like% 'Refset_'){
+							TEMP[, id := NULL]
+						}
 						# Restore original column order
 						setcolorder(TEMP, orig_col_order)
 						# Return the table or append to another partial table
@@ -187,6 +172,41 @@ loadSNOMED <- function(folders, active_only = TRUE){
 	return(SNOMED)
 }
 
+#' Export a SNOMED environment to a folder
+#'
+#' Creates tab separated files which can be reloaded with relevant indices for fast searching of SNOMED CT tables
+#'
+#' @param SNOMED environment containing data.table objects: CONCEPT,
+#'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, REFSET,
+#'   SIMPLEMAP, EXTENDEDMAP
+#' @seealso CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
+#' @return NULL 
+#' @export
+exportSNOMEDenvir <- function(SNOMED, folder){
+	write.table(get('CONCEPT', envir = SNOMED, inherits = FALSE),
+		paste0(folder, '/_Concept_Snapshot.txt'),
+		row.names = FALSE, sep = '\t', quote = FALSE)
+	write.table(get('DESCRIPTION', envir = SNOMED, inherits = FALSE),
+		paste0(folder, '/_Description_Snapshot.txt'),
+		row.names = FALSE, sep = '\t', quote = FALSE)
+	write.table(get('RELATIONSHIP', envir = SNOMED, inherits = FALSE),
+		paste0(folder, '/_Relationship_Snapshot.txt'),
+		row.names = FALSE, sep = '\t', quote = FALSE)
+	write.table(get('STATEDRELATIONSHIP', envir = SNOMED, inherits = FALSE),
+		paste0(folder, '/_StatedRelationship_Snapshot.txt'),
+		row.names = FALSE, sep = '\t', quote = FALSE)
+	write.table(get('REFSET', envir = SNOMED, inherits = FALSE),
+		paste0(folder, '/Refset_SimpleSnapshot.txt'),
+		row.names = FALSE, sep = '\t', quote = FALSE)
+	write.table(get('SIMPLEMAP', envir = SNOMED, inherits = FALSE),
+		paste0(folder, '/Refset_SimpleMapSnapshot.txt'),
+		row.names = FALSE, sep = '\t', quote = FALSE)
+	write.table(get('EXTENDEDMAP', envir = SNOMED, inherits = FALSE),
+		paste0(folder, '/Refset_ExtendedMapSnapshot.txt'),
+		row.names = FALSE, sep = '\t', quote = FALSE)
+	return(NULL)
+}
+
 #' Create indices for tables in a SNOMED environment
 #'
 #' Creates relevant indices for fast searching of SNOMED CT tables
@@ -199,6 +219,9 @@ loadSNOMED <- function(folders, active_only = TRUE){
 createSNOMEDindices <- function(SNOMED){
 	id <- active <- conceptId <- typeId <- term <- active <- NULL
 	sourceId <- destinationId <- NULL
+	moduleId <- refsetId <- referencedComponentId <- NULL
+	mapTarget <- mapGroup <- mapPriority <- mapRule <- NULL
+	correlationId <- mapCategoryId <- NULL
 	
 	data.table::setindex(SNOMED$CONCEPT, id)
 	data.table::setindex(SNOMED$CONCEPT, active)
@@ -221,20 +244,17 @@ createSNOMEDindices <- function(SNOMED){
 	data.table::setindex(SNOMED$RELATIONSHIP, typeId)
 	data.table::setindex(SNOMED$RELATIONSHIP, active)
 
-	data.table::setindex(SNOMED$REFSET, id)
 	data.table::setindex(SNOMED$REFSET, moduleId)
 	data.table::setindex(SNOMED$REFSET, refsetId)
 	data.table::setindex(SNOMED$REFSET, referencedComponentId)
 	data.table::setindex(SNOMED$REFSET, active)
 	
-	data.table::setindex(SNOMED$SIMPLEMAP, id)
 	data.table::setindex(SNOMED$SIMPLEMAP, moduleId)
 	data.table::setindex(SNOMED$SIMPLEMAP, refsetId)
 	data.table::setindex(SNOMED$SIMPLEMAP, referencedComponentId)
 	data.table::setindex(SNOMED$SIMPLEMAP, mapTarget)
 	data.table::setindex(SNOMED$SIMPLEMAP, active)
 
-	data.table::setindex(SNOMED$EXTENDEDMAP, id)
 	data.table::setindex(SNOMED$EXTENDEDMAP, moduleId)
 	data.table::setindex(SNOMED$EXTENDEDMAP, refsetId)
 	data.table::setindex(SNOMED$EXTENDEDMAP, referencedComponentId)
