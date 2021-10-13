@@ -6,8 +6,8 @@
 \usage{
 getMaps(
   x,
-  mappingtable,
-  to = c("read2", "ctv3"),
+  mappingtable = NULL,
+  to = c("read2", "ctv3", "icd10", "opcs4"),
   SNOMED = getSNOMED(),
   single_row_per_concept = TRUE
 )

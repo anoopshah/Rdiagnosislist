@@ -13,23 +13,41 @@ loadSNOMED(folders, active_only = TRUE)
 }
 \value{
 An environment containing data.table objects: CONCEPT,
-  DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
+  DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, REFSET_SIMPLE,
+  REFSET_SIMPLEMAP, REFSET_EXTENDEDMAP
 }
 \description{
-Identifies relevant SNOMED CT files from a distribution and loads 
-them into an R environment. Files from two folders (e.g.
-International and UK versions) can be loaded together and appended.
+Identifies relevant SNOMED CT files from the 'Snapshot' of a 
+distribution and loads them into an R environment. Files from
+two folders (e.g. International and UK versions) can be loaded
+together and appended.
 }
 \examples{
 # Create a TEST environment and load the sample dictionaries
 TEST <- sampleSNOMED()
 
 # Export to temporary directory
-for (table in c('Concept', 'Description', 'Relationship',
-  'StatedRelationship')){
-  write.table(get(toupper(table), envir = TEST), paste0(tempdir(),
-    '/sct_', table, '_text.txt'), row.names = FALSE, sep = '|', quote = FALSE)
-}
+write.table(get('CONCEPT', envir = TEST), paste0(tempdir(),
+  '/_Concept_Snapshot.txt'), row.names = FALSE, sep = '\t',
+  quote = FALSE)
+write.table(get('DESCRIPTION', envir = TEST), paste0(tempdir(),
+  '/_Description_Snapshot.txt'), row.names = FALSE, sep = '\t',
+  quote = FALSE)
+write.table(get('RELATIONSHIP', envir = TEST), paste0(tempdir(),
+  '/_Relationship_Snapshot.txt'), row.names = FALSE, sep = '\t',
+  quote = FALSE)
+write.table(get('STATEDRELATIONSHIP', envir = TEST), paste0(tempdir(),
+  '/_StatedRelationship_Snapshot.txt'), row.names = FALSE, sep = '\t',
+  quote = FALSE)
+write.table(get('REFSET', envir = TEST), paste0(tempdir(),
+  '/Refset_SimpleSnapshot.txt'), row.names = FALSE, sep = '\t',
+  quote = FALSE)
+write.table(get('SIMPLEMAP', envir = TEST), paste0(tempdir(),
+  '/Refset_SimpleMapSnapshot.txt'), row.names = FALSE, sep = '\t',
+  quote = FALSE)
+write.table(get('EXTENDEDMAP', envir = TEST), paste0(tempdir(),
+  '/Refset_ExtendedMapSnapshot.txt'), row.names = FALSE, sep = '\t',
+  quote = FALSE)
 
 # Try to import using the loadSNOMED function
 TEST2 <- loadSNOMED(tempdir(), active_only = FALSE)
@@ -39,7 +57,11 @@ all.equal(TEST$CONCEPT, TEST2$CONCEPT)
 all.equal(TEST$DESCRIPTION, TEST2$DESCRIPTION)
 all.equal(TEST$RELATIONSHIP, TEST2$RELATIONSHIP)
 all.equal(TEST$STATEDRELATIONSHIP, TEST2$STATEDRELATIONSHIP)
+all.equal(TEST$REFSET, TEST2$REFSET)
+all.equal(TEST$SIMPLEMAP, TEST2$SIMPLEMAP)
+all.equal(TEST$EXTENDEDMAP, TEST2$EXTENDEDMAP)
 }
 \seealso{
-loadMAPS, CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, sampleSNOMED, getSNOMED
+loadREADMAPS, CONCEPT, DESCRIPTION, RELATIONSHIP,
+STATEDRELATIONSHIP, sampleSNOMED, getSNOMED
 }

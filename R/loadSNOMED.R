@@ -1,8 +1,9 @@
 #' Load SNOMED CT files from a folder(s) into R data.table objects
 #'
-#' Identifies relevant SNOMED CT files from a distribution and loads 
-#' them into an R environment. Files from two folders (e.g.
-#' International and UK versions) can be loaded together and appended.
+#' Identifies relevant SNOMED CT files from the 'Snapshot' of a 
+#' distribution and loads them into an R environment. Files from
+#' two folders (e.g. International and UK versions) can be loaded
+#' together and appended.
 #'
 #' @param folders Vector of folder paths containing SNOMED CT files
 #' @param active_only Whether to limit to current (active) SNOMED CT terms
@@ -18,25 +19,25 @@
 #'
 #' # Export to temporary directory
 #' write.table(get('CONCEPT', envir = TEST), paste0(tempdir(),
-#'   '/sct_Concept_text.txt'), row.names = FALSE, sep = '|',
+#'   '/_Concept_Snapshot.txt'), row.names = FALSE, sep = '\t',
 #'   quote = FALSE)
 #' write.table(get('DESCRIPTION', envir = TEST), paste0(tempdir(),
-#'   '/sct_Description_text.txt'), row.names = FALSE, sep = '|',
+#'   '/_Description_Snapshot.txt'), row.names = FALSE, sep = '\t',
 #'   quote = FALSE)
 #' write.table(get('RELATIONSHIP', envir = TEST), paste0(tempdir(),
-#'   '/sct_Relationship_text.txt'), row.names = FALSE, sep = '|',
+#'   '/_Relationship_Snapshot.txt'), row.names = FALSE, sep = '\t',
 #'   quote = FALSE)
 #' write.table(get('STATEDRELATIONSHIP', envir = TEST), paste0(tempdir(),
-#'   '/sct_StatedRelationship_text.txt'), row.names = FALSE, sep = '|',
+#'   '/_StatedRelationship_Snapshot.txt'), row.names = FALSE, sep = '\t',
 #'   quote = FALSE)
 #' write.table(get('REFSET', envir = TEST), paste0(tempdir(),
-#'   '/sct_Refset_Simple_text.txt'), row.names = FALSE, sep = '|',
+#'   '/Refset_SimpleSnapshot.txt'), row.names = FALSE, sep = '\t',
 #'   quote = FALSE)
 #' write.table(get('SIMPLEMAP', envir = TEST), paste0(tempdir(),
-#'   '/sct_Refset_SimpleMap_text.txt'), row.names = FALSE, sep = '|',
+#'   '/Refset_SimpleMapSnapshot.txt'), row.names = FALSE, sep = '\t',
 #'   quote = FALSE)
 #' write.table(get('EXTENDEDMAP', envir = TEST), paste0(tempdir(),
-#'   '/sct_Refset_ExtendedMap_text.txt'), row.names = FALSE, sep = '|',
+#'   '/Refset_ExtendedMapSnapshot.txt'), row.names = FALSE, sep = '\t',
 #'   quote = FALSE)
 #'
 #' # Try to import using the loadSNOMED function
@@ -64,13 +65,13 @@ loadSNOMED <- function(folders, active_only = TRUE){
 		used <- rep(FALSE, length(files))
 		
 		FILENAMES <- fread('pattern|table
-		_Concept_|CONCEPT
-		_Description_|DESCRIPTION
-		_StatedRelationship_|STATEDRELATIONSHIP
-		_Relationship_|RELATIONSHIP
-		_Refset_Simple|REFSET
-		Refset_SimpleMap|SIMPLEMAP
-		Refset_ExtendedMap|EXTENDEDMAP')
+		_Concept_Snapshot|CONCEPT
+		_Description_Snapshot|DESCRIPTION
+		_StatedRelationship_Snapshot|STATEDRELATIONSHIP
+		_Relationship_Snapshot|RELATIONSHIP
+		Refset_SimpleMapSnapshot|SIMPLEMAP
+		Refset_ExtendedMapSnapshot|EXTENDEDMAP
+		Refset_SimpleSnapshot|REFSET')
 		
 		for (thispattern in FILENAMES$pattern){
 			touse <- which(files %like% thispattern & used == FALSE)
@@ -243,7 +244,6 @@ createSNOMEDindices <- function(SNOMED){
 	data.table::setindex(SNOMED$EXTENDEDMAP, mapTarget)
 	data.table::setindex(SNOMED$EXTENDEDMAP, correlationId)
 	data.table::setindex(SNOMED$EXTENDEDMAP, mapCategoryId)
-	data.table::setindex(SNOMED$EXTENDEDMAP, typeId)
 	data.table::setindex(SNOMED$EXTENDEDMAP, active)
 
 	return(SNOMED)

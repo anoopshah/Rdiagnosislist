@@ -14,9 +14,7 @@ Returns an object named 'SNOMED' from the global
 environment. Returns an error if no such object exists,
 or if it is not an environment containing tables named
 CONCEPT, RELATIONSHIP, STATEDRELATIONSHIP and DESCRIPTION.
-There is no attempt to check that these tables are actually, if available. environment containing a selection of SNOMED CT
-terms, their relationships and descriptions which are
-provided with the package
+There is no attempt to check that these tables are actually valid.
 }
 \examples{
 SNOMED <- sampleSNOMED()
@@ -26,5 +24,6 @@ SNOMED2 <- getSNOMED()
 SNOMED2$metadata
 }
 \seealso{
-CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, loadSNOMED, sampleSNOMED
+CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, 
+REFSET, SIMPLEMAP, EXTENDEDMAP, loadSNOMED, sampleSNOMED
 }
