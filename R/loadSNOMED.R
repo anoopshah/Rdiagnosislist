@@ -7,19 +7,37 @@
 #' @param folders Vector of folder paths containing SNOMED CT files
 #' @param active_only Whether to limit to current (active) SNOMED CT terms
 #' @return An environment containing data.table objects: CONCEPT,
-#'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, REFSET, MAPS
+#'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, REFSET_SIMPLE,
+#'   REFSET_SIMPLEMAP, REFSET_EXTENDEDMAP
 #' @export
-#' @seealso loadMAPS, CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, sampleSNOMED, getSNOMED
+#' @seealso loadREADMAPS, CONCEPT, DESCRIPTION, RELATIONSHIP,
+#' STATEDRELATIONSHIP, sampleSNOMED, getSNOMED
 #' @examples
 #' # Create a TEST environment and load the sample dictionaries
 #' TEST <- sampleSNOMED()
 #'
 #' # Export to temporary directory
-#' for (table in c('Concept', 'Description', 'Relationship',
-#'   'StatedRelationship')){
-#'   write.table(get(toupper(table), envir = TEST), paste0(tempdir(),
-#'     '/sct_', table, '_text.txt'), row.names = FALSE, sep = '|', quote = FALSE)
-#' }
+#' write.table(get('CONCEPT', envir = TEST), paste0(tempdir(),
+#'   '/sct_Concept_text.txt'), row.names = FALSE, sep = '|',
+#'   quote = FALSE)
+#' write.table(get('DESCRIPTION', envir = TEST), paste0(tempdir(),
+#'   '/sct_Description_text.txt'), row.names = FALSE, sep = '|',
+#'   quote = FALSE)
+#' write.table(get('RELATIONSHIP', envir = TEST), paste0(tempdir(),
+#'   '/sct_Relationship_text.txt'), row.names = FALSE, sep = '|',
+#'   quote = FALSE)
+#' write.table(get('STATEDRELATIONSHIP', envir = TEST), paste0(tempdir(),
+#'   '/sct_StatedRelationship_text.txt'), row.names = FALSE, sep = '|',
+#'   quote = FALSE)
+#' write.table(get('REFSET', envir = TEST), paste0(tempdir(),
+#'   '/sct_Refset_Simple_text.txt'), row.names = FALSE, sep = '|',
+#'   quote = FALSE)
+#' write.table(get('SIMPLEMAP', envir = TEST), paste0(tempdir(),
+#'   '/sct_Refset_SimpleMap_text.txt'), row.names = FALSE, sep = '|',
+#'   quote = FALSE)
+#' write.table(get('EXTENDEDMAP', envir = TEST), paste0(tempdir(),
+#'   '/sct_Refset_ExtendedMap_text.txt'), row.names = FALSE, sep = '|',
+#'   quote = FALSE)
 #'
 #' # Try to import using the loadSNOMED function
 #' TEST2 <- loadSNOMED(tempdir(), active_only = FALSE)
@@ -29,6 +47,9 @@
 #' all.equal(TEST$DESCRIPTION, TEST2$DESCRIPTION)
 #' all.equal(TEST$RELATIONSHIP, TEST2$RELATIONSHIP)
 #' all.equal(TEST$STATEDRELATIONSHIP, TEST2$STATEDRELATIONSHIP)
+#' all.equal(TEST$REFSET, TEST2$REFSET)
+#' all.equal(TEST$SIMPLEMAP, TEST2$SIMPLEMAP)
+#' all.equal(TEST$EXTENDEDMAP, TEST2$EXTENDEDMAP)
 
 # To modify this to load Refset and maps into the main SNOMED dictionary
 
@@ -41,100 +62,108 @@ loadSNOMED <- function(folders, active_only = TRUE){
 		message('Attempting to load from ', folder)
 		files <- dir(folder, recursive = TRUE, full.names = TRUE)
 		used <- rep(FALSE, length(files))
-		for (filename in c('Concept', 'Description', 'StatedRelationship',
-			'Relationship')){
-			touse <- which(files %like% paste0('_', filename, '_')
-				& used == FALSE)
+		
+		FILENAMES <- fread('pattern|table
+		_Concept_|CONCEPT
+		_Description_|DESCRIPTION
+		_StatedRelationship_|STATEDRELATIONSHIP
+		_Relationship_|RELATIONSHIP
+		_Refset_Simple|REFSET
+		Refset_SimpleMap|SIMPLEMAP
+		Refset_ExtendedMap|EXTENDEDMAP')
+		
+		for (thispattern in FILENAMES$pattern){
+			touse <- which(files %like% thispattern & used == FALSE)
 			used[touse] <- TRUE
-			if (length(touse == 1)){
-				message('Attempting to load ', files[touse])
-				TEMP <- NULL
-				try(TEMP <- data.table::fread(paste0(folder, '/',
-					files[touse]), quote = ""))
-				if (is.null(TEMP)){
-					warning('Failed to load file.')
-				} else {
-					message('  Loaded ', nrow(TEMP), ' rows.')
-					# Save original column order
-					orig_col_order <- copy(names(TEMP))
-					# Convert all 'time' columns to times (YYYYMMDD format)
-					toconvert <- names(TEMP)[names(TEMP) %like% 'Time']
-					if (length(toconvert) > 0){
-						for (i in toconvert){
-							TEMP[, .temp := data.table::as.IDate(
-								as.character(get(i)), '%Y%m%d')]
-							TEMP[is.na(.temp), .temp := data.table::as.IDate(
-								as.character(get(i)), '%Y-%m-%d')]
-							if (all(is.na(TEMP[['.temp']]))){
-								message('  Failed to convert ', i, ' to IDate.')
-							} else {
+			if (length(touse) == 0){
+				message('No files matching ', thispattern)
+			} else {
+				for (thisfile in files[touse]){
+					message('Attempting to load ', sub(folder, '', thisfile))
+					TEMP <- NULL
+					try(TEMP <- data.table::fread(thisfile, quote = ""))
+					if (is.null(TEMP)){
+						warning('Failed to load file.')
+					} else {
+						message('  Loaded ', nrow(TEMP), ' rows.')
+						# Save original column order
+						orig_col_order <- copy(names(TEMP))
+						# Convert all 'time' columns to times (YYYYMMDD format)
+						toconvert <- names(TEMP)[names(TEMP) %like% 'Time']
+						if (length(toconvert) > 0){
+							for (i in toconvert){
+								TEMP[, .temp := data.table::as.IDate(
+									as.character(get(i)), '%Y%m%d')]
+								TEMP[is.na(.temp), .temp := data.table::as.IDate(
+									as.character(get(i)), '%Y-%m-%d')]
+								if (all(is.na(TEMP[['.temp']]))){
+									message('  Failed to convert ', i, ' to IDate.')
+								} else {
+									TEMP[, (i) := NULL]
+									data.table::setnames(TEMP, '.temp', i)
+									message('  Converted ', i, ' to IDate.')
+								}
+							}
+						}
+						# Convert all integer 'Id' columns to integer64
+						toconvert <- names(TEMP)[which(
+							(names(TEMP) %like% 'Id$') &
+							(sapply(TEMP, class) == 'integer'))]
+						if (length(toconvert) > 0){
+							for (i in toconvert){
+								message('  Converting ', i, ' to integer64.')
+								TEMP[, .temp := bit64::as.integer64(get(i))]
 								TEMP[, (i) := NULL]
 								data.table::setnames(TEMP, '.temp', i)
-								message('  Converted ', i, ' to IDate.')
 							}
 						}
-					}
-					# Convert all integer 'Id' columns to integer64
-					toconvert <- names(TEMP)[which(
-						(names(TEMP) %like% 'Id$') &
-						(sapply(TEMP, class) == 'integer'))]
-					if (length(toconvert) > 0){
-						for (i in toconvert){
-							message('  Converting ', i, ' to integer64.')
-							TEMP[, .temp := bit64::as.integer64(get(i))]
-							TEMP[, (i) := NULL]
-							data.table::setnames(TEMP, '.temp', i)
+						# Convert 'active' columns to logical
+						if ('active' %in% names(TEMP)){
+							if (active_only){
+								message('  Limiting to active rows (', 
+									sum(TEMP$active), '/', nrow(TEMP), ').')
+								TEMP <- TEMP[active == TRUE]
+							} else if (all(bit64::as.integer64(TEMP$active)) %in%
+									bit64::as.integer64(c(0, 1))){
+								message('  Converting active to logical.')
+								TEMP[, .temp := as.logical(active)]
+								TEMP[, active := NULL]
+								data.table::setnames(TEMP, '.temp', 'active')
+							}
 						}
-					}
-					# Convert 'active' columns to logical
-					if ('active' %in% names(TEMP)){
-						if (active_only){
-							message('  Limiting to active rows (', 
-								sum(TEMP$active), '/', nrow(TEMP), ').')
-							TEMP <- TEMP[active == TRUE]
-						} else if (all(bit64::as.integer64(TEMP$active)) %in%
-								bit64::as.integer64(c(0, 1))){
-							message('  Converting active to logical.')
-							TEMP[, .temp := as.logical(active)]
-							TEMP[, active := NULL]
-							data.table::setnames(TEMP, '.temp', 'active')
-						}
-					}
-					# Restore original column order
-					setcolorder(TEMP, orig_col_order)
-					# Return the table or append to another partial table
-					if (append){
-						message('  Attempting to append to ', toupper(filename))
-						EXISTING <- NULL
-						try(EXISTING <- get(toupper(filename),
-							envir = SNOMED, inherits = FALSE))
-						if (is.null(EXISTING)){
-							message('  No table in original, using new.')
-						} else if (nrow(TEMP) == 0 & nrow(EXISTING) == 0){
-							warning('  No data in original or new file.')
-						} else if (nrow(TEMP) == 0 & nrow(EXISTING) > 0){
-							message('  No data in new file, keeping original.')
-							TEMP <- EXISTING
-						} else if (nrow(TEMP) > 0 & nrow(EXISTING) == 0){
-							message('  No data in original, using new.')
+						# Restore original column order
+						setcolorder(TEMP, orig_col_order)
+						# Return the table or append to another partial table
+						if (append){
+							message('  Attempting to append to ',
+								FILENAMES[thispattern == pattern]$table)
+							EXISTING <- NULL
+							try(EXISTING <- get(FILENAMES[thispattern == pattern]$table,
+								envir = SNOMED, inherits = FALSE))
+							if (is.null(EXISTING)){
+								message('  No table in original, using new.')
+							} else if (nrow(TEMP) == 0 & nrow(EXISTING) == 0){
+								warning('  No data in original or new file.')
+							} else if (nrow(TEMP) == 0 & nrow(EXISTING) > 0){
+								message('  No data in new file, keeping original.')
+								TEMP <- EXISTING
+							} else if (nrow(TEMP) > 0 & nrow(EXISTING) == 0){
+								message('  No data in original, using new.')
+							} else {
+								existingN <- nrow(TEMP)
+								try(TEMP <- rbind(TEMP, EXISTING,
+									use.names = TRUE, fill = TRUE))
+								if (nrow(TEMP) > existingN){
+									message('  Successfully appended.')
+								}
+							}
 						} else {
-							existingN <- nrow(TEMP)
-							try(TEMP <- rbind(TEMP, EXISTING, use.names = TRUE, fill = TRUE))
-							if (nrow(TEMP) > existingN){
-								message('  Successfully appended.')
-							}
+							message('  Naming as ', FILENAMES[thispattern == pattern]$table)
 						}
-					} else {
-						message('  Naming as ', toupper(filename))
+						assign(FILENAMES[thispattern == pattern]$table, value = TEMP,
+							envir = SNOMED)
 					}
-					assign(toupper(filename), value = TEMP, envir = SNOMED)
 				}
-			} else if (length(touse) > 1) {
-				warning('Unable to identify correct file for ',
-					filename, ' from: ',
-					paste(files[touse], collapse = ', '))
-			} else if (length(touse) == 0){
-				message('No files matching ', filename)
 			}
 		}
 		
@@ -190,6 +219,33 @@ createSNOMEDindices <- function(SNOMED){
 	data.table::setindex(SNOMED$RELATIONSHIP, destinationId)
 	data.table::setindex(SNOMED$RELATIONSHIP, typeId)
 	data.table::setindex(SNOMED$RELATIONSHIP, active)
+
+	data.table::setindex(SNOMED$REFSET, id)
+	data.table::setindex(SNOMED$REFSET, moduleId)
+	data.table::setindex(SNOMED$REFSET, refsetId)
+	data.table::setindex(SNOMED$REFSET, referencedComponentId)
+	data.table::setindex(SNOMED$REFSET, active)
+	
+	data.table::setindex(SNOMED$SIMPLEMAP, id)
+	data.table::setindex(SNOMED$SIMPLEMAP, moduleId)
+	data.table::setindex(SNOMED$SIMPLEMAP, refsetId)
+	data.table::setindex(SNOMED$SIMPLEMAP, referencedComponentId)
+	data.table::setindex(SNOMED$SIMPLEMAP, mapTarget)
+	data.table::setindex(SNOMED$SIMPLEMAP, active)
+
+	data.table::setindex(SNOMED$EXTENDEDMAP, id)
+	data.table::setindex(SNOMED$EXTENDEDMAP, moduleId)
+	data.table::setindex(SNOMED$EXTENDEDMAP, refsetId)
+	data.table::setindex(SNOMED$EXTENDEDMAP, referencedComponentId)
+	data.table::setindex(SNOMED$EXTENDEDMAP, mapGroup)
+	data.table::setindex(SNOMED$EXTENDEDMAP, mapPriority)
+	data.table::setindex(SNOMED$EXTENDEDMAP, mapRule)
+	data.table::setindex(SNOMED$EXTENDEDMAP, mapTarget)
+	data.table::setindex(SNOMED$EXTENDEDMAP, correlationId)
+	data.table::setindex(SNOMED$EXTENDEDMAP, mapCategoryId)
+	data.table::setindex(SNOMED$EXTENDEDMAP, typeId)
+	data.table::setindex(SNOMED$EXTENDEDMAP, active)
+
 	return(SNOMED)
 }
 
@@ -203,7 +259,8 @@ createSNOMEDindices <- function(SNOMED){
 #'   CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
 #'   and a list named 'metadata'
 #' @export
-#' @seealso CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, loadSNOMED, getSNOMED
+#' @seealso CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, 
+#' REFSET, SIMPLEMAP, EXTENDEDMAP, loadSNOMED, sampleSNOMED
 #' @examples
 #' TEST <- sampleSNOMED()
 #' inactiveIncluded(TEST)
@@ -217,6 +274,9 @@ sampleSNOMED <- function(){
 	data(RELATIONSHIP, envir = SNOMED)
 	data(STATEDRELATIONSHIP, envir = SNOMED)
 	data(DESCRIPTION, envir = SNOMED)
+	data(REFSET, envir = SNOMED)
+	data(SIMPLEMAP, envir = SNOMED)
+	data(EXTENDEDMAP, envir = SNOMED)
 	SNOMED <- createSNOMEDindices(SNOMED)
 	assign('metadata', value = list(source = 'sample',
 		active_only = FALSE), envir = SNOMED)
@@ -229,12 +289,11 @@ sampleSNOMED <- function(){
 #' environment. Returns an error if no such object exists,
 #' or if it is not an environment containing tables named
 #' CONCEPT, RELATIONSHIP, STATEDRELATIONSHIP and DESCRIPTION.
-#' There is no attempt to check that these tables are actually, if available. environment containing a selection of SNOMED CT
-#' terms, their relationships and descriptions which are
-#' provided with the package
+#' There is no attempt to check that these tables are actually valid.
 #'
 #' @return SNOMED environment from the global environment
-#' @seealso CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, loadSNOMED, sampleSNOMED
+#' @seealso CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, 
+#' REFSET, SIMPLEMAP, EXTENDEDMAP, loadSNOMED, sampleSNOMED
 #' @export
 #' @examples
 #' SNOMED <- sampleSNOMED()
@@ -266,6 +325,18 @@ getSNOMED <- function(){
 	if (!('DESCRIPTION' %in% data.table::tables(env = SNOMED,
 		silent = TRUE)$NAME)){
 		stop('No table named DESCRIPTION in SNOMED environment')
+	}
+	if (!('REFSET' %in% data.table::tables(env = SNOMED,
+		silent = TRUE)$NAME)){
+		stop('No table named REFSET in SNOMED environment')
+	}
+	if (!('SIMPLEMAP' %in% data.table::tables(env = SNOMED,
+		silent = TRUE)$NAME)){
+		stop('No table named SIMPLEMAP in SNOMED environment')
+	}
+	if (!('EXTENDEDMAP' %in% data.table::tables(env = SNOMED,
+		silent = TRUE)$NAME)){
+		stop('No table named EXTENDEDMAP in SNOMED environment')
 	}
 	# Return the retrieved environment
 	SNOMED
@@ -328,7 +399,7 @@ getSNOMED <- function(){
 #' @export
 #' @examples
 #'
-loadMAPS <- function(not_assured_rcsctmap_uk,
+loadREADMAPS <- function(not_assured_rcsctmap_uk,
 	not_assured_rctermsctmap_uk, assured_ctv3sctmap2_uk){
 		
 	S_READCODE <- fread(not_assured_rcsctmap_uk)
@@ -355,10 +426,10 @@ loadMAPS <- function(not_assured_rcsctmap_uk,
 		ctv3_termid = CTV3_TERMID)]
 
 	# Now convert into a one-row-per-concept table
-	MAPS <- merge(V2MAPS[, .(read2_code = list(read2_code),
+	READMAPS <- merge(V2MAPS[, .(read2_code = list(read2_code),
 		read2_term = list(read2_term)), by = conceptId],
 		V3MAPS[, .(ctv3_concept = list(ctv3_concept),
 		ctv3_termid = list(ctv3_termid)),
 		by = conceptId], by = 'conceptId')
-	MAPS
+	READMAPS
 }

@@ -71,10 +71,17 @@
 #' # Example: Mapping a codelist
 #' getMaps(SNOMEDcodelist(SNOMEDconcept('Heart failure')),
 #'   mappingtable = MAPS, to = 'ctv3')
-getMaps <- function(x, mappingtable, to = c('read2', 'ctv3'),
-	SNOMED = getSNOMED(), single_row_per_concept = TRUE){
-	if (!(all(to %in% c('read2', 'ctv3')))){
-		stop('each element of "to" must be either "read2" or "ctv3"')
+getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
+	'icd10', 'opcs4'), SNOMED = getSNOMED(), single_row_per_concept = TRUE){
+	# OPCS4 and ICD10 maps included in UK SNOMED CT release
+	# Read V2 and CTV3 included in separate mapping table (data migration)
+	if (any(to %in% c('read2', 'ctv3'))){
+		if (is.null(mappingtable)){
+			stop('mappingtable required for mapping to read2 or ctv3')
+		}
+	} 
+	if (!(all(to %in% c('read2', 'ctv3', 'icd10', 'opcs4')))){
+		stop('each element of "to" must be either "read2", "ctv3", "icd10" or "opcs4"')
 	}
 	# Returns the original concepts and the linked concepts as a
 	# data.table
@@ -104,6 +111,34 @@ getMaps <- function(x, mappingtable, to = c('read2', 'ctv3'),
 	if ('ctv3' %in% to){
 		if ('ctv3_concept' %in% names(out)) out[, ctv3_concept := NULL]
 		if ('ctv3_termid' %in% names(out)) out[, ctv3_termid := NULL]
+		if (single_row_per_concept){
+			out <- as.SNOMEDcodelist(merge(mappingtable[,
+				.(ctv3_concept = ctv3_concept,
+				ctv3_termid = ctv3_termid), by = conceptId], out,
+				on = 'conceptId'))
+		} else {
+			out <- merge(mappingtable[,
+				.(ctv3_concept = unlist(ctv3_concept),
+				ctv3_termid = unlist(ctv3_termid)), by = conceptId], out,
+				on = 'conceptId')
+		}
+	}
+	if ('icd10' %in% to){
+		if ('icd10_code' %in% names(out)) out[, icd10_code := NULL]
+		if (single_row_per_concept){
+			out <- as.SNOMEDcodelist(merge(SNOMED$EXTENDEDMAP[,
+				.(ctv3_concept = ctv3_concept,
+				ctv3_termid = ctv3_termid), by = conceptId], out,
+				on = 'conceptId'))
+		} else {
+			out <- merge(mappingtable[,
+				.(ctv3_concept = unlist(ctv3_concept),
+				ctv3_termid = unlist(ctv3_termid)), by = conceptId], out,
+				on = 'conceptId')
+		}
+	}
+	if ('opcs4' %in% to){
+		if ('opcs4_code' %in% names(out)) out[, opcs4_code := NULL]
 		if (single_row_per_concept){
 			out <- as.SNOMEDcodelist(merge(mappingtable[,
 				.(ctv3_concept = ctv3_concept,
