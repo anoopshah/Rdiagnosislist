@@ -10,6 +10,8 @@ exportSNOMEDenvir(SNOMED, folder)
 \item{SNOMED}{environment containing data.table objects: CONCEPT,
 DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, REFSET,
 SIMPLEMAP, EXTENDEDMAP}
+
+\item{folder}{path to folder where files will be written}
 }
 \description{
 Creates tab separated files which can be reloaded with relevant indices for fast searching of SNOMED CT tables

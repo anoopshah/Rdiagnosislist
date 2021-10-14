@@ -270,7 +270,7 @@ These maps can be used for converting SNOMED CT codelists into Read 2 or CTV3 fo
 ```{r}
 # Example: creating a Read heart failure codelist using SNOMED CT
 SNOMED <- sampleSNOMED()
-data(MAPS)
+data(READMAPS)
 
 # Start off with a SNOMED CT codelist containing the descendants of
 # the concept 'Heart failure'
@@ -278,14 +278,14 @@ my_heart_failure_codelist <- SNOMEDcodelist(
   SNOMEDconcept('Heart failure'), include_desc = TRUE)
 
 single_row_maps <- getMaps(my_heart_failure_codelist,
-  mappingtable = MAPS, to = c('read2', 'ctv3'),
+  mappingtable = READMAPS, to = c('read2', 'ctv3'),
   single_row_per_concept = TRUE)
 
 # Display the maps - one row per concept (long terms truncated)
 print(single_row_maps[, list(term = substr(term, 1, 10), read2_code, ctv3_concept)])
 
 multi_row_maps <- getMaps(my_heart_failure_codelist,
-  mappingtable = MAPS, to = 'read2',
+  mappingtable = READMAPS, to = 'read2',
   single_row_per_concept = FALSE)
 
 # Display the maps - multiple rows per concept (long terms truncated)

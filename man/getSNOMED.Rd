@@ -4,7 +4,10 @@
 \alias{getSNOMED}
 \title{Retrieves SNOMED CT dictionary from the global environment}
 \usage{
-getSNOMED()
+getSNOMED(SNOMEDname = "SNOMED")
+}
+\arguments{
+\item{SNOMEDname}{name of the SNOMED environment to search for}
 }
 \value{
 SNOMED environment from the global environment

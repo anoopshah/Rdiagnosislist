@@ -32,6 +32,9 @@ either 'read2' or 'ctv3'; include both if both maps are required.
 Beware that including both maps may result in a significant expansion
 of the number of rows if single_row_per_concept is FALSE.}
 
+\item{SNOMED}{an environment containing the SNOMED CT dictionary.
+If not supplied, it will be obtained using getSNOMED().}
+
 \item{single_row_per_concept}{(logical) if TRUE (default), the function
 returns a single row per concept with Read 2 and CTV3 maps returned
 as lists (i.e. multiple entries within a single cell). This means

@@ -39,6 +39,8 @@
 #'   It must contain a unique field 'conceptId', and fields named
 #'   'read2_code' and 'read2_term' (for mapping to Read 2)
 #'   or 'ctv3_concept' and 'ctv3_termid' (for mapping to CTV3).
+#' @param SNOMED an environment containing the SNOMED CT dictionary.
+#'   If not supplied, it will be obtained using getSNOMED().
 #' @param to character vector stating which terminologies to map to,
 #'   either 'read2' or 'ctv3'; include both if both maps are required.
 #'   Beware that including both maps may result in a significant expansion
@@ -77,8 +79,10 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 	# Read V2 and CTV3 included in separate mapping table (data migration)
 	read2_code <- read2_term <- NULL
 	ctv3_concept <- ctv3_termid <- NULL
-	icd10_code <- NULL
-	opcs4_code <- NULL
+	icd10_code <- opcs4_code <- NULL
+	conceptId <- mapPriority <- mapCategoryId <- mapTarget <- NULL
+	referencedComponentId <- refsetId <- NULL
+
 	
 	if (any(to %in% c('read2', 'ctv3'))){
 		if (is.null(mappingtable)){

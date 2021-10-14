@@ -37,6 +37,7 @@
 
 loadSNOMED <- function(folders, active_only = TRUE){
 	.temp <- active <- term <- NULL
+	id <- correlationId <- mapTarget <- pattern <- NULL
 
 	FILENAMES <- fread('pattern|table
 _Concept_Snapshot|CONCEPT
@@ -191,31 +192,25 @@ Refset_SimpleSnapshot|REFSET')
 #' @param SNOMED environment containing data.table objects: CONCEPT,
 #'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, REFSET,
 #'   SIMPLEMAP, EXTENDEDMAP
+#' @param folder path to folder where files will be written
 #' @seealso CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
 #' @return NULL 
 #' @export
 exportSNOMEDenvir <- function(SNOMED, folder){
-	write.table(get('CONCEPT', envir = SNOMED, inherits = FALSE),
-		paste0(folder, '/_Concept_Snapshot.txt'),
-		row.names = FALSE, sep = '\t', quote = FALSE)
-	write.table(get('DESCRIPTION', envir = SNOMED, inherits = FALSE),
-		paste0(folder, '/_Description_Snapshot.txt'),
-		row.names = FALSE, sep = '\t', quote = FALSE)
-	write.table(get('RELATIONSHIP', envir = SNOMED, inherits = FALSE),
-		paste0(folder, '/_Relationship_Snapshot.txt'),
-		row.names = FALSE, sep = '\t', quote = FALSE)
-	write.table(get('STATEDRELATIONSHIP', envir = SNOMED, inherits = FALSE),
-		paste0(folder, '/_StatedRelationship_Snapshot.txt'),
-		row.names = FALSE, sep = '\t', quote = FALSE)
-	write.table(get('REFSET', envir = SNOMED, inherits = FALSE),
-		paste0(folder, '/Refset_SimpleSnapshot.txt'),
-		row.names = FALSE, sep = '\t', quote = FALSE)
-	write.table(get('SIMPLEMAP', envir = SNOMED, inherits = FALSE),
-		paste0(folder, '/Refset_SimpleMapSnapshot.txt'),
-		row.names = FALSE, sep = '\t', quote = FALSE)
-	write.table(get('EXTENDEDMAP', envir = SNOMED, inherits = FALSE),
-		paste0(folder, '/Refset_ExtendedMapSnapshot.txt'),
-		row.names = FALSE, sep = '\t', quote = FALSE)
+	data.table::fwrite(get('CONCEPT', envir = SNOMED, inherits = FALSE),
+		paste0(folder, '/_Concept_Snapshot.txt'), sep = '\t', quote = FALSE)
+	data.table::fwrite(get('DESCRIPTION', envir = SNOMED, inherits = FALSE),
+		paste0(folder, '/_Description_Snapshot.txt'), sep = '\t', quote = FALSE)
+	data.table::fwrite(get('RELATIONSHIP', envir = SNOMED, inherits = FALSE),
+		paste0(folder, '/_Relationship_Snapshot.txt'), sep = '\t', quote = FALSE)
+	data.table::fwrite(get('STATEDRELATIONSHIP', envir = SNOMED, inherits = FALSE),
+		paste0(folder, '/_StatedRelationship_Snapshot.txt'), sep = '\t', quote = FALSE)
+	data.table::fwrite(get('REFSET', envir = SNOMED, inherits = FALSE),
+		paste0(folder, '/Refset_SimpleSnapshot.txt'), sep = '\t', quote = FALSE)
+	data.table::fwrite(get('SIMPLEMAP', envir = SNOMED, inherits = FALSE),
+		paste0(folder, '/Refset_SimpleMapSnapshot.txt'), sep = '\t', quote = FALSE)
+	data.table::fwrite(get('EXTENDEDMAP', envir = SNOMED, inherits = FALSE),
+		paste0(folder, '/Refset_ExtendedMapSnapshot.txt'), sep = '\t', quote = FALSE)
 	return(NULL)
 }
 
@@ -331,6 +326,7 @@ sampleSNOMED <- function(){
 #' CONCEPT, RELATIONSHIP, STATEDRELATIONSHIP and DESCRIPTION.
 #' There is no attempt to check that these tables are actually valid.
 #'
+#' @param SNOMEDname name of the SNOMED environment to search for
 #' @return SNOMED environment from the global environment
 #' @seealso CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, 
 #' REFSET, SIMPLEMAP, EXTENDEDMAP, loadSNOMED, sampleSNOMED
@@ -341,9 +337,9 @@ sampleSNOMED <- function(){
 #'
 #' # To display metadata for this SNOMED CT dictionary
 #' SNOMED2$metadata
-getSNOMED <- function(){
+getSNOMED <- function(SNOMEDname = 'SNOMED'){
 	SNOMED <- NULL
-	SNOMED <- get('SNOMED', envir = globalenv())
+	SNOMED <- get(SNOMEDname, envir = globalenv())
 	if (is.null(SNOMED)){
 		stop('No object SNOMED found in global environment')
 	}
@@ -440,34 +436,39 @@ getSNOMED <- function(){
 #'
 loadREADMAPS <- function(not_assured_rcsctmap_uk,
 	not_assured_rctermsctmap_uk, assured_ctv3sctmap2_uk){
-		
+	MapStatus <- keep <- EffectiveDate <- MapId <- NULL
+	ConceptId <- read2_code <- ReadCode <- TermCode <- NULL
+	MAPSTATUS <- EFFECTIVEDATE <- MAPID <- SCT_CONCEPTID <- NULL
+	Term <- CTV3_CONCEPTID <- CTV3_TERMID <- read2_term <- NULL
+	conceptId <- ctv3_concept <- ctv3_termid <- NULL
+	
 	S_READCODE <- fread(not_assured_rcsctmap_uk)
 	S_READTERM <- fread(not_assured_rctermsctmap_uk, quote = '')
 	S_V3 <- fread(assured_ctv3sctmap2_uk)
 
 	S_READCODE[MapStatus == 1,
 		keep := EffectiveDate == max(EffectiveDate),
-		by = .(MapId, ConceptId)]
+		by = list(MapId, ConceptId)]
 	S_READCODE[, read2_code := paste0(ReadCode, TermCode)]
 	S_V3[MAPSTATUS == 1, keep := EFFECTIVEDATE == max(EFFECTIVEDATE),
-		by = .(MAPID, SCT_CONCEPTID)]
+		by = list(MAPID, SCT_CONCEPTID)]
 
 	# Keep the longest (most descriptive) Read term
 	S_READTERM[, keep := nchar(Term) == max(nchar(Term)), by = MapId]
 
 	V2MAPS <- merge(S_READCODE[keep == TRUE,
-		.(conceptId = as.integer64(ConceptId), read2_code, MapId)],
-		S_READTERM[keep == TRUE, .(MapId, read2_term = Term)],
+		list(conceptId = as.integer64(ConceptId), read2_code, MapId)],
+		S_READTERM[keep == TRUE, list(MapId, read2_term = Term)],
 		by = 'MapId')
 	V3MAPS <- S_V3[keep == TRUE,
-		.(conceptId = as.integer64(SCT_CONCEPTID),
+		list(conceptId = as.integer64(SCT_CONCEPTID),
 		ctv3_concept = CTV3_CONCEPTID,
 		ctv3_termid = CTV3_TERMID)]
 
 	# Now convert into a one-row-per-concept table
-	READMAPS <- merge(V2MAPS[, .(read2_code = list(read2_code),
+	READMAPS <- merge(V2MAPS[, list(read2_code = list(read2_code),
 		read2_term = list(read2_term)), by = conceptId],
-		V3MAPS[, .(ctv3_concept = list(ctv3_concept),
+		V3MAPS[, list(ctv3_concept = list(ctv3_concept),
 		ctv3_termid = list(ctv3_termid)),
 		by = conceptId], by = 'conceptId')
 	READMAPS
