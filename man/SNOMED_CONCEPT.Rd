@@ -24,14 +24,8 @@ A sample of the SNOMED CT concept table.
 }
 }
 \examples{
-# Create a TEST environment and load the sample dictionaries
-TEST <- new.env()
-data(CONCEPT, envir = TEST)
-data(DESCRIPTION, envir = TEST)
-data(RELATIONSHIP, envir = TEST)
-data(STATEDRELATIONSHIP, envir = TEST) 
-
 # Show properties of the CONCEPT table
-str(TEST$CONCEPT)
+data('CONCEPT')
+str(CONCEPT)
 }
 \keyword{datasets}

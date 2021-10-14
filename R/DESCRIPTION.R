@@ -30,13 +30,7 @@
 #' }
 #' 
 #' @examples
-#' # Create a TEST environment and load the sample dictionaries
-#' TEST <- new.env()
-#' data(CONCEPT, envir = TEST)
-#' data(DESCRIPTION, envir = TEST)
-#' data(RELATIONSHIP, envir = TEST)
-#' data(STATEDRELATIONSHIP, envir = TEST) 
-#' 
 #' # Show properties of the DESCRIPTION table
-#' str(TEST$DESCRIPTION)
+#' data('DESCRIPTION')
+#' str(DESCRIPTION)
 "DESCRIPTION"
