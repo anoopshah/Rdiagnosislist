@@ -6,12 +6,13 @@ require(data.table)
 context('Mapping table')
 
 test_that('Test Read 2 to SNOMED CT mappings - multiple rows', {
-	data(MAPS)
+	data(READMAPS)
 	SNOMED <- sampleSNOMED()
-	read2hfmaps <- getMaps(SNOMEDconcept('Heart failure'),
+	read2hfmaps <- getMaps(SNOMEDconcept('Heart failure',
+		SNOMED = sampleSNOMED()),
 		mappingtable = MAPS, to = 'read2',
 		single_row_per_concept = FALSE)
-	mappingrow <- MAPS[conceptId == as.integer64(84114007)]
+	mappingrow <- READMAPS[conceptId == as.integer64(84114007)]
 	expect_equal(sort(unique(unlist(mappingrow$read2_code))),
 		sort(unique(read2hfmaps$read2_code)))
 	expect_equal(sort(unique(unlist(mappingrow$read2_term))),
@@ -19,12 +20,12 @@ test_that('Test Read 2 to SNOMED CT mappings - multiple rows', {
 })
 
 test_that('Test CTV3 to SNOMED CT mappings - multiple rows', {
-	data(MAPS)
+	data(READMAPS)
 	SNOMED <- sampleSNOMED()
 	ctv3hfmaps <- getMaps(SNOMEDconcept('Heart failure'),
-		mappingtable = MAPS, to = 'ctv3',
+		mappingtable = READMAPS, to = 'ctv3',
 		single_row_per_concept = FALSE)
-	mappingrow <- MAPS[conceptId == as.integer64(84114007)]
+	mappingrow <- READMAPS[conceptId == as.integer64(84114007)]
 	expect_equal(sort(unique(unlist(mappingrow$ctv3_concept))),
 		sort(unique(ctv3hfmaps$ctv3_concept)))
 	expect_equal(sort(unique(unlist(mappingrow$ctv3_termid))),
@@ -32,13 +33,21 @@ test_that('Test CTV3 to SNOMED CT mappings - multiple rows', {
 })
 
 test_that('Test Read 2 / CTV3 to SNOMED CT mappings - single row', {
-	data(MAPS)
+	data(READMAPS)
 	SNOMED <- sampleSNOMED()
 	allmaps <- getMaps(SNOMEDconcept('Heart failure'),
-		mappingtable = MAPS, to = c('ctv3', 'read2'),
+		mappingtable = READMAPS, to = c('ctv3', 'read2'),
 		single_row_per_concept = TRUE)
-	mappingrow <- MAPS[conceptId == as.integer64(84114007)]
+	mappingrow <- READMAPS[conceptId == as.integer64(84114007)]
 	expect_equal(nrow(allmaps), 1)
 	expect_equal(mappingrow$read2_code, allmaps$read2_code)
 	expect_equal(mappingrow$ctv3_concept, allmaps$ctv3_concept)
+})
+
+test_that('Test SNOMED CT to ICD-10 mappings - single row', {
+	SNOMED <- sampleSNOMED()
+	icd10map <- getMaps(SNOMEDconcept('Heart failure'),
+		to = 'icd10', single_row_per_concept = TRUE)
+	expect_equal(nrow(icd10map), 1)
+	expect_equal(unlist(icd10map$icd10_code), 'I509')
 })

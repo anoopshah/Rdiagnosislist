@@ -36,7 +36,8 @@ test_that('attrConcept', {
 test_that('Ancestors', {
 	expect_equal(ancestors(as.SNOMEDconcept(c('Heart failure',
 		'Acute heart failure'), SNOMED = sampleSNOMED()),
-		SNOMED = sampleSNOMED()), as.SNOMEDconcept('105981003'))
+		SNOMED = sampleSNOMED()),
+		as.SNOMEDconcept(c('105981003', '127337006')))
 })
 
 test_that('Semantic types', {

@@ -76,15 +76,12 @@ TEST <- sampleSNOMED()
 # Objects within the environment can be retrieved using the $ operator
 # or the 'get' function. We will export the sample dictionaries to a
 # temporary folder to show how to reload them using loadSNOMED()
+exportSNOMEDenvir(TEST, tempdir())
+dir(tempdir())
 
-for (table in c('Concept', 'Description', 'Relationship',
-  'StatedRelationship')){
-  write.table(get(toupper(table), envir = TEST), paste0(tempdir(),
-    '/sct_', table, '_test.txt'), row.names = FALSE, sep = '\t', quote = FALSE)
-}
-
-# loadSNOMED searches for files containing _Concept_, _Description_,
-# _Relationship_ or _StatedRelationship_, as in the actual SNOMED CT
+# loadSNOMED searches for files containing '_Concept_', '_Description_',
+# '_StatedRelationship_', '_Relationship_', 'Refset_SimpleMap',
+# 'Refset_ExtendedMap' or 'Refset_Simple', as in the actual SNOMED CT
 # release files.
 
 # Import using the loadSNOMED function
@@ -231,6 +228,33 @@ write.csv(my_heart_failure_codelist, file = paste0(tempdir(),
 reloaded_codelist <- as.SNOMEDcodelist(
   data.table::fread(paste0(tempdir(), '/hf_codes.csv')))
 print(reloaded_codelist)
+```
+
+Mapping between SNOMED CT and ICD-10 and OPCS4
+----------------------------------------------
+
+Mapping tables are provided in the international and UK SNOMED CT distributions for ICD-10. The UK distribution also includes mappings to CTV3, ICD Oncology (ICD-O) for body locations and OPCS4.
+
+These mappings are designed to enable clinical data entered using SNOMED CT to be converted to ICD-10 or OPCS4 in a semi-automated manner. This package includes functions to use the mappings to convert codelists from one format to another. Beware that these code systems are not equivalent, so it is necessary to check the output codelist to ensure that the mapping makes sense. For ICD-10 maps, only maps with mapCategoryId = 'Map source concept is properly classified' are retrieved.
+
+The table SIMPLEMAPS contains maps to CTV3 and ICD-O, whereas EXTENDEDMAPS contains mappings to ICD-10 and OPCS4. The EXTENDEDMAPS tables contains additional columns to define the type of mapping, but they are not used by the functions in this package.
+
+The `getMaps` function can be used to conveniently return the ICD-10 or OPCS4 codes associated with a SNOMED CT concept. Note that in the output data.table, the icd10_code or opcs4_code column is a list (because there may be multiple entries per SNOMED CT concept). To return each map on a separate row, use getMaps with the option `single_row_per_concept = FALSE`.
+
+```{r}
+# Example: creating an ICD-10 heart failure codelist using SNOMED CT
+SNOMED <- sampleSNOMED()
+
+my_heart_failure_codelist <- SNOMEDcodelist(
+  SNOMEDconcept('Heart failure'), include_desc = FALSE)
+
+getMaps(my_heart_failure_codelist, to = c('icd10'))
+
+my_pacemaker_codelist <- SNOMEDcodelist(
+  SNOMEDconcept('Implantation of cardiac pacemaker'),
+  include_desc = FALSE)
+
+getMaps(my_pacemaker_codelist, to = c('opcs4'))
 ```
 
 Mapping between SNOMED CT and Read Clinical Terminology

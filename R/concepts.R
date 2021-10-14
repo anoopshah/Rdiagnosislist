@@ -307,7 +307,11 @@ union.default <- function(x, y){
 #' @method intersect SNOMEDconcept
 #' @export
 intersect.SNOMEDconcept <- function(x, y){
-	out <- unique(x[x %in% as.SNOMEDconcept(y)])
+	if (length(y) == 0 | length(x) == 0){
+		out <- bit64::integer64(0)
+	} else {
+		out <- unique(x[x %in% as.SNOMEDconcept(y)])
+	}
 	class(out) <- c('SNOMEDconcept', 'integer64')
 	out
 }
@@ -332,7 +336,11 @@ intersect.default <- function(x, y){
 #' @method setdiff SNOMEDconcept
 #' @export
 setdiff.SNOMEDconcept <- function(x, y){
-	out <- x[!(x %in% as.SNOMEDconcept(y))]
+	if (length(y) == 0 | length(x) == 0){
+		out <- x
+	} else {
+		out <- unique(x[!(x %in% as.SNOMEDconcept(y))])
+	}
 	class(out) <- c('SNOMEDconcept', 'integer64')
 	out
 }

@@ -78,19 +78,19 @@ ctv3_termid (character list of CTV3 term description codes)
 # Load sample SNOMED CT dictionary into the global environment
 # so it is available to the functions in this example
 SNOMED <- sampleSNOMED()
-# Use the sample MAPS table in this package
-data(MAPS)
+# Use the sample READMAPS table in this package
+data(READMAPS)
 
 # Example: Mapping a single concept
-getMaps(SNOMEDconcept('Heart failure'), mappingtable = MAPS,
+getMaps(SNOMEDconcept('Heart failure'), mappingtable = READMAPS,
   to = 'read2')
 # Example: Mapping a concept and its descendants
 getMaps(descendants(SNOMEDconcept('Heart failure')),
-  mappingtable = MAPS, to = 'read2')
+  mappingtable = READMAPS, to = 'read2')
 # Example: Mapping a codelist
 getMaps(SNOMEDcodelist(SNOMEDconcept('Heart failure')),
-  mappingtable = MAPS, to = 'ctv3')
+  mappingtable = READMAPS, to = 'ctv3')
 }
 \seealso{
-MAPS, loadMAPS
+READMAPS, loadREADMAPS
 }

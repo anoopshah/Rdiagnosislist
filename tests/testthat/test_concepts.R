@@ -56,7 +56,8 @@ test_that('Semantic types', {
 
 test_that('Pattern matching', {
 	expect_equal(as.SNOMEDconcept('Systolic heart', exact = FALSE,
-		SNOMED = sampleSNOMED()), as.SNOMEDconcept('417996009'))
+		SNOMED = sampleSNOMED()), as.SNOMEDconcept(c('417996009',
+		'120851000119104', '120861000119102', '15629741000119102')))
 })
 
 test_that('Match not found', {
@@ -123,6 +124,21 @@ test_that('SNOMEDconcept set functions', {
 		SNOMEDconcept('Acute heart failure', SNOMED = sampleSNOMED()))
 	expect_equal(setdiff(sys_acute, acute_left_right),
 		SNOMEDconcept('Systolic heart failure', SNOMED = sampleSNOMED()))
+})
+
+test_that('SNOMEDconcept set functions with empty sets', {
+	sys_acute <- SNOMEDconcept(c('Systolic heart failure',
+		'Acute heart failure'), SNOMED = sampleSNOMED())
+	empty <- as.SNOMEDconcept(bit64::integer64(0))
+	expect_equal(union(sys_acute, empty), sys_acute)
+	expect_equal(union(empty, sys_acute), sys_acute)
+	expect_equal(union(empty, empty), empty)
+	expect_equal(intersect(sys_acute, empty), empty)
+	expect_equal(intersect(empty, sys_acute), empty)
+	expect_equal(intersect(empty, empty), empty)
+	expect_equal(setdiff(sys_acute, empty), sys_acute)
+	expect_equal(setdiff(empty, sys_acute), empty)
+	expect_equal(setdiff(empty, empty), empty)
 })
 
 test_that('Concatenate SNOMEDconcept objects', {

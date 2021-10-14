@@ -37,23 +37,22 @@
 
 loadSNOMED <- function(folders, active_only = TRUE){
 	.temp <- active <- term <- NULL
-	
+
+	FILENAMES <- fread('pattern|table
+_Concept_Snapshot|CONCEPT
+_Description_Snapshot|DESCRIPTION
+_StatedRelationship_Snapshot|STATEDRELATIONSHIP
+_Relationship_Snapshot|RELATIONSHIP
+Refset_SimpleMapSnapshot|SIMPLEMAP
+Refset_ExtendedMapSnapshot|EXTENDEDMAP
+Refset_SimpleSnapshot|REFSET')
+
 	SNOMED <- new.env()
 	append <- FALSE
 	for (folder in folders){
 		message('Attempting to load from ', folder)
 		files <- dir(folder, recursive = TRUE, full.names = TRUE)
 		used <- rep(FALSE, length(files))
-		
-		FILENAMES <- fread('pattern|table
-		_Concept_Snapshot|CONCEPT
-		_Description_Snapshot|DESCRIPTION
-		_StatedRelationship_Snapshot|STATEDRELATIONSHIP
-		_Relationship_Snapshot|RELATIONSHIP
-		Refset_SimpleMapSnapshot|SIMPLEMAP
-		Refset_ExtendedMapSnapshot|EXTENDEDMAP
-		Refset_SimpleSnapshot|REFSET')
-		
 		for (thispattern in FILENAMES$pattern){
 			touse <- which(files %like% thispattern & used == FALSE)
 			used[touse] <- TRUE
@@ -113,12 +112,25 @@ loadSNOMED <- function(folders, active_only = TRUE){
 								data.table::setnames(TEMP, '.temp', 'active')
 							}
 						}
-						# Remove 'id' column for maps and refsets
-						if (thispattern %like% 'Refset_'){
-							TEMP[, id := NULL]
-						}
 						# Restore original column order
 						setcolorder(TEMP, orig_col_order)
+						#
+						# Remove unnecessary columns
+						# Remove 'id' and 'correlationId' columns for
+						# maps and refsets to save space
+						if (thispattern %like% 'Refset_'){
+							if ('id' %in% names(TEMP)){
+								TEMP[, id := NULL]
+							}
+							if ('correlationId' %in% names(TEMP)){
+								TEMP[, correlationId := NULL]
+								# all the same, no uesful info in this column
+							}
+						}
+						# Remove . from ICD-10 terms
+						if (thispattern == 'Refset_ExtendedMapSnapshot'){
+							TEMP[, mapTarget := sub('\\.', '', mapTarget)]
+						}
 						# Return the table or append to another partial table
 						if (append){
 							message('  Attempting to append to ',
@@ -213,7 +225,8 @@ exportSNOMEDenvir <- function(SNOMED, folder){
 #'
 #' @param SNOMED environment containing data.table objects: CONCEPT,
 #'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
-#' @seealso CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
+#' @seealso CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, 
+#' REFSET, SIMPLEMAP, EXTENDEDMAP, loadSNOMED, sampleSNOMED
 #' @return The environment with indices added to each table for
 #'   fast searching
 createSNOMEDindices <- function(SNOMED){
@@ -244,17 +257,23 @@ createSNOMEDindices <- function(SNOMED){
 	data.table::setindex(SNOMED$RELATIONSHIP, typeId)
 	data.table::setindex(SNOMED$RELATIONSHIP, active)
 
+	# data.table::setindex(SNOMED$REFSET, id)
+	# not including id to save space
 	data.table::setindex(SNOMED$REFSET, moduleId)
 	data.table::setindex(SNOMED$REFSET, refsetId)
 	data.table::setindex(SNOMED$REFSET, referencedComponentId)
 	data.table::setindex(SNOMED$REFSET, active)
-	
+
+	# data.table::setindex(SNOMED$SIMPLEMAP, id)
+	# not including id to save space
 	data.table::setindex(SNOMED$SIMPLEMAP, moduleId)
 	data.table::setindex(SNOMED$SIMPLEMAP, refsetId)
 	data.table::setindex(SNOMED$SIMPLEMAP, referencedComponentId)
 	data.table::setindex(SNOMED$SIMPLEMAP, mapTarget)
 	data.table::setindex(SNOMED$SIMPLEMAP, active)
 
+	# data.table::setindex(SNOMED$EXTENDEDMAP, id)
+	# not including id to save space
 	data.table::setindex(SNOMED$EXTENDEDMAP, moduleId)
 	data.table::setindex(SNOMED$EXTENDEDMAP, refsetId)
 	data.table::setindex(SNOMED$EXTENDEDMAP, referencedComponentId)
@@ -262,7 +281,8 @@ createSNOMEDindices <- function(SNOMED){
 	data.table::setindex(SNOMED$EXTENDEDMAP, mapPriority)
 	data.table::setindex(SNOMED$EXTENDEDMAP, mapRule)
 	data.table::setindex(SNOMED$EXTENDEDMAP, mapTarget)
-	data.table::setindex(SNOMED$EXTENDEDMAP, correlationId)
+	# data.table::setindex(SNOMED$EXTENDEDMAP, correlationId)
+	# not using correlationId because they are all the same
 	data.table::setindex(SNOMED$EXTENDEDMAP, mapCategoryId)
 	data.table::setindex(SNOMED$EXTENDEDMAP, active)
 
@@ -361,7 +381,6 @@ getSNOMED <- function(){
 	# Return the retrieved environment
 	SNOMED
 }
-
 
 #' Load mappings from Read to SNOMED CT into an R data.table
 #'

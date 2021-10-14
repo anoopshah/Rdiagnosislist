@@ -10,7 +10,7 @@
 \format{
 An object of class \code{"data.table"}
 
-An object of class \code{data.table} (inherits from \code{data.frame}) with 61 rows and 10 columns.
+An object of class \code{data.table} (inherits from \code{data.frame}) with 329 rows and 10 columns.
 }
 \usage{
 data(RELATIONSHIP); data(STATEDRELATIONSHIP)

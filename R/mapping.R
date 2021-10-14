@@ -54,23 +54,23 @@
 #'   There may be multiple rows per conceptId; also each Read 2 or CTV3 
 #'   term may be mapped to multiple SNOMED CT concepts.
 #' @export
-#' @seealso MAPS, loadMAPS
+#' @seealso READMAPS, loadREADMAPS
 #' @examples
 #' # Load sample SNOMED CT dictionary into the global environment
 #' # so it is available to the functions in this example
 #' SNOMED <- sampleSNOMED()
-#' # Use the sample MAPS table in this package
-#' data(MAPS)
+#' # Use the sample READMAPS table in this package
+#' data(READMAPS)
 #' 
 #' # Example: Mapping a single concept
-#' getMaps(SNOMEDconcept('Heart failure'), mappingtable = MAPS,
+#' getMaps(SNOMEDconcept('Heart failure'), mappingtable = READMAPS,
 #'   to = 'read2')
 #' # Example: Mapping a concept and its descendants
 #' getMaps(descendants(SNOMEDconcept('Heart failure')),
-#'   mappingtable = MAPS, to = 'read2')
+#'   mappingtable = READMAPS, to = 'read2')
 #' # Example: Mapping a codelist
 #' getMaps(SNOMEDcodelist(SNOMEDconcept('Heart failure')),
-#'   mappingtable = MAPS, to = 'ctv3')
+#'   mappingtable = READMAPS, to = 'ctv3')
 getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 	'icd10', 'opcs4'), SNOMED = getSNOMED(), single_row_per_concept = TRUE){
 	# OPCS4 and ICD10 maps included in UK SNOMED CT release
@@ -130,13 +130,17 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 	}
 	if ('icd10' %in% to){
 		if ('icd10_code' %in% names(out)) out[, icd10_code := NULL]
-		TEMP <- merge(SNOMED$EXTENDEDMAP[mapPriority == 1 & refsetId %in%
-			bit64::as.integer64(c('447562003', '999002271000000101')),
-			list(icd10_code = mapTarget, conceptId =
-			referencedComponentId)], out, by = 'conceptId')
-			
-			list(icd10_code = unique(sub('\\.', '', mapTarget))),
-			by = list(conceptId = referencedComponentId)]
+		# Limit to Map source concept is properly classified 
+		# (mapCategoryId = 447637006)
+		# mapPriority is almost always 1 for these maps
+		# Up to 5 ICD-10 codes mapped per SNOMED CT concept, but mostly
+		# just one.
+		TEMP <- merge(SNOMED$EXTENDEDMAP[mapPriority == 1 &
+			mapCategoryId == bit64::as.integer64('447637006') &
+			refsetId %in% bit64::as.integer64(c('447562003',
+			'999002271000000101')), list(icd10_code = list(mapTarget)),
+			by = list(conceptId = referencedComponentId)],
+			out[, list(conceptId)], by = 'conceptId')
 		if (single_row_per_concept){
 			out <- as.SNOMEDcodelist(merge(TEMP, out, by = 'conceptId'))
 		} else {
@@ -147,7 +151,12 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 	}
 	if ('opcs4' %in% to){
 		if ('opcs4_code' %in% names(out)) out[, opcs4_code := NULL]
-		TEMP <- SNOMED$EXTENDEDMAP[, opcs4_code = ]
+		# mapCategoryId is NULL for OPCS maps
+		TEMP <- merge(SNOMED$EXTENDEDMAP[mapPriority == 1 &
+			refsetId %in% bit64::as.integer64(c('1126441000000105')),
+			list(opcs4_code = list(mapTarget)),
+			by = list(conceptId = referencedComponentId)],
+			out[, list(conceptId)], by = 'conceptId')
 		if (single_row_per_concept){
 			out <- as.SNOMEDcodelist(merge(TEMP[,
 				list(opcs4_code = opcs4_code),

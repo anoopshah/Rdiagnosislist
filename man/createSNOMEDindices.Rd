@@ -18,5 +18,6 @@ The environment with indices added to each table for
 Creates relevant indices for fast searching of SNOMED CT tables
 }
 \seealso{
-CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP
+CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, 
+REFSET, SIMPLEMAP, EXTENDEDMAP, loadSNOMED, sampleSNOMED
 }
