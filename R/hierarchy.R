@@ -105,6 +105,8 @@ relatedConcepts <- function(conceptIds,
 #'
 #' @param conceptIds character or integer64 vector of SNOMED concept IDs
 #' @param SNOMED environment containing a SNOMED dictionary
+#' @param include_self whether to include the original concept(s) in the
+#'   output, default = FALSE
 #' @param ... other arguments to pass to relatedConcepts
 #' @return a bit64 vector of SNOMED CT concepts
 #' @export
@@ -115,65 +117,89 @@ relatedConcepts <- function(conceptIds,
 #' children('Heart failure')
 #' ancestors('Heart failure')
 #' descendants('Heart failure')
-parents <- function(conceptIds,
+parents <- function(conceptIds, include_self = FALSE, 
 	SNOMED = getSNOMED(), ...){
 	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
 	parentIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = FALSE, recursive = FALSE, SNOMED = SNOMED, ...)
-	# Exclude originals	
-	if (length(parentIds) > 0){
-		return(as.SNOMEDconcept(parentIds[!(parentIds %in% conceptIds)]))
+	
+	if (include_self){
+		return(union(parentIds, conceptIds))
 	} else {
-		return(parentIds)
+		# Exclude originals
+		if (length(parentIds) > 0){
+			return(as.SNOMEDconcept(parentIds[
+				!(parentIds %in% conceptIds)]))
+		} else {
+			return(parentIds)
+		}
 	}
 }
 
 #' @rdname parents
 #' @export
-ancestors <- function(conceptIds,
+ancestors <- function(conceptIds, include_self = FALSE, 
 	SNOMED = getSNOMED(), ...){
 	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
-	parentIds <- relatedConcepts(conceptIds = conceptIds,
+	ancestorIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = FALSE, recursive = TRUE, SNOMED = SNOMED, ...)
-	# Exclude originals	
-	if (length(parentIds) > 0){
-		return(as.SNOMEDconcept(parentIds[!(parentIds %in% conceptIds)]))
+		
+	if (include_self){
+		return(union(ancestorIds, conceptIds))
 	} else {
-		return(parentIds)
+		# Exclude originals
+		if (length(ancestorIds) > 0){
+			return(as.SNOMEDconcept(ancestorIds[
+				!(ancestorIds %in% conceptIds)]))
+		} else {
+			return(ancestorIds)
+		}
 	}
 }
 
 #' @rdname parents
 #' @export
-children <- function(conceptIds,
+children <- function(conceptIds, include_self = FALSE, 
 	SNOMED = getSNOMED(), ...){
 	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
 	childIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = TRUE, recursive = FALSE, SNOMED = SNOMED, ...)
-	# Exclude originals
-	if (length(childIds) > 0){
-		return(as.SNOMEDconcept(childIds[!(childIds %in% conceptIds)]))
+
+	if (include_self){
+		return(union(childIds, conceptIds))
 	} else {
-		return(childIds)
+		# Exclude originals
+		if (length(childIds) > 0){
+			return(as.SNOMEDconcept(childIds[
+				!(childIds %in% conceptIds)]))
+		} else {
+			return(childIds)
+		}
 	}
 }
 
 #' @rdname parents
 #' @export
-descendants <- function(conceptIds,
+descendants <- function(conceptIds, include_self = FALSE, 
 	SNOMED = getSNOMED(), ...){
 	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
-	childIds <- relatedConcepts(conceptIds = conceptIds,
+	descendantIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = TRUE, recursive = TRUE, SNOMED = SNOMED, ...)
-	# Exclude originals
-	if (length(childIds) > 0){
-		return(as.SNOMEDconcept(childIds[!(childIds %in% conceptIds)]))
+
+	if (include_self){
+		return(union(descendantIds, conceptIds))
 	} else {
-		return(childIds)
+		# Exclude originals
+		if (length(descendantIds) > 0){
+			return(as.SNOMEDconcept(descendantIds[
+				!(descendantIds %in% conceptIds)]))
+		} else {
+			return(descendantIds)
+		}
 	}
 }
 

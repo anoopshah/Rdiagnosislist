@@ -107,6 +107,10 @@ as.SNOMEDcodelist <- function(x, ...){
 #'
 #' @param x SNOMEDcodelist to expand or contract
 #' @param SNOMED environment containing a SNOMED dictionary
+#' @param show_excluded_descendants (logical) whether to show excluded
+#'   descendants of terms in the codelist, with an 'included' column
+#'   stating which terms are included. This can make it easy to see
+#'   if a codelist is consistent with the SNOMED CT ontology
 #' @return An object of class 'SNOMEDcodelist' with attribute
 #'    Expanded = TRUE
 #' @family SNOMEDcodelist functions
@@ -177,6 +181,154 @@ contractSNOMED <- function(x, SNOMED = getSNOMED()){
 	data.table::setcolorder(out, c('conceptId', 'include_desc', 'term'))
 	data.table::setattr(out, 'Expanded', FALSE)
 	data.table::setkeyv(out, 'conceptId')
+	out[]
+}
+
+#' @rdname showCodelistHierarchy
+#' @family SNOMEDcodelist functions
+#' @export
+showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
+	show_excluded_descendants = TRUE){
+	# Contract a SNOMED CT codelist, show the terms in a 
+	# sensible order and optionally show terms not included
+	# that are descendants of included terms 
+	
+	# Declare names to be used for non-standard evaluation for R CMD check
+	include_desc <- conceptId <- NULL
+	
+	out <- expandSNOMED(data.table::copy(x), SNOMED = SNOMED)
+	
+	# 
+	if (show_excluded_descendants == TRUE){
+		out[, included := TRUE]
+		desc <- as.SNOMEDcodelist(setdiff(
+			descendants(out$conceptId, SNOMED = SNOMED),
+			out$conceptId), include_desc = FALSE)
+		if (nrow(desc) > 0){
+			desc[, included := FALSE]
+			out <- rbind(out, desc, fill = TRUE)
+		}
+	}
+	
+	# Identify top gen
+	allchildren <- relatedConcepts(out$conceptId, reverse = TRUE,
+		SNOMED = SNOMED)
+	out[!(conceptId %in% allchildren), gen := 1]
+	
+	# Identify parentId of each term
+	out[, parentId := list(bit64::integer64(0))]
+	for (i in seq_along(out$conceptId)){
+		out[i, parentId := list(parents(conceptId, SNOMED = SNOMED))]
+	}
+	
+	# Sort by term
+	data.table::setkeyv(out, 'term')
+	
+	# Add information about hierarchy
+	thegen = 1
+	maxgen <- 15
+	out[, roworder := as.numeric(NA)]
+	out[, rowid := 1L:.N]
+	out[, parentrowid := NA_integer_] # rowid of parent
+	out[gen == thegen, roworder := as.numeric(1:.N)]
+
+	# Loop through max 15 gens
+	# Each row has a unique rowid
+	# Concepts might need to be duplicated if they are in multiple
+	# locations in the hierarchy.
+	while (thegen < maxgen){
+		thisgenrowids <- out[gen == thegen]$rowid
+		if (length(thisgenrowids) > 0){
+			# Looping each row/concept in gen of interest
+			for (thisrowid in thisgenrowids){
+				# Find out which concept
+				thisconcept <- out[rowid == thisrowid]$conceptId
+				thisroworder <- out[rowid == thisrowid]$roworder
+
+				# For this concept, find all children
+				thechildren <- sapply(out$parentId, function(x){
+					thisconcept %in% x})
+
+				# Copy children rows if they already have a roworder
+				# as they need to be duplicated in the hierarchy
+				tocopy <- out[thechildren & !is.na(roworder)]
+
+				if (nrow(tocopy) > 0){
+					# New row id 
+					maxrowid <- max(out$rowid)
+					out[thechildren & !is.na(roworder),
+						rowid := (1:.N) + maxrowid]
+				}
+				
+				out[thechildren, roworder := thisroworder +
+					(1:sum(thechildren)) / (sum(thechildren) + 1)]
+				out[thechildren, parentrowid := thisrowid]
+				out[thechildren, gen := thegen + 1]
+				
+				# Debugging section
+				debug <- FALSE
+				if (debug == TRUE){
+					tocopycopy <- copy(tocopy)[1:nrow(tocopy)]
+					if (thisconcept == as.SNOMEDconcept('195323006') |
+						bit64::as.integer64('195323006') %in% tocopycopy$conceptId){
+						cat('\n\nthegen', thegen)
+						cat('\nthisgenrowids', thisgenrowids)
+						cat('\nthisconcept', thisconcept)
+						cat('\nthisroworder', thisroworder)
+						cat('\nthisrowid', thisrowid)
+						cat('\ntocopy\n')
+						print(tocopy)
+						cat('\n\nrows with this concept\n')
+						print(out[parentrowid == thisrowid |
+							rowid == thisrowid | conceptId == bit64::as.integer64('195323006')])
+						browser()
+					}
+				}
+				
+				if (nrow(tocopy) > 0){
+					out <- rbind(out, tocopy)
+				}
+				
+				data.table::setkeyv(out, c('roworder', 'term'))
+				out[!is.na(roworder), roworder := 1:.N]
+			}
+			thegen <- thegen + 1
+		} else {
+			thegen <- maxgen
+		} 
+	}
+
+	# Sort by roworder
+	data.table::setkeyv(out, 'roworder')
+
+	# Final deduplication of adjacent entries
+	out[, duplicate := conceptId == shift(conceptId) &
+		gen == shift(gen) & 
+		parentrowid == shift(parentrowid)]
+	out[1, duplicate := FALSE]
+	out <- out[duplicate == FALSE]
+	out[, duplicate := NULL]
+
+	# NEED TO ADD INFORMATION ABOUT ROW GROUPING
+	# so that the html view can have buttons to show/hide rows
+	# i.e. contract all descendants
+	# expand children (immediate descendants only)
+	out[, childrowid := list(integer(0))]
+	out[, descendantrowid := list(integer(0))]
+	for (i in seq_along(out$conceptId)){
+		thisrowid <- out[i]$rowid
+		out[i, childrowid := list(out[parentrowid == thisrowid]$rowid)]
+		thisgen <- out[i]$gen
+		fin <- min(which(c(out$gen, 0) <= thisgen &
+			c(seq_along(out$gen), Inf) > i)) - 1
+		if (fin != Inf & fin > i){ 
+			out[i, descendantrowid := list(out[(i + 1):fin]$rowid)]
+		}
+	}
+
+	# Sort by roworder
+	data.table::setkeyv(out, 'roworder')
+
 	out[]
 }
 
