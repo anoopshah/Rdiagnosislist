@@ -3,16 +3,28 @@
 \name{expandSNOMED}
 \alias{expandSNOMED}
 \alias{contractSNOMED}
+\alias{showCodelistHierarchy}
 \title{Expand or contract a SNOMEDcodelist}
 \usage{
 expandSNOMED(x, SNOMED = getSNOMED())
 
 contractSNOMED(x, SNOMED = getSNOMED())
+
+showCodelistHierarchy(
+  x,
+  SNOMED = getSNOMED(),
+  show_excluded_descendants = TRUE
+)
 }
 \arguments{
 \item{x}{SNOMEDcodelist to expand or contract}
 
 \item{SNOMED}{environment containing a SNOMED dictionary}
+
+\item{show_excluded_descendants}{(logical) whether to show excluded
+descendants of terms in the codelist, with an 'included' column
+stating which terms are included. This can make it easy to see
+if a codelist is consistent with the SNOMED CT ontology}
 }
 \value{
 An object of class 'SNOMEDcodelist' with attribute
@@ -22,7 +34,9 @@ An object of class 'SNOMEDcodelist' with attribute
 SNOMEDcodelist is an S3 class for sets of SNOMED concepts.
 In the 'contracted' form, it may contain only parents and not
 child terms (to create a more succinct list). The 'Expanded'
-form contains all concepts.
+form contains all concepts. The output of 'showCodelistHierarchy'
+includes all hierarchies contained within the codelist in a 
+format suitable for display.
 }
 \examples{
 SNOMED <- sampleSNOMED()
@@ -34,6 +48,10 @@ expanded_codelist <- expandSNOMED(my_codelist)
 contractSNOMED(expanded_codelist)
 }
 \seealso{
+Other SNOMEDcodelist functions: 
+\code{\link{SNOMEDcodelist}()},
+\code{\link{is.SNOMEDcodelist}()}
+
 Other SNOMEDcodelist functions: 
 \code{\link{SNOMEDcodelist}()},
 \code{\link{is.SNOMEDcodelist}()}

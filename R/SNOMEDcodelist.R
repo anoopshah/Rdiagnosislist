@@ -103,7 +103,9 @@ as.SNOMEDcodelist <- function(x, ...){
 #' SNOMEDcodelist is an S3 class for sets of SNOMED concepts.
 #' In the 'contracted' form, it may contain only parents and not
 #' child terms (to create a more succinct list). The 'Expanded'
-#' form contains all concepts.
+#' form contains all concepts. The output of 'showCodelistHierarchy'
+#' includes all hierarchies contained within the codelist in a 
+#' format suitable for display.
 #'
 #' @param x SNOMEDcodelist to expand or contract
 #' @param SNOMED environment containing a SNOMED dictionary
@@ -184,7 +186,7 @@ contractSNOMED <- function(x, SNOMED = getSNOMED()){
 	out[]
 }
 
-#' @rdname showCodelistHierarchy
+#' @rdname expandSNOMED
 #' @family SNOMEDcodelist functions
 #' @export
 showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
@@ -197,10 +199,15 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 	include_desc <- conceptId <- NULL
 	
 	out <- expandSNOMED(data.table::copy(x), SNOMED = SNOMED)
+	out[, included := TRUE]
+	out <- out[!duplicated(out)] # remove duplicates of entire rows
 	
-	# 
+	# Check only one row per concept
+	if (any(duplicated(out$conceptId))){
+		stop('Codelist must have only one row per concept')
+	}
+	
 	if (show_excluded_descendants == TRUE){
-		out[, included := TRUE]
 		desc <- as.SNOMEDcodelist(setdiff(
 			descendants(out$conceptId, SNOMED = SNOMED),
 			out$conceptId), include_desc = FALSE)
@@ -246,24 +253,29 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 				thisroworder <- out[rowid == thisrowid]$roworder
 
 				# For this concept, find all children
-				thechildren <- sapply(out$parentId, function(x){
-					thisconcept %in% x})
+				childrows <- sapply(out$parentId, function(x){
+					if (length(x) == 0){
+						FALSE
+					} else {
+						thisconcept %in% x
+					}
+				})
 
 				# Copy children rows if they already have a roworder
 				# as they need to be duplicated in the hierarchy
-				tocopy <- out[thechildren & !is.na(roworder)]
+				tocopy <- out[childrows & !is.na(roworder)]
 
 				if (nrow(tocopy) > 0){
 					# New row id 
 					maxrowid <- max(out$rowid)
-					out[thechildren & !is.na(roworder),
+					out[childrows & !is.na(roworder),
 						rowid := (1:.N) + maxrowid]
 				}
 				
-				out[thechildren, roworder := thisroworder +
-					(1:sum(thechildren)) / (sum(thechildren) + 1)]
-				out[thechildren, parentrowid := thisrowid]
-				out[thechildren, gen := thegen + 1]
+				out[childrows, roworder := thisroworder +
+					(1:sum(childrows)) / (sum(childrows) + 1)]
+				out[childrows, parentrowid := thisrowid]
+				out[childrows, gen := thegen + 1]
 				
 				# Debugging section
 				debug <- FALSE
@@ -309,10 +321,10 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 	out <- out[duplicate == FALSE]
 	out[, duplicate := NULL]
 
-	# NEED TO ADD INFORMATION ABOUT ROW GROUPING
-	# so that the html view can have buttons to show/hide rows
-	# i.e. contract all descendants
-	# expand children (immediate descendants only)
+	# Add information about row grouping so that the
+	# html view can have buttons to show/hide rows
+	# i.e. - contract all descendants
+	#      - expand children (immediate descendants only)
 	out[, childrowid := list(integer(0))]
 	out[, descendantrowid := list(integer(0))]
 	for (i in seq_along(out$conceptId)){
@@ -348,4 +360,116 @@ is.SNOMEDcodelist <- function(x){
 	} else {
 		FALSE
 	}
+}
+
+#' Export a SNOMEDcodelist hierarchy to HTML
+#'
+#' Exports a codelist with hierarchy as HTML for easy viewing.
+#'
+#' @param codelist_with_hierarchy output of showCodelistHierarchy
+#' @param file filename to export to. If NULL, no file is written
+#' @return a character vector containing HTML output
+#' @export
+#' @seealso showCodelistHierarchy
+#' @examples
+#' SNOMED <- sampleSNOMED()
+#'
+#' my_concepts <- SNOMEDconcept('Heart failure')
+#' my_codelist <- SNOMEDcodelist(data.frame(conceptId = my_concepts,
+#'   include_desc = TRUE))
+#' codelist_with_hierarchy <- showCodelistHierarchy(my_codelist)
+#' htmlCodelistHierarchy(codelist_with_hierarchy)
+htmlCodelistHierarchy <- function(codelist_with_hierarchy,
+	file = NULL, title = NULL, description = NULL){
+
+	x <- codelist_with_hierarchy
+
+	top <- paste('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd"><html><head><title>',
+ifelse(is.null(title), 'SNOMED CT codelist', title), '</title>',
+'<meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+<style type="text/css">
+table {border-spacing: 0px; font-family:Arial;}
+td, th {border-bottom: 1px solid #ddd; padding: 1px}
+tr:hover {background-color: #D6EEEE;}</style>',
+'<script type="text/javascript">
+function toggle(thisrow, childrows, descendantrows){
+  if (document.getElementById("row".concat(thisrow)).style.backgroundColor === "yellow"){
+    backwhite(thisrow);
+    childrows.forEach(showrow);
+  } else {
+    backyellow(thisrow);
+    descendantrows.forEach(hiderow);
+  }
+}
+function backyellow(rownum){
+  document.getElementById("row".concat(rownum )).style.backgroundColor = "yellow";
+}
+function backwhite(rownum){
+  document.getElementById("row".concat(rownum)).style.backgroundColor = "white"
+}
+function hiderow(rownum){
+  document.getElementById("row".concat(rownum)).style.display = "none";
+}
+function showrow(rownum){
+  document.getElementById("row".concat(rownum)).style.display = "";
+}
+function hideall(rows){
+  rows.forEach(hiderow);
+}
+function showall(rows){
+  rows.forEach(showrow);
+  rows.forEach(backwhite);
+}</script>
+</head><body><h1>',
+ifelse(is.null(title), 'SNOMED CT codelist', title), '</h1><p>',
+ifelse(is.null(description), '', description),
+'</p><p> <a href="#" onclick="hideall([',
+paste(unique(unlist(x$descendantrowid)), collapse = ','),
+']);">Show top-level concepts only</a> | <a href="#" onclick="showall([',
+paste(x$rowid, collapse = ','),
+']);">Show all concepts</a> | <a href="#" onclick="hideall([',
+paste(x[included == FALSE]$rowid, collapse = ','),
+']);">Hide excluded concepts</a></p>
+<table style="width:100%">
+<tr><th style="font-size:1%; color:white;">SNOMED CT concept ID</th><th>Concept description</th></tr>\n', collapse = '')
+
+	middle <- lapply(1:nrow(x), function(i){
+		# Creating each table row
+		paste(c('<tr id="row', x$rowid[i],
+			'" ', ifelse(length(x[i]$childrowid[[1]]) > 0,
+				# this term has children
+				'style="background-color:yellow;"',
+				# this term does not have children
+				''
+			),
+			'><td style="font-size:1%; color:white;">',
+			as.character(x[i]$conceptId), '</td><td ',
+			# style information
+			ifelse(x$included[i] == TRUE, '',
+				'style="background-color:grey;"'
+			), '>', rep('&sdot;    ', x$gen[i] - 1), # indent
+			# content
+			ifelse(length(x[i]$childrowid[[1]]) > 0,
+				# this term has children
+				paste0('<a href="#row', x[i]$rowid,
+					'" onclick="toggle(', x$rowid[i],
+					', [', paste(unlist(x[i]$childrowid[[1]]),
+					collapse = ','),'], [',
+					paste(unlist(x[i]$descendantrowid[[1]]),
+					collapse = ','), ']);"><strong>', 
+					x$term[i], '</strong></a>'),
+				# this term does not have children
+				x$term[i]
+			),
+			'</td></tr>\n'),
+		collapse = '')
+	})
+
+	bottom <- '\n</table></body></html>'
+
+	if (!is.null(file)){
+		write(paste0(c(top, unlist(middle), bottom)), file = file, ncolumns = 1)
+	}
+	invisible(out)
 }

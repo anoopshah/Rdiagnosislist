@@ -7,16 +7,19 @@
 \alias{descendants}
 \title{Ancestors and descendants of SNOMED CT concepts}
 \usage{
-parents(conceptIds, SNOMED = getSNOMED(), ...)
+parents(conceptIds, include_self = FALSE, SNOMED = getSNOMED(), ...)
 
-ancestors(conceptIds, SNOMED = getSNOMED(), ...)
+ancestors(conceptIds, include_self = FALSE, SNOMED = getSNOMED(), ...)
 
-children(conceptIds, SNOMED = getSNOMED(), ...)
+children(conceptIds, include_self = FALSE, SNOMED = getSNOMED(), ...)
 
-descendants(conceptIds, SNOMED = getSNOMED(), ...)
+descendants(conceptIds, include_self = FALSE, SNOMED = getSNOMED(), ...)
 }
 \arguments{
 \item{conceptIds}{character or integer64 vector of SNOMED concept IDs}
+
+\item{include_self}{whether to include the original concept(s) in the
+output, default = FALSE}
 
 \item{SNOMED}{environment containing a SNOMED dictionary}
 
