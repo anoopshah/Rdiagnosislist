@@ -430,10 +430,8 @@ getSNOMED <- function(SNOMEDname = 'SNOMED'){
 #'      'Clinically Assured/ctv3sctmap2_uk_20200401000001.txt'
 #' @return A data.table with columns conceptId, read2_code,
 #'   ctv3_concept, ctv3_termid
-#' @seealso MAPS, getMaps, loadSNOMED
+#' @seealso READMAPS, getMaps, loadSNOMED
 #' @export
-#' @examples
-#'
 loadREADMAPS <- function(not_assured_rcsctmap_uk,
 	not_assured_rctermsctmap_uk, assured_ctv3sctmap2_uk){
 	MapStatus <- keep <- EffectiveDate <- MapId <- NULL

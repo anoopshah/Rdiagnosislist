@@ -13,6 +13,7 @@
 #' getRefset(c('Renal clinical finding simple reference set',
 #'   'Care planning activities simple reference set'))
 getRefset <- function(conceptIds, SNOMED = getSNOMED()){
+	refsetId <- NULL
 	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
 	if (length(conceptIds) == 0){
 		message('No refset specified')

@@ -68,9 +68,6 @@ The output data.table has the following columns:
   \item{ctv3_termid}{ list: character list of CTV3 term description codes}
 }
 }
-\examples{
-
-}
 \seealso{
-MAPS, getMaps, loadSNOMED
+READMAPS, getMaps, loadSNOMED
 }

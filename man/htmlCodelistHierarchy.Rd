@@ -15,6 +15,11 @@ htmlCodelistHierarchy(
 \item{codelist_with_hierarchy}{output of showCodelistHierarchy}
 
 \item{file}{filename to export to. If NULL, no file is written}
+
+\item{title}{title of HTML document}
+
+\item{description}{paragraph of description text to fit within
+<p></p> HTML tags}
 }
 \value{
 a character vector containing HTML output
