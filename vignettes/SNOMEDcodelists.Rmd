@@ -36,8 +36,8 @@ Each concept also has a semantic tag, which denotes what type of concept it is (
 Loading the SNOMED CT dictionaries
 ----------------------------------
 
-This package contains functions to import a set of SNOMED CT release files from NHS Digital TRUD (https://isd.digital.nhs.uk/trud3/user/guest/group/0/home). The International and UK release files are provided in separate downloads, and need to be combined to create the whole dictionary. This can be done using the loadSNOMED() function and specifying a vector of folder paths to load.
-
+This package contains functions to import a set of SNOMED CT release files which should be obtained from NHS Digital TRUD (https://isd.digital.nhs.uk/trud3/user/guest/group/0/home). The International and UK release files are provided in two separate downloads, and need to be combined to create the  whole dictionary. This can be done using the loadSNOMED() function and specifying a vector of folder paths to load.
+  
 For most users the 'Snapshot' files, containing the current versions of the entries, will be the most useful, and these are loaded by loadSNOMED() function. The  sample dictionaries in this package are also based on the Snapshot file format. The 'Delta' files contain changes since the previous version, and the 'Full' files contain a history of the changes to each entry.
 
 When the NHS Digital SNOMED CT files are extracted, they will be in a folder such as 'SnomedCT_InternationalRF2_PRODUCTION_20200731T120000Z', and the relevant tables will be in the subfolder 'Snapshot/Terminology' (main SNOMED CT tables) and 'Snapshot/Refset' (mappings and refsets). Code such as the following can be used to load the tables into R (the file paths should be changed to the actual file paths on your system).
