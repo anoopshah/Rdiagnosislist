@@ -4,9 +4,7 @@
 \name{READMAPS}
 \alias{READMAPS}
 \title{Sample mappings from Read to SNOMED CT}
-\format{
-An object of class \code{"data.table"}
-}
+\format{An object of class \code{"data.table"}}
 \usage{
 data(READMAPS)
 }

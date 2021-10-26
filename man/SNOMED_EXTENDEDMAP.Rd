@@ -5,9 +5,7 @@
 \alias{SNOMED_EXTENDEDMAP}
 \alias{EXTENDEDMAP}
 \title{Sample extended map table from SNOMED CT dictionary}
-\format{
-An object of class \code{"data.table"}
-}
+\format{An object of class \code{"data.table"}}
 \usage{
 data(EXTENDEDMAP)
 }

@@ -5,9 +5,7 @@
 \alias{SNOMED_SIMPLEMAP}
 \alias{SIMPLEMAP}
 \title{Sample SIMPLE map table from SNOMED CT dictionary}
-\format{
-An object of class \code{"data.table"}
-}
+\format{An object of class \code{"data.table"}}
 \usage{
 data(SIMPLEMAP)
 }

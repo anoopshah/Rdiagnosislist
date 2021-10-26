@@ -231,6 +231,12 @@ description <- function(conceptIds,
 	# Declare names used for non-standard evaluation for R CMD check
 	id <- term <- active <- typeId <- conceptId <- NULL
 	
+	# Return and emtpy data.table if there is no input data
+	if (length(conceptIds) == 0){
+		return(data.table(id = integer64(0), conceptId = integer64(0),
+			term = character(0)))
+	}
+	
 	CONCEPTS <- data.table(conceptId = as.SNOMEDconcept(conceptIds),
 		order = seq_along(conceptIds))
 	TOMATCH <- data.table(conceptId = unique(CONCEPTS$conceptId))

@@ -148,3 +148,10 @@ test_that('Concatenate SNOMEDconcept objects', {
 	expect_equal(unique(c(hf, hf)), hf)
 	expect_equal(c(hf, hf), hf2)
 })
+
+test_that('Description for empty SNOMEDconcept object', {
+	empty <- SNOMEDconcept(integer64(0), SNOMED = sampleSNOMED())
+	emptytable <- data.table(id = integer64(0), conceptId = integer64(0),
+		term = character(0))
+	expect_equal(description(empty), emptytable)
+})

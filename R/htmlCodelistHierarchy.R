@@ -160,6 +160,9 @@ ifelse(is.null(title), 'SNOMED CT codelist', title), '</title>',
 <style type="text/css">
 table {border-spacing: 0px; font-family:Arial;}
 td, th {border-bottom: 1px solid #ddd; padding: 1px}
+.tree {background-color: white; color: black}
+.add {background-color: green; color: white}
+.remove {background-color: red; color: white}
 tr:hover {background-color: #D6EEEE;}</style>',
 '<script type="text/javascript">
 function toggle(thisrow, childrows, descendantrows){
@@ -174,10 +177,14 @@ function toggle(thisrow, childrows, descendantrows){
 function showtree(thisrow, childrows){
   backwhite(thisrow);
   childrows.forEach(showrow);
+  document.getElementById("butshow".concat(thisrow)).style.color = "white";
+  document.getElementById("buthide".concat(thisrow)).style.color = "black";
 }
 function hidetree(thisrow, descendantrows){
   backyellow(thisrow);
   descendantrows.forEach(hiderow);
+  document.getElementById("buthide".concat(thisrow)).style.color = "white";
+  document.getElementById("butshow".concat(thisrow)).style.color = "black";
 }
 function selectrow(rownum){
   document.getElementById("row".concat(rownum )).style.color = "black";
@@ -230,11 +237,11 @@ paste(x[included == FALSE]$rowid, collapse = ','),
 		# If this term has children
 		if (length(x[i]$childrowid[[1]]) > 0){
 			out <- paste0(
-			'<button id="butshow', x[i]$rowid,
+			'<button style="tree" id="butshow', x[i]$rowid,
 			'" onclick="showtree(', x[i]$rowid, 
 			', [', paste(unlist(x[i]$childrowid[[1]]),
 			collapse = ','),'])">+</button>',
-			'<button id="buthide', x[i]$rowid,
+			'<button style="tree" color="white" id="buthide', x[i]$rowid,
 			'" onclick="hidetree(', x[i]$rowid, 
 			', [', paste(unlist(x[i]$descendantrowid[[1]]),
 			collapse = ','),'])">-</button></td><td>')
@@ -245,20 +252,20 @@ paste(x[included == FALSE]$rowid, collapse = ','),
 		
 		# Produces HTML code for buttons for appropriate row
 		out <- paste0(out,
-			'<button onclick="selectrow(', x[i]$rowid, 
+			'<button style="add" onclick="selectrow(', x[i]$rowid, 
 			')">+</button>',
-			'<button onclick="deselectrow(', x[i]$rowid, 
+			'<button style="remove" onclick="deselectrow(', x[i]$rowid, 
 			')">-</button>'
 		)
 		
 		# If this term has children
 		if (length(x[i]$childrowid[[1]]) > 0){
 			out <- paste0(out,
-			'<button onclick="selecttree([', x[i]$rowid, 
-			',', paste(unlist(x[i]$descendantrowid[[1]]),
+			'<button style="add" onclick="selecttree([', x[i]$rowid, 
+			',', paste(unlist(x[i]$alldescendantrowid[[1]]),
 			collapse = ','),'])">++</button>',
-			'<button onclick="deselecttree([', x[i]$rowid, 
-			',', paste(unlist(x[i]$descendantrowid[[1]]),
+			'<button style="remove" onclick="deselecttree([', x[i]$rowid, 
+			',', paste(unlist(x[i]$alldescendantrowid[[1]]),
 			collapse = ','),'])">--</button>'
 			)
 		}

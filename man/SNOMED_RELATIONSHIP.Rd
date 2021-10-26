@@ -7,11 +7,7 @@
 \alias{STATEDRELATIONSHIP}
 \alias{SNOMED_STATEDRELATIONSHIP}
 \title{Sample relationship tables from SNOMED CT dictionary}
-\format{
-An object of class \code{"data.table"}
-
-An object of class \code{data.table} (inherits from \code{data.frame}) with 329 rows and 10 columns.
-}
+\format{An object of class \code{"data.table"}}
 \usage{
 data(RELATIONSHIP); data(STATEDRELATIONSHIP)
 
