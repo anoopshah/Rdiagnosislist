@@ -146,11 +146,32 @@ htmlCodelistHierarchy <- function(codelist_with_hierarchy,
 	included <- out <- NULL
 	x <- codelist_with_hierarchy
 
-
 # TODO
-# Red text for excluded
-# Buttons for expand / contract / include / exclude
+# Columns:
+# 1. 'Expand/Contract' button (toggle) with pressed / unpressed style
+# 2. Term (red if deselected, bold if has children)
+# 3. 'Included' column (Y / N) - innerHTML this is the definitive selection
+# 4. Buttons for select / deselect, select/deselect tree
+
+# On hover, draw thick black border around button
+# After every button click:
+# - Remove highlighting
+# - Make changes to cell contents
+# - Make changes to formatting or buttons
+# - Highlight changed rows
+
+# Buttons for expand / contract = affect row id (hide/show)
+
+# Buttons for include / exclude = affect all terms with relevant
+# concepts
+# Red text for exclude / include
+
 # Function to export the entire codelist (included terms only)
+# ('exportall')
+# Loop through conceptIds (marked as a javascript vector),
+# for each one look up the relevant term cell by row id
+# to see if it is selected
+
 # Highlight recently modified rows
 
 	top <- paste('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
@@ -160,6 +181,8 @@ ifelse(is.null(title), 'SNOMED CT codelist', title), '</title>',
 <style type="text/css">
 table {border-spacing: 0px; font-family:Arial;}
 td, th {border-bottom: 1px solid #ddd; padding: 1px}
+.button {border: 1px solid white}
+.button:hover {border: 1px solid black}
 .tree {background-color: white; color: black}
 .add {background-color: green; color: white}
 .remove {background-color: red; color: white}
@@ -187,31 +210,42 @@ function hidetree(thisrow, descendantrows){
   document.getElementById("butshow".concat(thisrow)).style.color = "black";
 }
 function selectrow(rownum){
-  document.getElementById("row".concat(rownum )).style.color = "black";
+  document.getElementById("row".concat(rownum)
+    ).style.color = "black";
+  document.getElementById("row".concat(rownum)
+    ).style.backgroundColor = "#D6EEEE";
 }
-function selecttree(treerows){
-  treerows.forEach(selectrow);
+function selectrows(thisrow, rows_to_select){
+  rows_to_select.forEach(selectrow);
 }
 function deselectrow(rownum){
-  document.getElementById("row".concat(rownum )).style.color = "red";
+  document.getElementById("row".concat(rownum)
+    ).style.color = "red";
+  document.getElementById("row".concat(rownum)
+    ).style.backgroundColor = "#D6EEEE";
 }
-function deselecttree(treerows){
-  treerows.forEach(deselectrow);
+function deselectrows(thisrow, rows_to_deselect){
+  rows_to_deselect.forEach(deselectrow);
 }
 function backyellow(rownum){
-  document.getElementById("row".concat(rownum )).style.backgroundColor = "yellow";
+  document.getElementById("row".concat(rownum)
+    ).style.backgroundColor = "yellow";
 }
 function highlightrow(rownum){
-  document.getElementById("row".concat(rownum )).style.backgroundColor = "#D6EEEE";
+  document.getElementById("row".concat(rownum)
+    ).style.backgroundColor = "#D6EEEE";
 }
 function backwhite(rownum){
-  document.getElementById("row".concat(rownum )).style.backgroundColor = "white"
+  document.getElementById("row".concat(rownum)
+    ).style.backgroundColor = "white"
 }
 function hiderow(rownum){
-  document.getElementById("row".concat(rownum )).style.display = "none";
+  document.getElementById("row".concat(rownum)
+    ).style.display = "none";
 }
 function showrow(rownum){
-  document.getElementById("row".concat(rownum )).style.display = "";
+  document.getElementById("row".concat(rownum)
+    ).style.display = "";
 }
 function hideall(rows){
   rows.forEach(hiderow);
@@ -219,7 +253,17 @@ function hideall(rows){
 function showall(rows){
   rows.forEach(showrow);
   rows.forEach(backwhite);
-}</script>
+}
+function exportall(){
+  /* Exports all selected terms to a text document */
+  
+  /* Loop through rows. Add a concept if it is selected */
+  /* and not already in the list of selected concepts */
+  
+  
+  /* Export the list of SNOMED CT concepts and descriptions */
+}
+</script>
 </head><body><h1>',
 ifelse(is.null(title), 'SNOMED CT codelist', title), '</h1><p>',
 ifelse(is.null(description), '', description),
@@ -229,7 +273,9 @@ paste(unique(unlist(x$descendantrowid)), collapse = ','),
 paste(x$rowid, collapse = ','),
 ']);">Show all concepts</a> | <a href="#" onclick="hideall([',
 paste(x[included == FALSE]$rowid, collapse = ','),
-']);">Hide excluded concepts</a></p>
+']);">Hide excluded concepts</a> |
+<a href="#" onclick="exportall()">Export selection</a>
+</p>
 <table style="width:100%">
 <tr><th>Tree</th><th>Select</th><th style="font-size:1%; color:white;">SNOMED CT concept ID</th><th>SNOMED CT concept description</th></tr>\n', collapse = '')
 
@@ -237,36 +283,37 @@ paste(x[included == FALSE]$rowid, collapse = ','),
 		# If this term has children
 		if (length(x[i]$childrowid[[1]]) > 0){
 			out <- paste0(
-			'<button style="tree" id="butshow', x[i]$rowid,
+			'<button class="button tree" id="butshow', x[i]$rowid,
 			'" onclick="showtree(', x[i]$rowid, 
 			', [', paste(unlist(x[i]$childrowid[[1]]),
-			collapse = ','),'])">+</button>',
-			'<button style="tree" color="white" id="buthide', x[i]$rowid,
+			collapse = ','),'])"><strong>+</strong></button>&nbsp;',
+			'<button class="button tree" color="white" id="buthide', x[i]$rowid,
 			'" onclick="hidetree(', x[i]$rowid, 
 			', [', paste(unlist(x[i]$descendantrowid[[1]]),
-			collapse = ','),'])">-</button></td><td>')
+			collapse = ','),'])"><strong>-</strong></button></td><td>')
 		} else {
 			out <- '</td><td>'
 		}
 		
-		
 		# Produces HTML code for buttons for appropriate row
 		out <- paste0(out,
-			'<button style="add" onclick="selectrow(', x[i]$rowid, 
-			')">+</button>',
-			'<button style="remove" onclick="deselectrow(', x[i]$rowid, 
-			')">-</button>'
+			'<button class="button add" onclick="selectrows(', x[i]$rowid, 
+			', [', paste(unlist(x[i]$allthisrowid[[1]]),
+			collapse = ','),'])"><strong>+</strong></button>',
+			'<button class="button remove" onclick="deselectrows(',
+			x[i]$rowid, ', [', paste(unlist(x[i]$allthisrowid[[1]]),
+			collapse = ','),'])"><strong>-</strong></button>'
 		)
 		
 		# If this term has children
 		if (length(x[i]$childrowid[[1]]) > 0){
 			out <- paste0(out,
-			'<button style="add" onclick="selecttree([', x[i]$rowid, 
-			',', paste(unlist(x[i]$alldescendantrowid[[1]]),
-			collapse = ','),'])">++</button>',
-			'<button style="remove" onclick="deselecttree([', x[i]$rowid, 
-			',', paste(unlist(x[i]$alldescendantrowid[[1]]),
-			collapse = ','),'])">--</button>'
+			'<button class="button add" onclick="selectrows(', x[i]$rowid, 
+			', [', paste(unlist(x[i]$alldescendantrowid[[1]]),
+			collapse = ','),'])"><strong>++</strong></button>',
+			'<button class="button remove" onclick="deselectrows(',
+			x[i]$rowid, ', [', paste(unlist(x[i]$alldescendantrowid[[1]]),
+			collapse = ','),'])"><strong>--</strong></button>'
 			)
 		}
 		out

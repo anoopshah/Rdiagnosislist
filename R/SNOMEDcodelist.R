@@ -332,13 +332,19 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 	#      - expand children (immediate descendants only)
 	out[, childrowid := list(integer(0))]
 	out[, descendantrowid := list(integer(0))]
+	out[, allthisrowid := list(integer(0))]
 	out[, alldescendantrowid := list(integer(0))]
 	for (i in seq_along(out$rowid)){
 		thisrowid <- out[i]$rowid
 		thisconcept <- out[i]$conceptId
 		out[i, childrowid := list(out[parentrowid == thisrowid]$rowid)]
-		desc_rows <- sapply(out$parentId, function(x) { thisconcept %in% x })
-		out[i, alldescendantrowid := list(out[desc_rows]$rowid)]
+		out[i, allthisrowid := list(out[conceptId ==
+			thisconcept]$rowid)] # all rows containing self
+		desc_rows <- sapply(out$parentId, function(x) {
+			thisconcept %in% x
+		})
+		out[i, alldescendantrowid := list(out[desc_rows |
+			conceptId == thisconcept]$rowid)] # self and all descendants
 		thisgen <- out[i]$gen
 		fin <- min(which(c(out$gen, 0) <= thisgen &
 			c(seq_along(out$gen), Inf) > i)) - 1
