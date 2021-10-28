@@ -340,17 +340,16 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 		out[i, childrowid := list(out[parentrowid == thisrowid]$rowid)]
 		out[i, allthisrowid := list(out[conceptId ==
 			thisconcept]$rowid)] # all rows containing self
-		desc_rows <- sapply(out$parentId, function(x) {
-			thisconcept %in% x
-		})
-		out[i, alldescendantrowid := list(out[desc_rows |
-			conceptId == thisconcept]$rowid)] # self and all descendants
 		thisgen <- out[i]$gen
 		fin <- min(which(c(out$gen, 0) <= thisgen &
 			c(seq_along(out$gen), Inf) > i)) - 1
 		if (fin != Inf & fin > i){ 
 			out[i, descendantrowid := list(out[(i + 1):fin]$rowid)]
 		}
+		# self and all descendants
+		out[i, alldescendantrowid := list(c(out[conceptId ==
+			thisconcept]$rowid, unlist(out[conceptId ==
+			thisconcept]$descendantrowid)))]
 	}
 	# Need to add information about rows of all descendants
 	# including those in other hierarchies so that term selection
