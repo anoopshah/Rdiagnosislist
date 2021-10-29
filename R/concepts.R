@@ -60,6 +60,11 @@ SNOMEDconcept <- function(x, active_only = TRUE,
 	# Declare names to be used for non-standard evaluation for R CMD check
 	active <- conceptId <- NULL
 	
+	if (length(x) == 0){
+		out <- integer64(0)
+		class(out) <- c('SNOMEDconcept', 'integer64')
+		return(out)
+	}
 	if ('integer64' %in% class(x)){
 		# correct format for a SNOMED CT concept ID
 		out <- x

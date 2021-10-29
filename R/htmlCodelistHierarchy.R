@@ -60,7 +60,7 @@ htmlCodelistHierarchy <- function(codelist_with_hierarchy,
 		conceptId[1], '":', min(rowid))),
 		by = conceptId]$dict, collapse = ', ')
 
-	top <- paste('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+	top <- paste0('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
 "http://www.w3.org/TR/html4/strict.dtd"><html><head><title>',
 ifelse(is.null(title), 'SNOMED CT codelist', title), '</title>',
 '<meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
@@ -69,7 +69,7 @@ table {border-spacing: 0px; font-family:Arial;}
 td, th {border-bottom: 1px solid #ddd; padding: 1px}
 .button {border: 1px solid white}
 .button:hover {border: 1px solid black}
-.buttree {background-color: grey}
+.tree {color: black}
 .add {background-color: green; color: white}
 .remove {background-color: red; color: white}
 tr:hover {background-color: #D6EEEE;}</style>',
@@ -99,7 +99,7 @@ function changebuttoncontract(rownum){
   var mybutton = document.getElementById("buttree".concat(rownum));
   if (typeof(mybutton) != "undefined" && mybutton != null){
     mybutton.innerHTML = "Contract"
-    mybutton.backgroundColor = "grey"
+    mybutton.backgroundColor = "#D6D6D6"
   }
 }
 function clearhighlight(){
@@ -159,22 +159,47 @@ function showall(rows){
   rows.forEach(showrow);
 }
 function exportall(){
+  /* Get filename to export to */
+  var filename = document.getElementById("exportfilename").value;
   /* Exports all selected terms to a text document */
   const dictionary = {', concept_dict, '}
+  var output = "conceptId,term\\r\\n"
+  var space = document.getElementById("sample").innerHTML
+  var term
   /* Loop through concepts, check the relevant included field */
   for (var key in dictionary) {
     if (dictionary.hasOwnProperty(key)) {
       if (document.getElementById("include".concat(
         dictionary[key])).innerHTML == "Y"){
+          /* parse term */
+          term = document.getElementById("term".concat(dictionary[key])).innerHTML
+          term = term.replace("<strong>",
+            "").replace("</strong>", "").split(space
+            ).join("").split("\\"").join(",")
           /* to print to file */
-          console.log(key, document.getElementById("term".concat(
-            dictionary[key])).innerHTML.replace("<strong>",
-            "").replace("</strong>", "").replace("· ", ""));
+          output = output + key + ",\\"" + term + "\\"\\r\\n";
       }
     }
   }
   
-  /* Export the list of SNOMED CT concepts and descriptions */
+  /* To debug output */
+  // console.log(output)
+  
+  /* Alternative approach */
+  var link = document.createElement("a");
+  if (filename == ""){
+    filename = "codelist.csv"
+  }
+  if (/\\.csv$/.test(filename) == false){
+    filename = filename + ".csv"
+  }
+  link.setAttribute("href",
+    "data:text/csv;charset=utf-8,%EF%BB%BF" +
+      encodeURIComponent(output));
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 </script>
 </head><body><h1>',
@@ -185,8 +210,9 @@ paste(x$rowid, collapse = ','), '], [',
 paste(unique(unlist(x$descendantrowid)), collapse = ','),
 ']);">Show top-level concepts only</a> | <a href="#" onclick="showall([',
 paste(x$rowid, collapse = ','),
-']);">Show all concepts</a> |
-<a href="#" onclick="exportall()">Export selection</a>
+']);">Show all concepts</a></p><p>
+<a href="#" onclick="exportall()">Export selection</a> to
+<input id="exportfilename" value="', title, '"> .csv
 </p>
 <table style="width:100%">
 <tr><th>Expand</th><th>SNOMED CT concept</th>
@@ -196,7 +222,7 @@ paste(x$rowid, collapse = ','),
 		# Button for contracting
 		if (length(x[i]$childrowid[[1]]) > 0){
 			return(paste0(
-			'<button class="button tree" color="white" id="buttree', x[i]$rowid,
+			'<button class="button tree" background-color="#D6D6D6" id="buttree', x[i]$rowid,
 			'" onclick="toggle(', x[i]$rowid, 
 			', [', paste(unlist(x[i]$childrowid[[1]]), collapse = ','),
 			'], [', paste(unlist(x[i]$descendantrowid[[1]]), collapse = ','),
@@ -260,7 +286,8 @@ paste(x$rowid, collapse = ','),
 		collapse = '')
 	})
 
-	bottom <- '\n</table></body></html>'
+	bottom <- paste0('\n</table><p id="sample"',
+		'style="display:none">&middot;&emsp;</p></body></html>')
 
 	if (!is.null(file)){
 		write(paste0(c(top, unlist(middle), bottom)), file = file, ncolumns = 1)
