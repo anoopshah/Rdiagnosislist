@@ -5,7 +5,9 @@
 \alias{SNOMED_REFSET}
 \alias{REFSET}
 \title{Sample refset table from SNOMED CT dictionary}
-\format{An object of class \code{"data.table"}}
+\format{
+An object of class \code{"data.table"}
+}
 \usage{
 data(REFSET)
 }

@@ -257,6 +257,14 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 				# Find out which concept
 				thisconcept <- out[rowid == thisrowid]$conceptId
 				thisroworder <- out[rowid == thisrowid]$roworder
+				
+				if (debug == TRUE){
+					if (length(thisconcept) == 0) {
+						cat('\nthisconcept is integer64(0)\n')
+						browser()
+					}
+				}
+				
 				# For this concept, find all children
 				childrows <- sapply(out$parentId, function(x){
 					if (length(x) == 0){
@@ -280,6 +288,10 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 					maxrowid <- max(out$rowid)
 					out[childrows & !is.na(roworder),
 						rowid := (1:.N) + maxrowid]
+					# FIXME: Sometimes there is an error
+					# if a rowid is removed, then in the 
+					# next loop thisconcept and thisroworder
+					# have zero length
 				}
 				
 				out[childrows, roworder := thisroworder +
@@ -296,7 +308,7 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 				
 				# Debugging section
 				if (debug == TRUE){
-					if (thegen == 4){
+					if (thegen == 6){
 						cat('\nthisconcept', thisconcept)
 						cat(description(thisconcept)$term)
 						cat('\n\nthegen', thegen)
