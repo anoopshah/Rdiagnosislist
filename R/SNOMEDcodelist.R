@@ -252,7 +252,9 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 		if (debug) {cat(thegen, maxgen, '\n')}
 		thisgenrowids <- out[gen == thegen]$rowid
 		if (length(thisgenrowids) > 0){
-			# Looping each row/concept in gen of interest
+			# Looping each row (instance of a concept) in generation
+			# Find children of this concept and create
+			# appropriate rows for descendant hierarchy
 			for (thisrowid in thisgenrowids){
 				# Find out which concept
 				thisconcept <- out[rowid == thisrowid]$conceptId
@@ -275,19 +277,27 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 				})
 
 				# Copy children rows if they already have a roworder
-				# as they need to be duplicated in the hierarchy
+				# (i.e. already located in the hierarchy) 
+				# as they need to be duplicated
 				tocopy <- out[childrows & !is.na(roworder)]
 
 				if (nrow(tocopy) > 0){
-					# Keep only one copy per concept ID, and
-					# generate new row id 
+					# Keep only one copy of the child row per
+					# concept ID, 
 					tocopy[, .keep := (rowid == min(rowid)),
 						by = conceptId]
 					tocopy <- tocopy[.keep == TRUE]
 					tocopy[, .keep := NULL]
 					maxrowid <- max(out$rowid)
-					out[childrows & !is.na(roworder),
+					# Change the rowid for existing rows which have not
+					# yet been allocated and have the same rowid
+					
+					out[rowid %in% tocopy$rowid,
 						rowid := (1:.N) + maxrowid]
+					# OLD: this would lead to some rowid being
+					# removed unnecessarily
+					# out[childrows & !is.na(roworder),
+					#	rowid := (1:.N) + maxrowid]
 					# FIXME: Sometimes there is an error
 					# if a rowid is removed, then in the 
 					# next loop thisconcept and thisroworder
