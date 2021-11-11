@@ -4,10 +4,36 @@
 \alias{is.SNOMEDcodelist}
 \title{Check if an object is a SNOMEDcodelist}
 \usage{
-is.SNOMEDcodelist(x)
+is.SNOMEDcodelist(
+  x,
+  format = NULL,
+  codelist_name = NULL,
+  version = NULL,
+  author = NULL,
+  date = NULL,
+  SNOMED = NULL
+)
 }
 \arguments{
 \item{x}{object to check}
+
+\item{format}{Whether the codelist is expressed as a simple
+enumeration of concepts ('simple'), as a set of concept
+hierarchies ('tree') or as a set of hierarchies showing all
+concepts ('exptree'). Codelists can be converted between
+the formats, but the result of conversion may depend on the 
+SNOMED CT dictionary being used.}
+
+\item{codelist_name}{Name of the codelist (character vector of length 1)}
+
+\item{version}{Version of the codelist (character vector of length 1)}
+
+\item{author}{Author of the codelist (character vector of length 1)}
+
+\item{date}{Date assigned to the codelist (character vector of length 1)}
+
+\item{SNOMED}{Dummy argument to ensure that this function works with
+as.SNOMEDcodelist}
 }
 \value{
 a logical vector of length one: TRUE or FALSE
@@ -15,11 +41,16 @@ a logical vector of length one: TRUE or FALSE
 \description{
 SNOMEDcodelist is an S3 class for lists of SNOMED codes.
 This function checks whether the object has the class
-SNOMEDcodelist. It does not check whether it contains valid data.
+SNOMEDcodelist, and whether the specified attributes are
+as per the arguments (if the arguments are left as NULL, as per
+default, they are not checked).
+The function does not check if the codelist contains valid data.
 }
 \seealso{
 Other SNOMEDcodelist functions: 
 \code{\link{SNOMEDcodelist}()},
-\code{\link{expandSNOMED}()}
+\code{\link{expandSNOMED}()},
+\code{\link{export}()},
+\code{\link{print.SNOMEDcodelist}()}
 }
 \concept{SNOMEDcodelist functions}

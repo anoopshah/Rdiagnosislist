@@ -4,12 +4,16 @@
 \alias{loadSNOMED}
 \title{Load SNOMED CT files from a folder(s) into R data.table objects}
 \usage{
-loadSNOMED(folders, active_only = TRUE)
+loadSNOMED(folders, active_only = TRUE, version = NULL)
 }
 \arguments{
 \item{folders}{Vector of folder paths containing SNOMED CT files}
 
-\item{active_only}{Whether to limit to current (active) SNOMED CT terms}
+\item{active_only}{Whether to limit to current (active) SNOMED CT
+concepts}
+
+\item{version}{Version description. If NULL, it is derived from the
+folder paths and expressed in the form: INT{date} & UK{date}}
 }
 \value{
 An environment containing data.table objects: CONCEPT,

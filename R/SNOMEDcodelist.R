@@ -20,9 +20,22 @@
 #'   (Boolean) stating whether descendants of the term should be
 #'   included.
 #' @param include_desc Boolean vector stating whether descendants
-#'   are included, recycled if necessary. Default = TRUE.
+#'   are included, recycled if necessary. Default = FALSE.
 #'   Ignored if x contains a column 'include_desc'
+#' @param format Whether the codelist is expressed as a simple
+#'   enumeration of concepts ('simple'), as a set of concept
+#'   hierarchies ('tree'), or concept hierarchies showing all
+#'   descendant terms ('exptree'). Codelists can be converted
+#'   between the formats, but the result of conversion may depend on
+#'   the SNOMED CT dictionary being used.
+#' @param name Name of the codelist (character vector of length 1)
+#' @param version Version of the codelist (character vector of length 1)
+#' @param author Author of the codelist (character vector of length 1)
+#' @param date Date attributed to the codelist (character vector of length 1)
 #' @param SNOMED environment containing a SNOMED dictionary
+#' @param show_excluded_descendants Whether to show excluded
+#'   descendants alongside the codes included in the codelist (for
+#'   a 'tree' or 'expandedtree' format codelist).
 #' @param ... other arguments to pass to SNOMEDcodelist
 #' @return An object of class 'SNOMEDcodelist'
 #' @family SNOMEDcodelist functions
@@ -35,38 +48,205 @@
 #' SNOMEDcodelist(data.frame(conceptId = my_concepts))
 #' as.SNOMEDcodelist(data.frame(conceptId = my_concepts,
 #'   include_desc = TRUE))
-SNOMEDcodelist <- function(x, include_desc = TRUE,
-	SNOMED = getSNOMED()){
+SNOMEDcodelist <- function(x, include_desc = FALSE,
+	format = c('simple', 'tree', 'exptree'), codelist_name = NULL,
+	version = NULL, author = NULL, date = NULL,
+	SNOMED = getSNOMED(), show_excluded_descendants = FALSE){
+
 	term <- conceptId <- NULL
+	format <- format[1]
+
+	# 1. GATHER CONCEPTS FOR CODELIST
+	# If it is already a codelist, leave as is
+	if (is.SNOMEDcodelist(x)){
+		out <- data.table::copy(x)
+		# Extract metadata if it exists
+		if (is.null(codelist_name)) {codelist_name <- attr(out, 'codelist_name')}
+		if (is.null(version)) {version <- attr(out, 'version')}
+		if (is.null(author)) {author <- attr(out, 'author')}
+		if (is.null(date)) {date <- attr(out, 'date')}
+	} else {
+		# Convert to SNOMEDcodelist
+		if (!is.data.frame(x)){
+			conceptIds <- SNOMEDconcept(x, SNOMED = SNOMED)
+			message(paste0('Converting ', length(conceptIds),
+				' concept(s) to a codelist'))
+			x <- as.data.frame(conceptIds)
+			names(x) <- 'conceptId'
+		}
+		if (!is.data.frame(x) | !('conceptId' %in% names(x))){
+			stop('x must be a data.frame with a column named conceptId')
+		}
+		out <- as.data.table(x)
+		if (!('conceptId' %in% names(out))){
+			stop('the SNOMED conceptId must be in a column named conceptId')
+		}
+		out[, conceptId := as.SNOMEDconcept(conceptId,
+			SNOMED = SNOMED)]
+	}
 	
-	if (!is.data.frame(x)){
-		conceptIds <- SNOMEDconcept(x, SNOMED = SNOMED)
-		message(paste0('Converting ', length(conceptIds),
-			' concept(s) to a codelist'))
-		x <- as.data.frame(conceptIds)
-		names(x) <- 'conceptId'
+	# Extract metadata from 'metadata' column if it exists
+	if ('metadata' %in% names(out)){
+		searchfor <- function(thing, metadata){
+			use <- grep(paste0('^', thing, ': '), metadata)
+			if (length(use) > 0){
+				out <- sub(paste0('^', thing, ': '), '',
+					metadata[use[1]])
+				out <- sub('[ ]+$', '', out)
+				return(out)
+			} else {
+				return('')
+			}
+		}
+		if (is.null(codelist_name)) {
+			codelist_name <- searchfor('codelist_name', out$metadata)
+		}
+		if (is.null(version)) {
+			version <- searchfor('version', out$metadata)
+		}
+		if (is.null(author)) {
+			author <- searchfor('author', out$metadata)
+		}
+		if (is.null(date)) {
+			date <- searchfor('date', out$metadata)
+		}
+		out[, metadata := NULL]
 	}
-	if (!is.data.frame(x) | !('conceptId' %in% names(x))){
-		stop('x must be a data.frame with a column named conceptId')
-	}
-	out <- as.data.table(x)
-	if (!('conceptId' %in% names(out))){
-		stop('the SNOMED conceptId must be in a column named conceptId')
-	}
-	out[, conceptId := as.SNOMEDconcept(conceptId, SNOMED = SNOMED)]
+
+	# Ensure that the include_desc marker is logical
 	if ('include_desc' %in% names(out)){
 		out[, include_desc := as.logical(include_desc)]
 	} else {
-		global_include_desc <- include_desc
-		out[, include_desc := global_include_desc]
+		if (identical(include_desc, TRUE) | identical(include_desc, FALSE)){
+			global_include_desc <- include_desc
+			out[, include_desc := global_include_desc]
+		} else {
+			out[, include_desc := FALSE]
+		}
 	}
+	
+	# Ensure that the inclusion marker is logical
+	if ('included' %in% names(out)){
+		out[, included := as.logical(included)]
+	} else {
+		out[, included := TRUE]
+	}
+	
+	# Expand to show descendants for inclusion and exclusion subsets
+	expandDescendants <- function(x, inclusion, SNOMED){
+		if (any(x$include_desc == TRUE & x$included == inclusion)){
+			desc <- descendants(x[include_desc == TRUE &
+				included == inclusion]$conceptId, SNOMED = SNOMED)
+			return(rbind(x, data.table(conceptId =
+				setdiff(desc, x[included == inclusion]$conceptId),
+				include_desc = NA, included = inclusion), fill = TRUE))
+		} else {
+			return(x)
+		}
+	}
+	
+	out <- expandDescendants(out, TRUE, SNOMED = SNOMED)
+	out <- expandDescendants(out, FALSE, SNOMED = SNOMED)
+	
+	if (show_excluded_descendants == TRUE &
+		format %in% c('tree', 'exptree')){
+		# Add non-included descendants (for tree format codelists)
+		desc <- setdiff(descendants(out[included == TRUE]$conceptId,
+			SNOMED = SNOMED), out[included == TRUE]$conceptId)
+		# Mark the inclusion terms as encompassing descendants
+		out[included == TRUE, include_desc := TRUE]
+		out <- expandDescendants(out, TRUE, SNOMED = SNOMED)
+		out <- rbind(out, data.table(conceptId = desc,
+			included = FALSE, include_desc = TRUE), fill = TRUE)
+	}
+	
+	# 2. CONVERT TO DESIRED FORMAT
+	simpleToTree <- function(conceptIds,
+		include_desc = logical(length(conceptIds)), SNOMED = SNOMED){
+		# Returns include_desc (TRUE, FALSE, NA) for a set of conceptIds
+		# If include_desc is supplied, NA entries are ignored because
+		# it is assumed that these concepts are already included as
+		# descendants of other concepts
+		if (length(conceptIds) > 0){
+			for (i in seq_along(conceptIds)){
+				if (!is.na(include_desc[i])){
+					desc <- descendants(conceptIds[i], SNOMED = SNOMED)
+					if (length(desc) > 0){
+						if (all(desc %in% conceptIds)){
+							include_desc[conceptIds %in% desc] <- NA
+							include_desc[i] <- TRUE
+						}
+					}
+				}
+			}
+			return(include_desc)
+		} else {
+			return(logical(0))
+		}
+	}
+	
+	# 2. Identify trees in inclusion and exclusion sets
+	if (format %in% c('tree', 'exptree')){
+		out[included == TRUE, include_desc := simpleToTree(conceptId,
+			include_desc, SNOMED = SNOMED)]
+		out[included == FALSE, include_desc := simpleToTree(conceptId,
+			include_desc, SNOMED = SNOMED)]
+	}
+
+	if (format == 'simple'){
+		# Remove non-included terms
+		if (any(out$included == FALSE)){
+			# Exclude all entries with included=FALSE
+			# (even if there is a duplicate entry with included=TRUE
+			# because exclusion takes priority over inclusion)
+			out <- out[!(conceptId %in% out[included == FALSE]$conceptId)]
+		}
+		out[, included := NULL]
+	}
+	
+	if (format == 'tree'){
+		# Do not show descendants
+		out <- out[!is.na(include_desc)]
+	} 
+
+	# Add term descriptions if not included
 	if (!('term' %in% names(out))){
-		# Add SNOMED terms (fully specified names)
-		out[, term := description(out$conceptId, SNOMED = SNOMED)$term]
+		out[, term := NA_character_]
 	}
-	data.table::setcolorder(out, c('conceptId', 'include_desc', 'term'))
-	data.table::setattr(out, 'class', c('SNOMEDcodelist', 'data.table', 'data.frame'))
-	data.table::setattr(out, 'Expanded', FALSE)
+	# Add missing terms
+	# Add SNOMED terms (fully specified names)
+	# choose active term description if there is a choice
+	# Ensure only one term per conceptId
+	if (any(is.na(out$term))){
+		TERMS <- SNOMED$DESCRIPTION[typeId ==
+			as.integer64('900000000000003001')][
+			out[is.na(term)], on = 'conceptId'][
+			order(conceptId, active)][,
+			list(term = term[.N]), by = conceptId]
+		out[is.na(term), term := TERMS[out[is.na(term)],
+			on = 'conceptId']$term]
+	}
+
+	if (format == 'simple'){
+		# include_desc must not be included
+		out[, include_desc := NULL]
+		data.table::setcolorder(out, c('conceptId', 'term'))
+	} else {
+		data.table::setcolorder(out, c('conceptId',
+			'include_desc', 'included', 'term'))
+	}
+
+	data.table::setattr(out, 'class', c('SNOMEDcodelist',
+		'data.table', 'data.frame'))
+	
+	# 3. SET METADATA
+	data.table::setattr(out, 'codelist_name', codelist_name)
+	data.table::setattr(out, 'version', version)
+	data.table::setattr(out, 'author', author)
+	data.table::setattr(out, 'date', date)
+	data.table::setattr(out, 'timestamp', date)
+	data.table::setattr(out, 'sct_version', SNOMED$metadata$version)
+	data.table::setattr(out, 'format', format)
 	data.table::setkeyv(out, 'conceptId')
 	out[]
 }
@@ -91,7 +271,7 @@ as.integer64.SNOMEDconcept <- function(x){
 #' @family SNOMEDcodelist functions
 #' @export
 as.SNOMEDcodelist <- function(x, ...){
-	if (is.SNOMEDcodelist(x)){
+	if (is.SNOMEDcodelist(x, ...)){
 		return(x)
 	} else {
 		SNOMEDcodelist(x, ...)
@@ -109,10 +289,15 @@ as.SNOMEDcodelist <- function(x, ...){
 #'
 #' @param x SNOMEDcodelist to expand or contract
 #' @param SNOMED environment containing a SNOMED dictionary
-#' @param show_excluded_descendants (logical) whether to show excluded
-#'   descendants of terms in the codelist, with an 'included' column
-#'   stating which terms are included. This can make it easy to see
-#'   if a codelist is consistent with the SNOMED CT ontology
+#' @param max_excluded_descendants (integer) whether to show excluded
+#'   descendants as long as they do not exceed this number (a
+#'   limit is suggested to avoid the program crashing if there
+#'   are too many descendants). If this number is exceeded, the
+#'   program will initially try to include children only, and if
+#'   there are still too many, it will ignore all descendants.
+#'   An 'included' column is added to the codelist
+#'   showing which terms are included. This can make it easy to see
+#'   if a codelist is consistent with the SNOMED CT ontology.
 #' @return An object of class 'SNOMEDcodelist' with attribute
 #'    Expanded = TRUE
 #' @family SNOMEDcodelist functions
@@ -126,71 +311,21 @@ as.SNOMEDcodelist <- function(x, ...){
 #' expanded_codelist <- expandSNOMED(my_codelist)
 #' contractSNOMED(expanded_codelist)
 expandSNOMED <- function(x, SNOMED = getSNOMED()){
-	# Adds descendants of terms marked include_desc = TRUE
-	# Terms are added with include_desc = NA, which shows that they
-	# were automatically added, and can be removed by contractSNOMED
-	
-	# Declare names to be used for non-standard evaluation for R CMD check
-	include_desc <- NULL
-	
-	if (!is.SNOMEDcodelist(x)){
-		stop('x must be a SNOMEDcodelist')
-	}
-	if (!is.null(attr(x, 'Expanded'))){
-		if (attr(x, 'Expanded') == TRUE){
-			return(x)
-		}
-	}
-	# Otherwise perform the expansion
-	desc_conceptIds <- descendants(x[include_desc == TRUE]$conceptId,
-		SNOMED = SNOMED)
-	out <- rbind(x, data.table(conceptId = desc_conceptIds,
-		include_desc = as.logical(rep(NA, length(desc_conceptIds))),
-		term = description(desc_conceptIds, SNOMED = SNOMED)$term))
-	# Restore SNOMEDcodelist class
-	data.table::setcolorder(out, c('conceptId', 'include_desc', 'term'))
-	data.table::setattr(out, 'class', c('SNOMEDcodelist', 'data.table', 'data.frame'))
-	data.table::setattr(out, 'Expanded', TRUE)
-	data.table::setkeyv(out, 'conceptId')
-	out[]
+	as.SNOMEDcodelist(x, format = 'exptree', SNOMED = SNOMED)
 }
 
 #' @rdname expandSNOMED
 #' @family SNOMEDcodelist functions
 #' @export
 contractSNOMED <- function(x, SNOMED = getSNOMED()){
-	# Remove terms with include_desc = NA as long as they are a
-	# descendant of a term with include_desc = TRUE
-	
-	# Declare names to be used for non-standard evaluation for R CMD check
-	include_desc <- conceptId <- NULL
-	out <- copy(x)
-	
-	if (!is.SNOMEDcodelist(out)){
-		stop('x must be a SNOMEDcodelist')
-	}
-	if (!is.null(attr(out, 'Expanded'))){
-		if (attr(out, 'Expanded') == FALSE){
-			return(out)
-		}
-	}
-	desclist <- out[include_desc == TRUE]$conceptId
-	desclist <- union(desclist, descendants(desclist, SNOMED = SNOMED))
-	if (length(desclist) > 0){
-		toremove <- out[is.na(include_desc) & conceptId %in% desclist]
-		out <- out[!toremove]
-	}
-	data.table::setcolorder(out, c('conceptId', 'include_desc', 'term'))
-	data.table::setattr(out, 'Expanded', FALSE)
-	data.table::setkeyv(out, 'conceptId')
-	out[]
+	as.SNOMEDcodelist(x, format = 'tree', SNOMED = SNOMED)
 }
 
 #' @rdname expandSNOMED
 #' @family SNOMEDcodelist functions
 #' @export
 showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
-	show_excluded_descendants = TRUE){
+	max_excluded_descendants = 200){
 	# Contract a SNOMED CT codelist, show the terms in a 
 	# sensible order and optionally show terms not included
 	# that are descendants of included terms 
@@ -202,6 +337,7 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 	include_desc <- conceptId <- .keep <- NULL
 	included <- gen <- parentId <- roworder <- parentrowid <- NULL
 	duplicate <- childrowid <- descendantrowid <- NULL
+	allthisrowid <- alldescendantrowid <- NULL
 	
 	out <- expandSNOMED(data.table::copy(x), SNOMED = SNOMED)
 	out[, included := TRUE]
@@ -212,13 +348,26 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 		stop('Codelist must have only one row per concept')
 	}
 	
-	if (show_excluded_descendants == TRUE){
+	if (max_excluded_descendants > 0){
 		desc <- as.SNOMEDcodelist(setdiff(
 			descendants(out$conceptId, SNOMED = SNOMED),
 			out$conceptId), include_desc = FALSE)
 		if (nrow(desc) > 0){
-			desc[, included := FALSE]
-			out <- rbind(out, desc, fill = TRUE)
+			if (nrow(desc) <= max_excluded_descendants){
+				desc[, included := FALSE]
+				out <- rbind(out, desc, fill = TRUE)
+			} else {
+				desc <- as.SNOMEDcodelist(setdiff(
+					children(out$conceptId, SNOMED = SNOMED),
+					out$conceptId), include_desc = FALSE)
+				if (nrow(desc) <= max_excluded_descendants){
+					desc[, included := FALSE]
+					out <- rbind(out, desc, fill = TRUE)
+					message('Adding children only as too many descendants')
+				} else {
+					message('Not adding descendants as too many')
+				}
+			}
 		}
 	}
 	
@@ -387,17 +536,225 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 #'
 #' SNOMEDcodelist is an S3 class for lists of SNOMED codes.
 #' This function checks whether the object has the class
-#' SNOMEDcodelist. It does not check whether it contains valid data.
+#' SNOMEDcodelist, and whether the specified attributes are
+#' as per the arguments (if the arguments are left as NULL, as per
+#' default, they are not checked).
+#' The function does not check if the codelist contains valid data.
 #'
 #' @param x object to check
+#' @param format Whether the codelist is expressed as a simple
+#'   enumeration of concepts ('simple'), as a set of concept
+#'   hierarchies ('tree') or as a set of hierarchies showing all
+#'   concepts ('exptree'). Codelists can be converted between
+#'   the formats, but the result of conversion may depend on the 
+#'   SNOMED CT dictionary being used.
+#' @param codelist_name Name of the codelist (character vector of length 1)
+#' @param version Version of the codelist (character vector of length 1)
+#' @param author Author of the codelist (character vector of length 1)
+#' @param date Date assigned to the codelist (character vector of length 1)
+#' @param SNOMED Dummy argument to ensure that this function works with
+#'   as.SNOMEDcodelist
 #' @return a logical vector of length one: TRUE or FALSE
 #' @family SNOMEDcodelist functions
 #' @export
-is.SNOMEDcodelist <- function(x){
-	if (identical(class(x), c('SNOMEDcodelist', 'data.table', 'data.frame'))){
-		TRUE
+is.SNOMEDcodelist <- function(x, format = NULL, codelist_name = NULL,
+	version = NULL, author = NULL, date = NULL, SNOMED = NULL){
+	if (identical(class(x), c('SNOMEDcodelist', 'data.table',
+		'data.frame'))){
+		if ((identical(attr(x, 'format'), 'tree') |
+			identical(attr(x, 'format'), 'exptree') |
+			identical(attr(x, 'format'), 'simple')) &
+			(is.null(format) | identical(attr(x, 'format'), format)) &
+			(is.null(date) | identical(attr(x, 'date'), date)) &
+			(is.null(codelist_name) | identical(attr(x, 'codelist_name'),
+				codelist_name)) &
+			(is.null(version) | identical(attr(x, 'version'), version)) &
+			(is.null(author) | identical(attr(x, 'author'), author))){
+			TRUE
+		} else {
+			FALSE
+		}
 	} else {
 		FALSE
 	}
 }
 
+#' Export a SNOMEDcodelist
+#'
+#' Writes a SNOMEDcodelist to file. If the filename is NULL,
+#' a filename is created from the 'codelist_name' attribute.
+#'
+#' @param x SNOMEDcodelist object to export to file
+#' @param filename character vector of length 1 for the file
+#'   to write to. If NULL, a filename is generated from the
+#'   codelist filename.
+#' @return invisibly returns the exported codelist
+#' @family SNOMEDcodelist functions
+#' @export
+export <- function(x, ...){
+	# S3 generic function definition
+	UseMethod("export")
+}
+
+#' @rdname export
+#' @family SNOMEDcodelist functions
+#' @export
+export.SNOMEDcodelist <- function(x, filename = NULL){
+	# Exports a codelist to file.
+	# All metadata must be stored in the codelist.
+
+	if (is.null(filename)){
+		filename <- makeCodelistFilename(x)
+	} else if (grepl('[\\\\/]$', filename)){
+		# filename is a directory; so create a filename
+		filename <- paste0(filename, makeCodelistFilename(x))
+	}
+	
+	message(paste0('Exporting ', attr(x, 'codelist_name'),
+		'\nSNOMEDcodelist to ', filename))
+
+	# Prepare output file
+	out <- copy(x)
+
+	# Create the metadata character vector
+	metadata <- encodeMetadata(x)
+	metadataWidth <- max(nchar(metadata)) + 1
+	metadata <- padTo(metadata, metadataWidth)
+	
+	# Output to file
+	# Export to text file (CSV or tab separated)
+	# Bind metadata column onto codelist
+	if (length(metadata) < nrow(out)){
+		metadata <- c(metadata, rep(padTo('', metadataWidth),
+			nrow(out) - length(metadata)))
+	} else if (length(metadata) > nrow(out)) {
+		out <- copy(out[1:length(metadata)])
+	}
+
+	# Bind them all together in a custom CSV
+	out[, metadata:= metadata]
+
+	# Put the metadata column first
+	setcolorder(out, c('metadata', setdiff(colnames(out),
+		c('metadata'))))
+
+	 if (grepl('.csv$', tolower(filename))){
+		data.table::fwrite(out, file = filename)
+	} else {
+		# tab delimited 
+		data.table::fwrite(out, file = filename, sep='\t')
+	}
+	return(invisible(x))
+}
+
+#' Display a SNOMEDcodelist on screen
+#'
+#' Displays a SNOMEDcodelist on screen, including metadata.
+#' Truncates term descriptions in order to fit within the line width.
+#'
+#' @param x SNOMEDcodelist object to print to screen
+#' @param ... not used
+#' @return invisibly returns the codelist
+#' @family SNOMEDcodelist functions
+#' @export
+print.SNOMEDcodelist <- function(x, ...){
+	cat('SNOMED CT codelist: \n')
+	cat(paste(encodeMetadata(x), collapse = '\n'), '\n')
+	printTerms(x)
+	invisible(x)
+}
+
+# Internal function
+padTo <- function(string, length){
+	# Returns a character vector with strings padded to a particular length
+	# Arguments: string - string to pad out with additional spaces
+	#            length - final length of string
+	spaces <- paste(rep(' ', length), collapse = '')
+	substr(paste0(string, spaces), 1, length)
+}
+
+# Internal function
+printTerms <- function(x){
+	# Prints the table portion of a codelist, using the maximum
+	# available width
+	if ('term' %in% colnames(x)){
+		x2 <- data.table::copy(x)
+		# Rename 'include_desc' and 'included' columns
+		if ('include_desc' %in% colnames(x2)){
+			setnames(x2, 'include_desc', 'inc_d')
+		}
+		if ('included' %in% colnames(x2)){
+			setnames(x2, 'included', 'inclu')
+		}
+		# Calculate the width without term column
+		temp <- lapply(x2[, setdiff(colnames(x2), 'term'), with = FALSE],
+			function(z){max(nchar(as.character(z)), na.rm = TRUE)})
+		# Calculate the total width without term column
+		# (Minumum allowed width = 20)
+		termwidth <- max(getOption('width') - 6 - 
+			sum(pmax(nchar(names(temp)), unlist(temp))) - length(temp), 20)
+		x2[, term := truncateChar(term, termwidth)]
+	} else {
+		x2 <- data.table::copy(x)
+	}
+	setattr(x2, 'class', c('data.table', 'data.frame'))
+	show(x2)
+}
+
+# Internal function
+truncateChar <- function(x, maxchar){
+	# Truncates a character vector so that each element does not have more
+	# than a specified number of characters, adding ... to the end of 
+	# truncated terms
+	# Arguments: x - character string to truncate
+	#            maxchar - length to truncate to
+	convert <- nchar(ifelse(is.na(x), '', x)) > maxchar
+	x[convert] <- paste0(substr(x[convert], 1, maxchar - 3), '...')
+	x
+}
+
+# Internal function
+encodeMetadata <- function(x){
+	# Returns a character string with formatted metadata of the
+	# codelist x
+	c(paste0('codelist_name: ', attr(x, 'codelist_name')),
+		paste0('version: ', attr(x, 'version')),
+		paste0('author: ', attr(x, 'author')),
+		paste0('date: ', attr(x, 'date')),
+		paste0('timestamp: ', attr(x, 'timestamp')),
+		paste0('sct_version: ', attr(x, 'sct_version')),
+		paste0('format: ', attr(x, 'format')))
+}
+
+# Internal function
+makeCodelistFilename <- function(x){
+	paste0(attr(x, 'codelist_name'), '.SNOMEDcodelist.',
+		as.character(floor(as.numeric(attr(x, 'version')))), '.csv')
+}
+
+# Internal function
+extractMetadataFromColumn <- function(metadata){
+	# Extracts metadata from a character vector (e.g. a metadata column
+	# in a codelist CSV file), returning it in a list
+	# Argument: character vector containing metadata
+	metadata <- c(as.character(metadata), '')
+
+
+
+	startfrom <- grep('Categories:', metadata)[1] + 1
+	if (length(startfrom) > 0){
+		temp <- splitCategory(metadata[
+			intersect(startfrom:length(metadata),
+			which(gsub("[' ]", '', metadata) != ''))])
+		# description is not provided in the 'column' metadata format
+		# so set it to be the same as shortname
+		temp$description <- temp$shortname
+	}
+	# Removing missing categories
+	temp <- temp[!is.na(temp$category),]
+	# Sort by category
+	temp2 <- data.table(temp)
+	setkey(temp2, category)
+	out$Categories <- temp2
+	return(out)
+}

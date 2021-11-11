@@ -5,8 +5,10 @@
 #' @param codelist_with_hierarchy output of showCodelistHierarchy
 #' @param file filename to export to. If NULL, no file is written
 #' @param title title of HTML document
-#' @param description paragraph of description text to fit within
-#'   <p></p> HTML tags 
+#' @param description paragraph of description text (excluding
+#'   <p></p> tags)
+#' @param extracols character vector of additional columns of 
+#'   codelist_with_hierarchy to include in HTML output 
 #' @return a character vector containing HTML output
 #' @export
 #' @seealso showCodelistHierarchy
@@ -19,10 +21,18 @@
 #' codelist_with_hierarchy <- showCodelistHierarchy(my_codelist)
 #' htmlCodelistHierarchy(codelist_with_hierarchy)
 htmlCodelistHierarchy <- function(codelist_with_hierarchy,
-	file = NULL, title = NULL, description = NULL){
+	file = NULL, title = NULL, description = NULL, extracols = NULL){
 
-	included <- out <- NULL
-	x <- codelist_with_hierarchy
+	included <- out <- rowid <- conceptId <- NULL
+	
+	x <- codelist_with_hierarchy[order(roworder)]
+	if (!is.null(extracols)){
+		extracols <- intersect(colnames(codelist_with_hierarchy),
+			extracols)
+	}
+	if (length(extracols) == 0){
+		extracols <- NULL
+	}
 
 # TODO
 # Columns:
@@ -66,7 +76,7 @@ ifelse(is.null(title), 'SNOMED CT codelist', title), '</title>',
 '<meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
 <style type="text/css">
 table {border-spacing: 0px; font-family:Arial;}
-td, th {border-bottom: 1px solid #ddd; padding: 1px}
+td, th {border-bottom: 1px solid #ddd; padding: 1px; text-align: left}
 .button {border: 1px solid white}
 .button:hover {border: 1px solid black}
 .tree {color: black}
@@ -215,8 +225,10 @@ paste(x$rowid, collapse = ','),
 <input id="exportfilename" value="', title, '"> .csv
 </p>
 <table style="width:100%">
-<tr><th>Expand</th><th>SNOMED CT concept</th>
-<th>Include</th><th>Select</th></tr>\n', collapse = '')
+<tr><th>Expand</th><th>SNOMED CT concept</th>',
+ifelse(is.null(extracols), '',
+paste0('<th>', extracols, '</th>', collapse = '')),
+'<th>Include</th><th>Select</th></tr>\n', collapse = '')
 
 	expand_buttons <- function(i){
 		# Button for contracting
@@ -259,7 +271,8 @@ paste(x$rowid, collapse = ','),
 
 	middle <- lapply(1:nrow(x), function(i){
 		# Creating each table row
-		# Columns: Expand/Contract (button), Term, Include (Y/N), Select (buttons)
+		# Columns: Expand/Contract (button), Term, Include (Y/N),
+		# Select (buttons)
 		paste(c('<tr id="row', x$rowid[i],
 			'" style="background-color:white;"><td>',
 			expand_buttons(i),
@@ -276,6 +289,10 @@ paste(x$rowid, collapse = ','),
 				# this term does not have children
 				x$term[i]
 			),
+			ifelse(is.null(extracols), '', 
+				paste0(sapply(extracols, function(y){
+					paste0('<td>', x[i][[y]], '</td>')
+			}), collapse = '')),
 			'</td><td id="include', x$rowid[i], '" ',
 			ifelse(x$included[i] == TRUE,
 				'style="color:black;">Y',

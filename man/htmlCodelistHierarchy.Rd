@@ -8,7 +8,8 @@ htmlCodelistHierarchy(
   codelist_with_hierarchy,
   file = NULL,
   title = NULL,
-  description = NULL
+  description = NULL,
+  extracols = NULL
 )
 }
 \arguments{
@@ -18,8 +19,11 @@ htmlCodelistHierarchy(
 
 \item{title}{title of HTML document}
 
-\item{description}{paragraph of description text to fit within
-<p></p> HTML tags}
+\item{description}{paragraph of description text (excluding
+<p></p> tags)}
+
+\item{extracols}{character vector of additional columns of 
+codelist_with_hierarchy to include in HTML output}
 }
 \value{
 a character vector containing HTML output

@@ -6,7 +6,10 @@
 #' together and appended.
 #'
 #' @param folders Vector of folder paths containing SNOMED CT files
-#' @param active_only Whether to limit to current (active) SNOMED CT terms
+#' @param active_only Whether to limit to current (active) SNOMED CT
+#'   concepts
+#' @param version Version description. If NULL, it is derived from the
+#'   folder paths and expressed in the form: INT{date} & UK{date}
 #' @return An environment containing data.table objects: CONCEPT,
 #'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, REFSET,
 #'   SIMPLEMAP, EXTENDEDMAP
@@ -35,7 +38,8 @@
 
 # To modify this to load Refset and maps into the main SNOMED dictionary
 
-loadSNOMED <- function(folders, active_only = TRUE){
+loadSNOMED <- function(folders, active_only = TRUE,
+	version = NULL){
 	.temp <- active <- term <- NULL
 	id <- correlationId <- mapTarget <- pattern <- NULL
 
@@ -176,9 +180,18 @@ Refset_SimpleSnapshot|REFSET')
 	# Add indices to enable fast searching
 	SNOMED <- createSNOMEDindices(SNOMED)
 	
+	# Assign version
+	if (is.null(version)){
+		version <- paste(
+			paste0(ifelse(regexpr('International', folders), 
+			'Int', ifelse(regexpr('UKClinical', folders), 'UK', ''))),
+			sub('.*PRODUCTION_([0-9]{8})T.*', '\\1', folders),
+			collapse = ' & ')
+	}
+	
 	# Add metadata to environment
 	assign('metadata', value = list(source = folders,
-		active_only = active_only), envir = SNOMED)
+		active_only = active_only, version = version), envir = SNOMED)
 	
 	cat('\nSNOMED CT tables loaded into environment:\n')
 	data.table::tables(env = SNOMED)
@@ -314,7 +327,7 @@ sampleSNOMED <- function(){
 	data(EXTENDEDMAP, envir = SNOMED)
 	SNOMED <- createSNOMEDindices(SNOMED)
 	assign('metadata', value = list(source = 'sample',
-		active_only = FALSE), envir = SNOMED)
+		active_only = FALSE, version = 'Sample'), envir = SNOMED)
 	return(SNOMED)
 }
 
@@ -346,32 +359,25 @@ getSNOMED <- function(SNOMEDname = 'SNOMED'){
 	if (!is.environment(SNOMED)){
 		stop('SNOMED is not an environment')
 	}
-	if (!('CONCEPT' %in% data.table::tables(env = SNOMED,
-		silent = TRUE)$NAME)){
+	if (is.null(SNOMED$CONCEPT)){
 		stop('No table named CONCEPT in SNOMED environment')
 	}
-	if (!('RELATIONSHIP' %in% data.table::tables(env = SNOMED,
-		silent = TRUE)$NAME)){
+	if (is.null(SNOMED$RELATIONSHIP)){
 		stop('No table named RELATIONSHIP in SNOMED environment')
 	}
-	if (!('STATEDRELATIONSHIP' %in% data.table::tables(env = SNOMED,
-		silent = TRUE)$NAME)){
+	if (is.null(SNOMED$STATEDRELATIONSHIP)){
 		stop('No table named STATEDRELATIONSHIP in SNOMED environment')
 	}
-	if (!('DESCRIPTION' %in% data.table::tables(env = SNOMED,
-		silent = TRUE)$NAME)){
+	if (is.null(SNOMED$DESCRIPTION)){
 		stop('No table named DESCRIPTION in SNOMED environment')
 	}
-	if (!('REFSET' %in% data.table::tables(env = SNOMED,
-		silent = TRUE)$NAME)){
+	if (is.null(SNOMED$REFSET)){
 		stop('No table named REFSET in SNOMED environment')
 	}
-	if (!('SIMPLEMAP' %in% data.table::tables(env = SNOMED,
-		silent = TRUE)$NAME)){
+	if (is.null(SNOMED$SIMPLEMAP)){
 		stop('No table named SIMPLEMAP in SNOMED environment')
 	}
-	if (!('EXTENDEDMAP' %in% data.table::tables(env = SNOMED,
-		silent = TRUE)$NAME)){
+	if (is.null(SNOMED$EXTENDEDMAP)){
 		stop('No table named EXTENDEDMAP in SNOMED environment')
 	}
 	# Return the retrieved environment
@@ -471,3 +477,4 @@ loadREADMAPS <- function(not_assured_rcsctmap_uk,
 		by = conceptId], by = 'conceptId')
 	READMAPS
 }
+

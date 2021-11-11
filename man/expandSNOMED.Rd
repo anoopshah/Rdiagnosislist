@@ -10,21 +10,22 @@ expandSNOMED(x, SNOMED = getSNOMED())
 
 contractSNOMED(x, SNOMED = getSNOMED())
 
-showCodelistHierarchy(
-  x,
-  SNOMED = getSNOMED(),
-  show_excluded_descendants = TRUE
-)
+showCodelistHierarchy(x, SNOMED = getSNOMED(), max_excluded_descendants = 200)
 }
 \arguments{
 \item{x}{SNOMEDcodelist to expand or contract}
 
 \item{SNOMED}{environment containing a SNOMED dictionary}
 
-\item{show_excluded_descendants}{(logical) whether to show excluded
-descendants of terms in the codelist, with an 'included' column
-stating which terms are included. This can make it easy to see
-if a codelist is consistent with the SNOMED CT ontology}
+\item{max_excluded_descendants}{(integer) whether to show excluded
+descendants as long as they do not exceed this number (a
+limit is suggested to avoid the program crashing if there
+are too many descendants). If this number is exceeded, the
+program will initially try to include children only, and if
+there are still too many, it will ignore all descendants.
+An 'included' column is added to the codelist
+showing which terms are included. This can make it easy to see
+if a codelist is consistent with the SNOMED CT ontology.}
 }
 \value{
 An object of class 'SNOMEDcodelist' with attribute
@@ -50,14 +51,20 @@ contractSNOMED(expanded_codelist)
 \seealso{
 Other SNOMEDcodelist functions: 
 \code{\link{SNOMEDcodelist}()},
-\code{\link{is.SNOMEDcodelist}()}
+\code{\link{export}()},
+\code{\link{is.SNOMEDcodelist}()},
+\code{\link{print.SNOMEDcodelist}()}
 
 Other SNOMEDcodelist functions: 
 \code{\link{SNOMEDcodelist}()},
-\code{\link{is.SNOMEDcodelist}()}
+\code{\link{export}()},
+\code{\link{is.SNOMEDcodelist}()},
+\code{\link{print.SNOMEDcodelist}()}
 
 Other SNOMEDcodelist functions: 
 \code{\link{SNOMEDcodelist}()},
-\code{\link{is.SNOMEDcodelist}()}
+\code{\link{export}()},
+\code{\link{is.SNOMEDcodelist}()},
+\code{\link{print.SNOMEDcodelist}()}
 }
 \concept{SNOMEDcodelist functions}
