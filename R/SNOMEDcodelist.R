@@ -151,7 +151,10 @@ SNOMEDcodelist <- function(x, include_desc = FALSE,
 	
 	out <- expandDescendants(out, TRUE, SNOMED = SNOMED)
 	out <- expandDescendants(out, FALSE, SNOMED = SNOMED)
-	
+
+	# Reset the descendants marker now that all descendants are listed
+	out[, include_desc := FALSE]
+
 	# Remove exclusion terms
 	toremove <- out[included == FALSE]$conceptId
 	if (length(toremove) > 0){

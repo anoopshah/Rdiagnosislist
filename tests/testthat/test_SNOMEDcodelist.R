@@ -74,15 +74,30 @@ test_that('Codelist with missing descriptions', {
 })
 
 test_that('Expand and contract codelists', {
-	my_concepts <- as.SNOMEDconcept('Heart failure',
+	my_concepts <- SNOMEDconcept('Heart failure',
 		SNOMED = sampleSNOMED())
-	my_codelist <- SNOMEDcodelist(data.frame(conceptId = my_concepts,
-		include_desc = TRUE), SNOMED = sampleSNOMED(), format = 'tree')
-	expanded_codelist <- expandSNOMED(my_codelist, SNOMED = sampleSNOMED())
-	roundtrip_codelist <- contractSNOMED(expanded_codelist, SNOMED = sampleSNOMED())
-	data.table::setindex(my_codelist, NULL)
-	data.table::setindex(roundtrip_codelist, NULL)
-	expect_equal(all.equal(my_codelist, roundtrip_codelist), TRUE)
+	orig <- SNOMEDcodelist(data.frame(conceptId = my_concepts,
+		include_desc = TRUE), SNOMED = sampleSNOMED(),
+		format = 'simple')[1:50]
+	e1 <- expandSNOMED(orig, SNOMED = sampleSNOMED())
+	e2 <- SNOMEDcodelist(orig, format = 'tree',
+		SNOMED = sampleSNOMED(), show_excluded_descendants = TRUE)
+	e3 <- SNOMEDcodelist(orig, format = 'exptree',
+		SNOMED = sampleSNOMED(), show_excluded_descendants = TRUE)
+	e4 <- contractSNOMED(e2, SNOMED = sampleSNOMED())
+	e5 <- contractSNOMED(e3, SNOMED = sampleSNOMED())
+	e1a <- SNOMEDcodelist(e1, format = 'simple', SNOMED = sampleSNOMED())
+	e2a <- SNOMEDcodelist(e2, format = 'simple', SNOMED = sampleSNOMED())
+	e3a <- SNOMEDcodelist(e3, format = 'simple', SNOMED = sampleSNOMED())
+	e4a <- SNOMEDcodelist(e4, format = 'simple', SNOMED = sampleSNOMED())
+	e5a <- SNOMEDcodelist(e5, format = 'simple', SNOMED = sampleSNOMED())
+	
+	expect_equal(all.equal(e4, e5), TRUE) # contracted tree
+	expect_equal(all.equal(orig, e1a), TRUE) # exptree
+	expect_equal(all.equal(orig, e2a), TRUE) # tree, incl excluded
+	expect_equal(all.equal(orig, e3a), TRUE) # exptree, incl excluded
+	expect_equal(all.equal(orig, e4a), TRUE) # tree, incl excluded -> tree
+	expect_equal(all.equal(orig, e5a), TRUE) # exptree, incl excluded -> tree
 })
 
 test_that('Related concepts for a NULL list', {
@@ -135,7 +150,8 @@ test_that('Safely contract codelist', {
 })
 
 test_that('Codelist with some concepts not in dictionary', {
-	myconcepts <- as.SNOMEDconcept(c('78408007',
+	myconcepts <- SNOMEDconcept(c('78408007',
 		'78643003', '9999999999'))
-	expect_equal(nrow(as.SNOMEDcodelist(myconcepts)), 3)
+	expect_equal(nrow(SNOMEDcodelist(myconcepts,
+		SNOMED = sampleSNOMED())), 3)
 })
