@@ -5,15 +5,17 @@
 \title{Export a SNOMEDcodelist hierarchy to HTML}
 \usage{
 htmlCodelistHierarchy(
-  codelist_with_hierarchy,
+  x,
   file = NULL,
   title = NULL,
   description = NULL,
-  extracols = NULL
+  extracols = NULL,
+  ...
 )
 }
 \arguments{
-\item{codelist_with_hierarchy}{output of showCodelistHierarchy}
+\item{x}{SNOMEDcodelist or codelistHierarchy (output of
+showCodelistHierarchy)}
 
 \item{file}{filename to export to. If NULL, no file is written}
 

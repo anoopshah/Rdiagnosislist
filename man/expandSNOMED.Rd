@@ -6,16 +6,24 @@
 \alias{showCodelistHierarchy}
 \title{Expand or contract a SNOMEDcodelist}
 \usage{
-expandSNOMED(x, SNOMED = getSNOMED())
+expandSNOMED(x, SNOMED = getSNOMED(), ...)
 
-contractSNOMED(x, SNOMED = getSNOMED())
+contractSNOMED(x, SNOMED = getSNOMED(), ...)
 
-showCodelistHierarchy(x, SNOMED = getSNOMED(), max_excluded_descendants = 200)
+showCodelistHierarchy(
+  x,
+  SNOMED = getSNOMED(),
+  max_excluded_descendants = 200,
+  ...
+)
 }
 \arguments{
-\item{x}{SNOMEDcodelist to expand or contract}
+\item{x}{SNOMEDcodelist to expand or contract. If x is not a
+SNOMEDcodelist, it is coerced to one by as.SNOMEDcodelist}
 
 \item{SNOMED}{environment containing a SNOMED dictionary}
+
+\item{...}{other arguments to pass to as.SNOMEDcodelist}
 
 \item{max_excluded_descendants}{(integer) whether to show excluded
 descendants as long as they do not exceed this number (a

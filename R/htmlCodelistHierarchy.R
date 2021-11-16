@@ -2,7 +2,8 @@
 #'
 #' Exports a codelist with hierarchy as HTML for easy viewing.
 #'
-#' @param codelist_with_hierarchy output of showCodelistHierarchy
+#' @param x SNOMEDcodelist or codelistHierarchy (output of
+#'   showCodelistHierarchy)
 #' @param file filename to export to. If NULL, no file is written
 #' @param title title of HTML document
 #' @param description paragraph of description text (excluding
@@ -20,12 +21,15 @@
 #'   include_desc = TRUE))
 #' codelist_with_hierarchy <- showCodelistHierarchy(my_codelist)
 #' htmlCodelistHierarchy(codelist_with_hierarchy)
-htmlCodelistHierarchy <- function(codelist_with_hierarchy,
-	file = NULL, title = NULL, description = NULL, extracols = NULL){
+htmlCodelistHierarchy <- function(x, file = NULL, title = NULL,
+	description = NULL, extracols = NULL, ...){
 
 	included <- out <- rowid <- conceptId <- NULL
 	
-	x <- codelist_with_hierarchy[order(roworder)]
+	if (!('codelistHierarchy' %in% class(x))){
+		x <- showCodelistHierarchy(x, ...)
+	}
+	x <- data.table::copy(x)[order(roworder)]
 	if (!is.null(extracols)){
 		extracols <- intersect(colnames(codelist_with_hierarchy),
 			extracols)

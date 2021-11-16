@@ -135,11 +135,15 @@ SNOMEDcodelist <- function(x, include_desc = FALSE,
 	# Expand to show descendants for inclusion and exclusion subsets
 	expandDescendants <- function(x, inclusion, SNOMED){
 		if (any(x$include_desc == TRUE & x$included == inclusion)){
-			desc <- descendants(x[include_desc == TRUE &
-				included == inclusion]$conceptId, SNOMED = SNOMED)
-			return(rbind(x, data.table(conceptId =
-				setdiff(desc, x[included == inclusion]$conceptId),
+			desc <- setdiff(descendants(x[include_desc == TRUE &
+				included == inclusion]$conceptId, SNOMED = SNOMED),
+				x[included == inclusion]$conceptId)
+			if (length(desc) > 0){
+				return(rbind(x, data.table(conceptId = desc,
 				include_desc = NA, included = inclusion), fill = TRUE))
+			} else {
+				return(x)
+			}
 		} else {
 			return(x)
 		}
@@ -148,19 +152,37 @@ SNOMEDcodelist <- function(x, include_desc = FALSE,
 	out <- expandDescendants(out, TRUE, SNOMED = SNOMED)
 	out <- expandDescendants(out, FALSE, SNOMED = SNOMED)
 	
+	# Remove exclusion terms
+	toremove <- out[included == FALSE]$conceptId
+	if (length(toremove) > 0){
+		out <- out[!(conceptId %in% toremove)]
+	}
+	
+	# Remove duplicate rows
+	out[, .dup := duplicated(out[, list(conceptId, include_desc, included)])]
+	out <- out[.dup == FALSE]
+	out[, .dup := NULL]
+	
+	# The codelist is now in 'simple' format
+	# i.e. one row per concept, included concepts only
+	
+	# 2. CONVERT TO DESIRED FORMAT
 	if (show_excluded_descendants == TRUE &
 		format %in% c('tree', 'exptree')){
 		# Add non-included descendants (for tree format codelists)
-		desc <- setdiff(descendants(out[included == TRUE]$conceptId,
-			SNOMED = SNOMED), out[included == TRUE]$conceptId)
-		# Mark the inclusion terms as encompassing descendants
-		out[included == TRUE, include_desc := TRUE]
-		out <- expandDescendants(out, TRUE, SNOMED = SNOMED)
-		out <- rbind(out, data.table(conceptId = desc,
-			included = FALSE, include_desc = TRUE), fill = TRUE)
+		desc <- setdiff(descendants(out$conceptId, SNOMED = SNOMED),
+			out$conceptId)
+		# Add these concepts to the inclusion and exclusion lists
+		# (so they get excluded)
+		if (length(desc) > 0){
+			out <- rbind(out,
+				data.table(conceptId = desc, included = TRUE,
+				include_desc = FALSE), 
+				data.table(conceptId = desc, included = FALSE,
+				include_desc = FALSE), fill = TRUE)
+		}
 	}
 	
-	# 2. CONVERT TO DESIRED FORMAT
 	simpleToTree <- function(conceptIds,
 		include_desc = logical(length(conceptIds)), SNOMED = SNOMED){
 		# Returns include_desc (TRUE, FALSE, NA) for a set of conceptIds
@@ -189,19 +211,10 @@ SNOMEDcodelist <- function(x, include_desc = FALSE,
 	if (format %in% c('tree', 'exptree')){
 		out[included == TRUE, include_desc := simpleToTree(conceptId,
 			include_desc, SNOMED = SNOMED)]
-		out[included == FALSE, include_desc := simpleToTree(conceptId,
-			include_desc, SNOMED = SNOMED)]
-	}
-
-	if (format == 'simple'){
-		# Remove non-included terms
 		if (any(out$included == FALSE)){
-			# Exclude all entries with included=FALSE
-			# (even if there is a duplicate entry with included=TRUE
-			# because exclusion takes priority over inclusion)
-			out <- out[!(conceptId %in% out[included == FALSE]$conceptId)]
+			out[included == FALSE, include_desc :=
+				simpleToTree(conceptId, include_desc, SNOMED = SNOMED)]
 		}
-		out[, included := NULL]
 	}
 	
 	if (format == 'tree'){
@@ -228,10 +241,13 @@ SNOMEDcodelist <- function(x, include_desc = FALSE,
 	}
 
 	if (format == 'simple'){
-		# include_desc must not be included
+		# include_desc and included must not be included
 		out[, include_desc := NULL]
+		out[, included := NULL]
+		data.table::setkeyv(out, 'conceptId')
 		data.table::setcolorder(out, c('conceptId', 'term'))
 	} else {
+		data.table::setkeyv(out, c('included', 'conceptId'))
 		data.table::setcolorder(out, c('conceptId',
 			'include_desc', 'included', 'term'))
 	}
@@ -287,7 +303,8 @@ as.SNOMEDcodelist <- function(x, ...){
 #' includes all hierarchies contained within the codelist in a 
 #' format suitable for display.
 #'
-#' @param x SNOMEDcodelist to expand or contract
+#' @param x SNOMEDcodelist to expand or contract. If x is not a
+#'   SNOMEDcodelist, it is coerced to one by as.SNOMEDcodelist
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param max_excluded_descendants (integer) whether to show excluded
 #'   descendants as long as they do not exceed this number (a
@@ -298,6 +315,7 @@ as.SNOMEDcodelist <- function(x, ...){
 #'   An 'included' column is added to the codelist
 #'   showing which terms are included. This can make it easy to see
 #'   if a codelist is consistent with the SNOMED CT ontology.
+#' @param ... other arguments to pass to as.SNOMEDcodelist
 #' @return An object of class 'SNOMEDcodelist' with attribute
 #'    Expanded = TRUE
 #' @family SNOMEDcodelist functions
@@ -310,22 +328,24 @@ as.SNOMEDcodelist <- function(x, ...){
 #'   include_desc = TRUE))
 #' expanded_codelist <- expandSNOMED(my_codelist)
 #' contractSNOMED(expanded_codelist)
-expandSNOMED <- function(x, SNOMED = getSNOMED()){
-	as.SNOMEDcodelist(x, format = 'exptree', SNOMED = SNOMED)
+expandSNOMED <- function(x, SNOMED = getSNOMED(), ...){
+	x <- as.SNOMEDcodelist(x, ...)
+	SNOMEDcodelist(x, format = 'exptree', SNOMED = SNOMED)
 }
 
 #' @rdname expandSNOMED
 #' @family SNOMEDcodelist functions
 #' @export
-contractSNOMED <- function(x, SNOMED = getSNOMED()){
-	as.SNOMEDcodelist(x, format = 'tree', SNOMED = SNOMED)
+contractSNOMED <- function(x, SNOMED = getSNOMED(), ...){
+	x <- as.SNOMEDcodelist(x, ...)
+	SNOMEDcodelist(x, format = 'tree', SNOMED = SNOMED)
 }
 
 #' @rdname expandSNOMED
 #' @family SNOMEDcodelist functions
 #' @export
 showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
-	max_excluded_descendants = 200){
+	max_excluded_descendants = 200, ...){
 	# Contract a SNOMED CT codelist, show the terms in a 
 	# sensible order and optionally show terms not included
 	# that are descendants of included terms 
@@ -339,6 +359,9 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 	duplicate <- childrowid <- descendantrowid <- NULL
 	allthisrowid <- alldescendantrowid <- NULL
 	
+	# Ensure that x is a SNOMEDcodelist
+	x <- as.SNOMEDcodelist(x, ...)
+	
 	out <- expandSNOMED(data.table::copy(x), SNOMED = SNOMED)
 	out[, included := TRUE]
 	out <- out[!duplicated(out)] # remove duplicates of entire rows
@@ -349,7 +372,7 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 	}
 	
 	if (max_excluded_descendants > 0){
-		desc <- as.SNOMEDcodelist(setdiff(
+		desc <- SNOMEDcodelist(setdiff(
 			descendants(out$conceptId, SNOMED = SNOMED),
 			out$conceptId), include_desc = FALSE)
 		if (nrow(desc) > 0){
@@ -528,7 +551,11 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 
 	# Sort by roworder
 	data.table::setkeyv(out, 'roworder')
-
+	
+	# Return the output as 'codelistHierarchy' class so that
+	# it can be correctly handled by htmlCodelistHierarchy
+	data.table::setattr(out, 'class', c('codelistHierarchy',
+		'SNOMEDcodelist', 'data.table', 'data.frame'))
 	out[]
 }
 
@@ -559,8 +586,7 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 #' @export
 is.SNOMEDcodelist <- function(x, format = NULL, codelist_name = NULL,
 	version = NULL, author = NULL, date = NULL, SNOMED = NULL){
-	if (identical(class(x), c('SNOMEDcodelist', 'data.table',
-		'data.frame'))){
+	if ('SNOMEDcodelist' %in% class(x) & is.data.table(x)){
 		if ((identical(attr(x, 'format'), 'tree') |
 			identical(attr(x, 'format'), 'exptree') |
 			identical(attr(x, 'format'), 'simple')) &
