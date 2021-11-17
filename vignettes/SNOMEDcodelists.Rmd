@@ -201,7 +201,25 @@ relatedConcepts('Heart', 'Finding site', reverse = TRUE)
 SNOMED CT codelists
 -------------------
 
-The SNOMED CT codelist data type allows a list of SNOMED CT concepts to be curated. It allows codelists to be expressed in a contracted (simplified) form with descendants implicitly included.
+The SNOMED CT codelist data type allows a list of SNOMED CT concepts to be curated. It allows codelists to be expressed in three formats:
+
+- simple -- a simple list of concepts, one row per concept. It contains at least 2 columns: 'conceptId' and 'term'
+- tree -- a hierarchical list, in which each concept may be a single concept or include its descendants. It contains at least 4 columns: 'conceptId', 'term', 'include_desc' (whether descendants of the term are included) and 'included' (TRUE means it is an inclusion concept, FALSE means it is excluded)
+- exptree -- tree format codelists in which the descendants are also enumerated, and have a missing (NA) entry in the 'include_desc' column
+
+Tree format codelists may be more concise and easier to understand, but generally need to be converted to the 'simple' format (either using this package or equivalent functionality in a SNOMED CT server) in order to be used in practice, e.g. to run queries in a database. The result of the conversion may vary depending on the version of SNOMED CT used.
+
+SNOMEDcodelist objects can be constructed using the function SNOMEDcodelist. The function 'is.SNOMEDcodelist' checks if an object is a SNOMEDcodelist (and optionally whether it is of the specified type), and 'as.SNOMEDcodelist' converts an object to a SNOMEDcodelist if it is not already.
+
+The following items of metadata can be stored as part of a SNOMEDcodelist object:
+
+- codelist_name (can be specified as an argument to the SNOMEDcodelist function)
+- author (can be specified as an argument to the SNOMEDcodelist function)
+- version (can be specified as an argument to the SNOMEDcodelist function)
+- date (can be specified as an argument to the SNOMEDcodelist function)
+- sct_version (SNOMED CT version taken from the SNOMED environment that was used to create the codelist)
+- timestamp (automatically created)
+- format ('simple', 'tree' or 'exptree')
 
 ```{r}
 SNOMED <- sampleSNOMED()
@@ -209,28 +227,45 @@ SNOMED <- sampleSNOMED()
 # Create a codelist containing all the descendants of
 # the concept 'Heart failure'
 my_heart_failure_codelist <- SNOMEDcodelist(
-  SNOMEDconcept('Heart failure'), include_desc = TRUE)
+  SNOMEDconcept('Heart failure'), include_desc = TRUE,
+  format = 'simple', codelist_name = 'Heart failure')
 
 # Original codelist
 print(my_heart_failure_codelist)
 
-# Expanded codelist
-expanded <- expandSNOMED(my_heart_failure_codelist)
-print(expanded)
-
-# Contract codelist
-contracted <- contractSNOMED(expanded)
-print(contracted)
+# Convert to tree format
+tree <- SNOMEDcodelist(my_heart_failure_codelist, format = 'tree')
+print(tree)
 
 # Write out codelist to file
-write.csv(my_heart_failure_codelist, file = paste0(tempdir(),
-  '/hf_codes.csv'), row.names = FALSE)
+# Metadata are stored in a column named 'metadata'
+# export(tree, file = paste0(tempdir(), '/hf_codes.csv'))
 
-# Reload codelist from file
-reloaded_codelist <- as.SNOMEDcodelist(
-  data.table::fread(paste0(tempdir(), '/hf_codes.csv')))
-print(reloaded_codelist)
+# Reload codelist from file (including metadata)
+# reloaded_codelist <- as.SNOMEDcodelist(
+#  data.table::fread(paste0(tempdir(), '/hf_codes.csv')))
+# print(reloaded_codelist)
 ```
+
+SNOMED CT simple refsets
+-----------------
+
+Refsets are sets of SNOMED CT terms (like codelists) that are supplied as part of the SNOMED CT distribution and are used for operational purposes. They are included in the REFSET table in the SNOMED dictionary. The getRefset function retrieves a particular refset. Each refset has a name which is a SNOMED CT concept of semantic type 'foundation metadata concept'.
+
+```{r}
+SNOMED = sampleSNOMED()
+
+# Obtain a list of available refsets with descriptions and counts
+merge(SNOMED$REFSET[, .N, by = list(conceptId = refsetId)],
+  SNOMED$DESCRIPTION[, list(conceptId, term)], by = 'conceptId')
+
+# Obtain a refset as a SNOMEDconcept vector
+renal_ref <- getRefset('Renal clinical finding simple reference set')
+
+# Find out whether a concept is included in a refset
+SNOMEDconcept('Renal failure') %in% renal_ref
+```
+ 
 
 Mapping between SNOMED CT and ICD-10 and OPCS4
 ----------------------------------------------

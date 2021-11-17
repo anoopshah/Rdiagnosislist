@@ -2,12 +2,12 @@
 % Please edit documentation in R/mapping.R
 \name{getMaps}
 \alias{getMaps}
-\title{Obtain mapped Read 2 and CTV3 concepts for SNOMED CT concepts}
+\title{Obtain Read 2, CTV3, ICD-10 and OPCS4 maps for SNOMED CT concepts}
 \usage{
 getMaps(
   x,
   mappingtable = NULL,
-  to = c("read2", "ctv3", "icd10", "opcs4"),
+  to = c("read2", "ctv3", "icd10", "opcs4", "ctv3simple"),
   SNOMED = getSNOMED(),
   single_row_per_concept = TRUE
 )
@@ -15,8 +15,8 @@ getMaps(
 \arguments{
 \item{x}{SNOMEDcodelist or SNOMEDconcept object. If it is a
 SNOMEDconcept object it is first converted to a SNOMEDcodelist.
-If it is a SNOMEDcodelist it is expanded, and any existing columns
-named 'read2_code' or 'read2_term' (if adding Read 2 maps) or
+If it is a SNOMEDcodelist it is first converted to 'simple' format.
+Columns named 'read2_code' or 'read2_term' (if adding Read 2 maps) or
 'ctv3_concept' or ctv3_termid' (if adding CTV3 maps) will be
 overwritten.}
 
@@ -27,9 +27,12 @@ It must contain a unique field 'conceptId', and fields named
 'read2_code' and 'read2_term' (for mapping to Read 2)
 or 'ctv3_concept' and 'ctv3_termid' (for mapping to CTV3).}
 
-\item{to}{character vector stating which terminologies to map to,
-either 'read2' or 'ctv3'; include both if both maps are required.
-Beware that including both maps may result in a significant expansion
+\item{to}{character vector stating which terminologies to map to.
+Options are 'icd10', 'opcs4', 'ctv3simple' (use tables included
+within the SNOMED dictionary), or 'read2' or 'ctv3' (require a
+separate mapping table such as READMAPS).
+Beware that including multiple destination terminologies may
+result in a significant expansion
 of the number of rows if single_row_per_concept is FALSE.}
 
 \item{SNOMED}{an environment containing the SNOMED CT dictionary.
@@ -43,20 +46,29 @@ multiple rows per concept (one for each map).}
 }
 \value{
 a data.table containing the columns conceptId and either
-  'read2_code' and 'read2_term' (for mapping to Read 2)
-  or 'ctv3_concept' and 'ctv3_termid' (for mapping to CTV3).
-  There may be multiple rows per conceptId; also each Read 2 or CTV3 
-  term may be mapped to multiple SNOMED CT concepts.
+  'read2_code' and 'read2_term' (for mapping to Read 2),
+  'ctv3_concept' and 'ctv3_termid' (for mapping to CTV3 using the
+  mapping table), 'ctv3_simple' (mapping to CTV3 using SIMPLEMAP
+  within the SNOMED dictionary), 'icd10_code' or 'opcs4_code'
+  (mapped using EXTENDEDMAP within the SNOMED dictionary).
+  If single_row_per_concept is TRUE, the mapped rows are of type
+  'list' and the output is also a SNOMEDcodelist in 'simple' format,
+  otherwise the output may have multiple rows per
+  conceptId. Note that each Read 2, CTV3, ICD-10 or OPCS4 term may
+  be mapped to multiple SNOMED CT concepts.
 }
 \description{
-Returns concepts in Read Clinical Terms Version 2 (Read 2) and 
-Clinical Terms Version 3 (CTV3) that map to a set of SNOMED CT
-concepts, according to a supplied mapping file.
+Returns concepts mapped to SNOMED CT from either the
+SIMPLEMAP table in the SNOMED dictionay (Clinical Terms Version 3,
+CTV3 maps, one per concept),
+the EXTENDEDMAP table (ICD-10 and OPCS4 maps) or a separate mapping
+table with Read Clinical Terms Version 2 (Read 2) and 
+CTV3 maps. A sample mapping table (READMAPS) is provided.
 }
 \details{
-We recommend this function is used with a mapping file
-containing 'forward' mappings from Read 2 and CTV3 codes to
-SNOMED CT, as included in the NHS Digital 'Data Migration' pack.
+The mapping table can be created from the NHS Digital 'Data
+Migration' pack files which contain 'forward' maps of Read 2 and
+CTV3 to SNOMED CT.
 These are intended for converting individual
 entries in electronic health records to SNOMED CT. The 
 'forward' map files contain a SNOMED CT map for every Read 2 or
@@ -92,7 +104,7 @@ getMaps(descendants(SNOMEDconcept('Heart failure')),
   mappingtable = READMAPS, to = 'read2')
 # Example: Mapping a codelist
 getMaps(SNOMEDcodelist(SNOMEDconcept('Heart failure')),
-  mappingtable = READMAPS, to = 'ctv3')
+  mappingtable = READMAPS, to = c('ctv3', 'ctv3simple', 'icd10'))
 }
 \seealso{
 READMAPS, loadREADMAPS
