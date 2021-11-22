@@ -304,6 +304,8 @@ Clinical Terms Version 3 (CTV3) that map to a set of SNOMED CT concepts.
 
 These maps can be used for converting SNOMED CT codelists into Read 2 or CTV3 format for running queries, such as to characterise patient phenotypes or identify patient populations for research. They cannot be used in the reverse direction (to map a Read 2/CTV3 codelist to SNOMED CT) because some of the SNOMED CT terms will be missed out, and the list will be incomplete.
 
+Use the 'unlist' function, followed by deduplication, to create a table of concepts in another coding system mapped from SNOMED CT, as in the example below.
+
 ```{r}
 # Example: creating a Read heart failure codelist using SNOMED CT
 SNOMED <- sampleSNOMED()
@@ -319,7 +321,8 @@ single_row_maps <- getMaps(my_heart_failure_codelist,
   single_row_per_concept = TRUE)
 
 # Display the maps - one row per concept (long terms truncated)
-print(single_row_maps[, list(term = substr(term, 1, 10), read2_code, ctv3_concept)])
+print(single_row_maps[, list(term = substr(term, 1, 10), read2_code,
+  ctv3_concept)])
 
 multi_row_maps <- getMaps(my_heart_failure_codelist,
   mappingtable = READMAPS, to = 'read2',
@@ -328,6 +331,11 @@ multi_row_maps <- getMaps(my_heart_failure_codelist,
 # Display the maps - multiple rows per concept (long terms truncated)
 print(multi_row_maps[, list(term = substr(term, 1, 10), read2_code,
   read2_term = substr(read2_term, 1, 30))])
+  
+# Create a standalone Read2 codelist
+read_codelist <- data.table(code = unlist(single_row_maps$read2_code),
+  term = unlist(single_row_maps$read2_term))
+print(read_codelist[!duplicated(read_codelist)][order(code)])
 ```
 
 More information

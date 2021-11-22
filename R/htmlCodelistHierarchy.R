@@ -38,6 +38,8 @@ htmlCodelistHierarchy <- function(x, file = NULL, title = NULL,
 		extracols <- NULL
 	}
 
+	x[, checked := as.logical(NA)]
+	x[, comment := 'Add...']
 # TODO
 # Columns:
 # 1. 'Expand/Contract' button (toggle) with pressed / unpressed style
@@ -88,6 +90,26 @@ td, th {border-bottom: 1px solid #ddd; padding: 1px; text-align: left}
 .remove {background-color: red; color: white}
 tr:hover {background-color: #D6EEEE;}</style>',
 '<script type="text/javascript">
+const c_allrows = [', paste(x$rowid, collapse = ','), '];
+function showuncheckedrows(rows){
+  if (document.getElementById("showuncheckedbutton").innerHTML ==
+      "Show unchecked concepts only"){
+    clearhighlight();
+    let all_checked = true;
+    rows.forEach(function(thisrow) {
+      if (document.getElementById("checked".concat(thisrow)).innerHTML == "Y"){
+        hiderow(thisrow);
+      } else {
+        all_checked = false;
+        showrow(thisrow);
+      }
+    })
+    if (all_checked == true){
+      document.getElementById("showuncheckedbutton").innerHTML =
+        "<strong>ALL CONCEPTS CHECKED!</strong>";
+    }
+  }
+}
 function toggle(thisrow, childrows, descendantrows){
   clearhighlight();
   if (document.getElementById("buttree".concat(thisrow)).innerHTML == "Expand"){
@@ -106,31 +128,52 @@ function changebuttonexpand(rownum){
   var mybutton = document.getElementById("buttree".concat(rownum));
   if (typeof(mybutton) != "undefined" && mybutton != null){
     mybutton.innerHTML = "Expand"
-    mybutton.backgroundColor = "yellow"
   }
 }
 function changebuttoncontract(rownum){
   var mybutton = document.getElementById("buttree".concat(rownum));
   if (typeof(mybutton) != "undefined" && mybutton != null){
     mybutton.innerHTML = "Contract"
-    mybutton.backgroundColor = "#D6D6D6"
   }
 }
 function clearhighlight(){
   /* Clears all highlights on all rows */
-  [', paste(x$rowid, collapse = ','), '].forEach(backwhite);
+  c_allrows.forEach(backwhite);
 }
 function selectrow(rownum){
   document.getElementById("term".concat(rownum)
     ).style.color = "black";
   document.getElementById("include".concat(rownum)
     ).style.color = "black";
+  document.getElementById("checked".concat(rownum)
+    ).style.color = "black";
   document.getElementById("include".concat(rownum)
     ).innerHTML = "Y";
+}
+function checkrow(rownum){
+  document.getElementById("checked".concat(rownum)
+    ).innerHTML = "Y";
+}
+function checkrows(rows_to_check){
+  clearhighlight();
+  rows_to_check.forEach(checkrow);
+  rows_to_check.forEach(highlightrow);
+  /* Check if all are checked */
+  var all_checked = true
+  c_allrows.forEach(function(i) {
+    if (document.getElementById("checked".concat(i)).innerHTML != "Y"){
+      all_checked = false;
+    }
+  })
+  if (all_checked == true){
+    document.getElementById("showuncheckedbutton").innerHTML =
+      "<strong>ALL CONCEPTS CHECKED!</strong>";
+  }
 }
 function selectrows(thisrow, rows_to_select){
   clearhighlight();
   rows_to_select.forEach(selectrow);
+  rows_to_select.forEach(checkrow);
   rows_to_select.forEach(highlightrow);
 }
 function deselectrow(rownum){
@@ -138,13 +181,27 @@ function deselectrow(rownum){
     ).style.color = "red";
   document.getElementById("include".concat(rownum)
     ).style.color = "red";
+  document.getElementById("checked".concat(rownum)
+    ).style.color = "red";
   document.getElementById("include".concat(rownum)
     ).innerHTML = "N";
 }
 function deselectrows(thisrow, rows_to_deselect){
   clearhighlight();
   rows_to_deselect.forEach(deselectrow);
+  rows_to_deselect.forEach(checkrow);
   rows_to_deselect.forEach(highlightrow);
+}
+function uncheckrow(rownum){
+  document.getElementById("checked".concat(rownum)
+    ).innerHTML = "N";
+  document.getElementById("showuncheckedbutton").innerHTML =
+    "Show unchecked concepts only"
+}
+function uncheckrows(rows_to_uncheck){
+  clearhighlight();
+  rows_to_uncheck.forEach(uncheckrow);
+  rows_to_uncheck.forEach(highlightrow);
 }
 function highlightrow(rownum){
   document.getElementById("row".concat(rownum)
@@ -172,27 +229,58 @@ function showall(rows){
   rows.forEach(changebuttoncontract);
   rows.forEach(showrow);
 }
+function addcomment(thisrow_ids){
+  /* Get comment from user -- TO WRITE */
+  var comment = prompt("Comment", "").replace("<", "").replace(">", "");
+  if (comment == "") {comment = "Add...";}
+  thisrow_ids.forEach(function(i) {
+    var cells = document.getElementById("comment".concat(i)
+      ).innerHTML.split(">");
+    document.getElementById("comment".concat(i)
+      ).innerHTML = cells[0] + ">" + comment + "</a>";
+  })
+}
 function exportall(){
   /* Get filename to export to */
   var filename = document.getElementById("exportfilename").value;
   /* Exports all selected terms to a text document */
   const dictionary = {', concept_dict, '}
-  var output = "conceptId,term\\r\\n"
+  var output = "conceptId,term,include_desc,included,checked,comment\\r\\n"
   var space = document.getElementById("sample").innerHTML
   var term
+  var included
+  var comment
+  var checked
   /* Loop through concepts, check the relevant included field */
-  for (var key in dictionary) {
-    if (dictionary.hasOwnProperty(key)) {
+  for (var conceptId in dictionary) {
+    if (dictionary.hasOwnProperty(conceptId)) {
       if (document.getElementById("include".concat(
-        dictionary[key])).innerHTML == "Y"){
-          /* parse term */
-          term = document.getElementById("term".concat(dictionary[key])).innerHTML
-          term = term.replace("<strong>",
-            "").replace("</strong>", "").split(space
-            ).join("").split("\\"").join(",")
-          /* to print to file */
-          output = output + key + ",\\"" + term + "\\"\\r\\n";
+        dictionary[conceptId])).innerHTML == "Y"){
+        included = "TRUE"
+      } else {
+        included = "FALSE"
       }
+      /* parse comment */
+      comment = document.getElementById("comment".concat(
+        dictionary[conceptId])).innerHTML.replace("</a>",
+        "").replace("<a href", "").split(">")[1]
+      if (comment == "Add..."){
+        comment = ""
+      }
+      if (document.getElementById("checked".concat(
+        dictionary[conceptId])).innerHTML == "Y"){
+        checked = "TRUE"
+      } else {
+        checked = "FALSE"
+      }
+      /* parse term */
+      term = document.getElementById("term".concat(dictionary[conceptId])).innerHTML
+      term = term.replace("<strong>",
+        "").replace("</strong>", "").split(space
+        ).join("").split("\\"").join(",")
+      /* to print to file */
+      output = output + conceptId + ",\\"" + term + "\\",FALSE," +
+        included + "," + checked + ",\\"" + comment + "\\"\\r\\n";
     }
   }
   
@@ -217,22 +305,52 @@ function exportall(){
 }
 </script>
 </head><body><h1>',
-ifelse(is.null(title), 'SNOMED CT codelist', title), '</h1><p>',
-ifelse(is.null(description), '', description),
-'</p><p> <a href="#" onclick="hideall([',
-paste(x$rowid, collapse = ','), '], [',
-paste(unique(unlist(x$descendantrowid)), collapse = ','),
-']);">Show top-level concepts only</a> | <a href="#" onclick="showall([',
-paste(x$rowid, collapse = ','),
-']);">Show all concepts</a></p><p>
-<a href="#" onclick="exportall()">Export selection</a> to
+ifelse(is.null(title), 'SNOMED CT codelist', title), '</h1>',
+ifelse(is.null(description), '', paste0('<h2>Description</h2><p>',
+	description, '</p>')),
+'<h2>Instructions</h2>
+<p>This HTML document presents the hierarchy of SNOMED CT concepts for
+heart failure. In SNOMED CT, each concept has a distinct meaning and can
+be linked to more general terms (ancestors) and more specific terms (descendants). The buttons allow you to explore the codelist at
+different levels of the hierarchy, and mark whether or not you agree
+with the inclusion of individual concepts or concept hierarchies. When
+you have finished your review, you can download your final selection as a .CSV file by clicking the <strong>Export</strong> button below.</p>
+
+<h3>Key to buttons for each concept</h3>
+<ul>
+<li><button class="button tree">Expand</button> Show descendants of this concept</li>
+<li><button class="button tree">Contract</button> Hide descendants of this concept</li>
+<li><button class="button tree"><strong>?</strong></button> Mark as unchecked</li>
+<li><button class="button add"><strong>+</strong></button> Add a concept</li>
+<li><button class="button remove"><strong>-</strong></button> Remove a concept</li>
+<li><button class="button add"><strong>++</strong></button> Add a concept and all descendants</li>
+<li><button class="button remove"><strong>--</strong></button> Remove a concept and all descendants</li>
+</ul>
+
+<h2>Reviewing tools</h2>
+<p><button class="button tree" onclick="hideall(c_allrows, [',
+paste(unique(unlist(x$descendantrowid)), collapse = ','), ']);">',
+'Show top-level concepts only</button> ',
+'<button class="button tree" onclick="showall(c_allrows);">',
+'Show all concepts</button></p>
+<p><button class="button add" onclick="checkrows(c_allrows);">',
+'<strong>Mark all concepts as "checked"</strong></button> ',
+'<button class="button remove" onclick="uncheckrows(c_allrows);">',
+'<strong>Mark all concepts as "unchecked"</strong></button> ',
+'<button id="showuncheckedbutton" class="button tree"
+onclick="showuncheckedrows(c_allrows);">',
+'Show unchecked concepts only</button></p>
+<p><button id="exportbutton" class="button tree" onclick="exportall()">',
+'<strong>Export</strong></button> to
 <input id="exportfilename" value="', title, '"> .csv
 </p>
+
 <table style="width:100%">
 <tr><th>Expand</th><th>SNOMED CT concept</th>',
 ifelse(is.null(extracols), '',
 paste0('<th>', extracols, '</th>', collapse = '')),
-'<th>Include</th><th>Select</th></tr>\n', collapse = '')
+'<th>Comment</th><th>Checked</th><th>Included</th><th></th></tr>\n',
+collapse = '')
 
 	expand_buttons <- function(i){
 		# Button for contracting
@@ -251,6 +369,9 @@ paste0('<th>', extracols, '</th>', collapse = '')),
 	select_buttons <- function(i){
 		# Produces HTML code for buttons for appropriate row
 		out <- paste0(
+			'<button class="button tree" onclick="uncheckrows([',
+			paste(unlist(x[i]$allthisrowid[[1]]),
+			collapse = ','),'])"><strong>?</strong></button>',
 			'<button class="button add" onclick="selectrows(', x[i]$rowid, 
 			', [', paste(unlist(x[i]$allthisrowid[[1]]),
 			collapse = ','),'])"><strong>+</strong></button>',
@@ -275,8 +396,8 @@ paste0('<th>', extracols, '</th>', collapse = '')),
 
 	middle <- lapply(1:nrow(x), function(i){
 		# Creating each table row
-		# Columns: Expand/Contract (button), Term, Include (Y/N),
-		# Select (buttons)
+		# Columns: Expand/Contract (button), Term, Extracols, Comment,
+		# Checked (Y/N/blank), Include (Y/N), Select (buttons)
 		paste(c('<tr id="row', x$rowid[i],
 			'" style="background-color:white;"><td>',
 			expand_buttons(i),
@@ -297,11 +418,24 @@ paste0('<th>', extracols, '</th>', collapse = '')),
 				paste0(sapply(extracols, function(y){
 					paste0('<td>', x[i][[y]], '</td>')
 			}), collapse = '')),
+			'</td><td id="comment', x$rowid[i], '">',
+			'<a href="#" onclick="addcomment([',
+			paste(unlist(x[i]$allthisrowid[[1]]), collapse = ','),'])">',
+			x$comment[i],
+			'</a>',
+			'</td><td id="checked', x$rowid[i], '" ',
+			ifelse(x$included[i] == TRUE,
+				'style="color:black;">',
+				'style="color:red;">'
+			),
+			ifelse(is.na(x$checked[i]), '',
+				ifelse(x$checked[i] == TRUE, 'Y', 'N')),
 			'</td><td id="include', x$rowid[i], '" ',
 			ifelse(x$included[i] == TRUE,
 				'style="color:black;">Y',
 				'style="color:red;">N'
-			), '</td><td>',
+			),
+			'</td><td>',
 			select_buttons(i),
 			'</td></tr>\n'),
 		collapse = '')
