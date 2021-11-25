@@ -14,8 +14,9 @@ htmlCodelistHierarchy(
 )
 }
 \arguments{
-\item{x}{SNOMEDcodelist or codelistHierarchy (output of
-showCodelistHierarchy)}
+\item{x}{a SNOMEDcodelist, codelistHierarchy (output of
+showCodelistHierarchy), or an object which can be coerced to
+a SNOMEDcodelist (such as a SNOMEDconcept vector).}
 
 \item{file}{filename to export to. If NULL, no file is written}
 
@@ -26,6 +27,8 @@ showCodelistHierarchy)}
 
 \item{extracols}{character vector of additional columns of 
 codelist_with_hierarchy to include in HTML output}
+
+\item{...}{extra arguments to pass to as.SNOMEDcodelist}
 }
 \value{
 a character vector containing HTML output
@@ -36,11 +39,15 @@ Exports a codelist with hierarchy as HTML for easy viewing.
 \examples{
 SNOMED <- sampleSNOMED()
 
-my_concepts <- SNOMEDconcept('Heart failure')
+my_concepts <- SNOMEDconcept('Acute heart failure')
 my_codelist <- SNOMEDcodelist(data.frame(conceptId = my_concepts,
   include_desc = TRUE))
-codelist_with_hierarchy <- showCodelistHierarchy(my_codelist)
-htmlCodelistHierarchy(codelist_with_hierarchy)
+htmlCodelistHierarchy(my_codelist, file = paste0(tempdir(),
+  'codelist.html'))
+# The codelist.html file can now be viewed in a web browser
+
+# Clean up temporary file
+file.remove(paste0(tempdir(), 'codelist.html')
 }
 \seealso{
 showCodelistHierarchy

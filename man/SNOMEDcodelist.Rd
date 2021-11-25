@@ -38,6 +38,8 @@ descendant terms ('exptree'). Codelists can be converted
 between the formats, but the result of conversion may depend on
 the SNOMED CT dictionary being used.}
 
+\item{codelist_name}{Name of the codelist (character vector of length 1)}
+
 \item{version}{Version of the codelist (character vector of length 1)}
 
 \item{author}{Author of the codelist (character vector of length 1)}
@@ -51,14 +53,12 @@ descendants alongside the codes included in the codelist (for
 a 'tree' or 'expandedtree' format codelist).}
 
 \item{...}{other arguments to pass to SNOMEDcodelist}
-
-\item{name}{Name of the codelist (character vector of length 1)}
 }
 \value{
 An object of class 'SNOMEDcodelist'
 }
 \description{
-SNOMEDcodelist is an S3 class for lists of SNOMED codes.
+SNOMEDcodelist is an S3 class for lists of SNOMED CT  concepts.
 It consists of conceptId and include_desc columns. The 
 option to include descendants allows the creation of more succinct
 SNOMED codelists.

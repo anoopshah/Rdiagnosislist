@@ -7,10 +7,12 @@
 \usage{
 export(x, ...)
 
-\method{export}{SNOMEDcodelist}(x, filename = NULL)
+\method{export}{SNOMEDcodelist}(x, filename = NULL, ...)
 }
 \arguments{
 \item{x}{SNOMEDcodelist object to export to file}
+
+\item{...}{not used}
 
 \item{filename}{character vector of length 1 for the file
 to write to. If NULL, a filename is generated from the

@@ -91,7 +91,7 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 	# OPCS4 and ICD10 maps included in UK SNOMED CT release
 	# Read V2 and CTV3 included in separate mapping table (data migration)
 	read2_code <- read2_term <- NULL
-	ctv3_concept <- ctv3_termid <- NULL
+	ctv3_concept <- ctv3_termid <- ctv3_simple <- NULL
 	icd10_code <- opcs4_code <- NULL
 	conceptId <- mapPriority <- mapCategoryId <- mapTarget <- NULL
 	referencedComponentId <- refsetId <- NULL

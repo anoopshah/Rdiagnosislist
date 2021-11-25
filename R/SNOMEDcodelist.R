@@ -1,6 +1,6 @@
 #' Convert a data.frame to a SNOMEDcodelist object
 #'
-#' SNOMEDcodelist is an S3 class for lists of SNOMED codes.
+#' SNOMEDcodelist is an S3 class for lists of SNOMED CT  concepts.
 #' It consists of conceptId and include_desc columns. The 
 #' option to include descendants allows the creation of more succinct
 #' SNOMED codelists.
@@ -28,7 +28,7 @@
 #'   descendant terms ('exptree'). Codelists can be converted
 #'   between the formats, but the result of conversion may depend on
 #'   the SNOMED CT dictionary being used.
-#' @param name Name of the codelist (character vector of length 1)
+#' @param codelist_name Name of the codelist (character vector of length 1)
 #' @param version Version of the codelist (character vector of length 1)
 #' @param author Author of the codelist (character vector of length 1)
 #' @param date Date attributed to the codelist (character vector of length 1)
@@ -53,7 +53,11 @@ SNOMEDcodelist <- function(x, include_desc = FALSE,
 	version = NULL, author = NULL, date = NULL,
 	SNOMED = getSNOMED(), show_excluded_descendants = FALSE){
 
+	# Declare variables to be used in data.tables
+	metadata <- included <- .dup <- typeId <- active <- NULL
 	term <- conceptId <- NULL
+
+	# Use the first element of format as the actual export format
 	format <- format[1]
 
 	# 1. GATHER CONCEPTS FOR CODELIST
@@ -469,14 +473,6 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 					
 					out[rowid %in% tocopy$rowid,
 						rowid := (1:.N) + maxrowid]
-					# OLD: this would lead to some rowid being
-					# removed unnecessarily
-					# out[childrows & !is.na(roworder),
-					#	rowid := (1:.N) + maxrowid]
-					# FIXME: Sometimes there is an error
-					# if a rowid is removed, then in the 
-					# next loop thisconcept and thisroworder
-					# have zero length
 				}
 				
 				out[childrows, roworder := thisroworder +
@@ -617,6 +613,7 @@ is.SNOMEDcodelist <- function(x, format = NULL, codelist_name = NULL,
 #' @param filename character vector of length 1 for the file
 #'   to write to. If NULL, a filename is generated from the
 #'   codelist filename.
+#' @param ... not used
 #' @return invisibly returns the exported codelist
 #' @family SNOMEDcodelist functions
 #' @export
@@ -628,7 +625,7 @@ export <- function(x, ...){
 #' @rdname export
 #' @family SNOMEDcodelist functions
 #' @export
-export.SNOMEDcodelist <- function(x, filename = NULL){
+export.SNOMEDcodelist <- function(x, filename = NULL, ...){
 	# Exports a codelist to file.
 	# All metadata must be stored in the codelist.
 
@@ -706,6 +703,8 @@ padTo <- function(string, length){
 printTerms <- function(x){
 	# Prints the table portion of a codelist, using the maximum
 	# available width
+	term <- show <- NULL
+
 	if ('term' %in% colnames(x)){
 		x2 <- data.table::copy(x)
 		# Rename 'include_desc' and 'included' columns
@@ -726,8 +725,8 @@ printTerms <- function(x){
 	} else {
 		x2 <- data.table::copy(x)
 	}
-	setattr(x2, 'class', c('data.table', 'data.frame'))
-	show(x2)
+	data.table::setattr(x2, 'class', c('data.table', 'data.frame'))
+	methods::show(x2)
 }
 
 # Internal function
@@ -761,29 +760,3 @@ makeCodelistFilename <- function(x){
 		as.character(floor(as.numeric(attr(x, 'version')))), '.csv')
 }
 
-# Internal function
-extractMetadataFromColumn <- function(metadata){
-	# Extracts metadata from a character vector (e.g. a metadata column
-	# in a codelist CSV file), returning it in a list
-	# Argument: character vector containing metadata
-	metadata <- c(as.character(metadata), '')
-
-
-
-	startfrom <- grep('Categories:', metadata)[1] + 1
-	if (length(startfrom) > 0){
-		temp <- splitCategory(metadata[
-			intersect(startfrom:length(metadata),
-			which(gsub("[' ]", '', metadata) != ''))])
-		# description is not provided in the 'column' metadata format
-		# so set it to be the same as shortname
-		temp$description <- temp$shortname
-	}
-	# Removing missing categories
-	temp <- temp[!is.na(temp$category),]
-	# Sort by category
-	temp2 <- data.table(temp)
-	setkey(temp2, category)
-	out$Categories <- temp2
-	return(out)
-}

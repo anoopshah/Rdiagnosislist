@@ -2,44 +2,50 @@
 #'
 #' Exports a codelist with hierarchy as HTML for easy viewing.
 #'
-#' @param x SNOMEDcodelist or codelistHierarchy (output of
-#'   showCodelistHierarchy)
+#' @param x a SNOMEDcodelist, codelistHierarchy (output of
+#'   showCodelistHierarchy), or an object which can be coerced to
+#'   a SNOMEDcodelist (such as a SNOMEDconcept vector).
 #' @param file filename to export to. If NULL, no file is written
 #' @param title title of HTML document
 #' @param description paragraph of description text (excluding
 #'   <p></p> tags)
 #' @param extracols character vector of additional columns of 
-#'   codelist_with_hierarchy to include in HTML output 
+#'   codelist_with_hierarchy to include in HTML output
+#' @param ... extra arguments to pass to as.SNOMEDcodelist
 #' @return a character vector containing HTML output
 #' @export
 #' @seealso showCodelistHierarchy
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #'
-#' my_concepts <- SNOMEDconcept('Heart failure')
+#' my_concepts <- SNOMEDconcept('Acute heart failure')
 #' my_codelist <- SNOMEDcodelist(data.frame(conceptId = my_concepts,
 #'   include_desc = TRUE))
-#' codelist_with_hierarchy <- showCodelistHierarchy(my_codelist)
-#' htmlCodelistHierarchy(codelist_with_hierarchy)
+#' htmlCodelistHierarchy(my_codelist, file = paste0(tempdir(),
+#'   'codelist.html'))
+#' # The codelist.html file can now be viewed in a web browser
+#'
+#' # Clean up temporary file
+#' file.remove(paste0(tempdir(), 'codelist.html')
 htmlCodelistHierarchy <- function(x, file = NULL, title = NULL,
 	description = NULL, extracols = NULL, ...){
 
 	included <- out <- rowid <- conceptId <- NULL
+	roworder <- checked <- NULL
 	
 	if (!('codelistHierarchy' %in% class(x))){
-		x <- showCodelistHierarchy(x, ...)
+		x <- showCodelistHierarchy(as.SNOMEDcodelist(x, ...))
 	}
 	x <- data.table::copy(x)[order(roworder)]
 	if (!is.null(extracols)){
-		extracols <- intersect(colnames(codelist_with_hierarchy),
-			extracols)
+		extracols <- intersect(colnames(x), extracols)
 	}
 	if (length(extracols) == 0){
 		extracols <- NULL
 	}
 
 	x[, checked := as.logical(NA)]
-	x[, comment := 'Add...']
+	x[, comment := '...']
 # TODO
 # Columns:
 # 1. 'Expand/Contract' button (toggle) with pressed / unpressed style
@@ -232,7 +238,7 @@ function showall(rows){
 function addcomment(thisrow_ids){
   /* Get comment from user -- TO WRITE */
   var comment = prompt("Comment", "").replace("<", "").replace(">", "");
-  if (comment == "") {comment = "Add...";}
+  if (comment == "") {comment = "...";}
   thisrow_ids.forEach(function(i) {
     var cells = document.getElementById("comment".concat(i)
       ).innerHTML.split(">");
@@ -264,7 +270,7 @@ function exportall(){
       comment = document.getElementById("comment".concat(
         dictionary[conceptId])).innerHTML.replace("</a>",
         "").replace("<a href", "").split(">")[1]
-      if (comment == "Add..."){
+      if (comment == "..."){
         comment = ""
       }
       if (document.getElementById("checked".concat(

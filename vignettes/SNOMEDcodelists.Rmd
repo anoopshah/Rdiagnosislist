@@ -26,6 +26,11 @@ The SNOMED dictionaries are contained within four key tables:
 - STATEDRELATIONSHIP - directly stated relationships
 - RELATIONSHIP - relationships between terms inferred from other relationships
 
+The following additional tables are also used 
+- SIMPLEMAP - Maps to Clinical Terms Version 3 and some other terms (e.g. COVID-19 terms)
+- EXTENDEDMAP - Maps to ICD-10 and OPCS4
+- REFSET - Sets of SNOMED CT concepts used for specific clinical / operational purposes 
+
 Each SNOMED CT concept may have any number of synonyms, but there are the following special types:
 
 - Fully Specified Name - this is the most precise description of the concept, but is too verbose for general use.
@@ -333,7 +338,8 @@ print(multi_row_maps[, list(term = substr(term, 1, 10), read2_code,
   read2_term = substr(read2_term, 1, 30))])
   
 # Create a standalone Read2 codelist
-read_codelist <- data.table(code = unlist(single_row_maps$read2_code),
+read_codelist <- data.table::data.table(
+  code = unlist(single_row_maps$read2_code),
   term = unlist(single_row_maps$read2_term))
 print(read_codelist[!duplicated(read_codelist)][order(code)])
 ```
