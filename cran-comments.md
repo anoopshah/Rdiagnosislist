@@ -1,16 +1,19 @@
 ## Test environments
-* local Ubuntu 18.04, R 3.4.4
+* local Ubuntu 20.04, R 3.6.3
 * win-builder (devel and release)
 
 ## R CMD check results
-Status: 1 NOTE
-
-* checking CRAN incoming feasibility ... NOTE
+Note_to_CRAN_maintainers
 Maintainer: ‘Anoop Shah <anoop@doctors.org.uk>’
 
-New submission
+Status: OK
 
-## Changes after initial CRAN submission (12/07/2021)
+## Changes in this version 1.0 (25 Nov 2021)
+
+Multiple new features and changes to the SNOMEDcodelist
+function, some features are not backward compatible.
+
+## Changes after initial CRAN submission (12 Jul 2021)
 
 Apologies - incorrect version uploaded on 9/7/2021.
 

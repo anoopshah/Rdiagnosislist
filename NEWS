@@ -1,0 +1,28 @@
+=====================================================================
+Version 1.0
+Second release on CRAN
+=====================================================================
+
+NEW FEATURES:
+- New getMaps function to map a codelist to another terminology
+  system
+- New htmlCodelistHierarchy function to create an interactive HTML
+  file to explore a codelist
+- SNOMED CT simple reference sets included in the SNOMED environment,
+  with new function getRefset
+- Function to load a mapping table from the NHS Digital data
+  migration pack (loadREADMAPS), for mapping to Read V2 and CTV3
+
+CHANGES:
+- SNOMEDcodelist S3 data type has been redesigned to include metadata
+  as well as accommodate different formats of codelists
+- SNOMEDcodelist no longer includes descendants by default
+- SNOMED environment now includes mapping tables and simple refsets
+- Updated method of displaying SNOMED CT codelists
+
+=====================================================================
+Version 0.2
+Initial release on CRAN
+=====================================================================
+
+Initial release

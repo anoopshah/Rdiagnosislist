@@ -30,8 +30,8 @@ A data.table with columns conceptId, read2_code,
 \description{
 Creates a mapping table derived from NHS Digital
 Data Migration distribution. These tables are available from
-the Technology Reference data Update Distribution
-\url{https://isd.digital.nhs.uk/trud3/user/guest/group/0/pack/9/subpack/9/releases}.
+the Technology Reference Update Distribution:
+\url{https://isd.digital.nhs.uk/trud/user/guest/group/0/pack/9/subpack/9/releases}
 }
 \details{
 The final release was in April 2020. The mapping tables are

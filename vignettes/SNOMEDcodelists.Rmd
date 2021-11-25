@@ -41,7 +41,7 @@ Each concept also has a semantic tag, which denotes what type of concept it is (
 Loading the SNOMED CT dictionaries
 ----------------------------------
 
-This package contains functions to import a set of SNOMED CT release files which should be obtained from NHS Digital TRUD (https://isd.digital.nhs.uk/trud3/user/guest/group/0/home). The International and UK release files are provided in two separate downloads, and need to be combined to create the  whole dictionary. This can be done using the loadSNOMED() function and specifying a vector of folder paths to load.
+This package contains functions to import a set of SNOMED CT release files which should be obtained from NHS Digital TRUD (https://isd.digital.nhs.uk/trud/user/guest/group/0/home). The International and UK release files are provided in two separate downloads, and need to be combined to create the  whole dictionary. This can be done using the loadSNOMED() function and specifying a vector of folder paths to load.
   
 For most users the 'Snapshot' files, containing the current versions of the entries, will be the most useful, and these are loaded by loadSNOMED() function. The  sample dictionaries in this package are also based on the Snapshot file format. The 'Delta' files contain changes since the previous version, and the 'Full' files contain a history of the changes to each entry.
 
@@ -218,10 +218,10 @@ SNOMEDcodelist objects can be constructed using the function SNOMEDcodelist. The
 
 The following items of metadata can be stored as part of a SNOMEDcodelist object:
 
-- codelist_name (can be specified as an argument to the SNOMEDcodelist function)
-- author (can be specified as an argument to the SNOMEDcodelist function)
-- version (can be specified as an argument to the SNOMEDcodelist function)
-- date (can be specified as an argument to the SNOMEDcodelist function)
+- codelist_name
+- author
+- version
+- date
 - sct_version (SNOMED CT version taken from the SNOMED environment that was used to create the codelist)
 - timestamp (automatically created)
 - format ('simple', 'tree' or 'exptree')
@@ -349,7 +349,7 @@ More information
 
 For more information about SNOMED CT, visit the SNOMED CT international website: <https://www.snomed.org/>
 
-SNOMED CT (UK edition) can be downloaded from the NHS Digital site: <https://isd.digital.nhs.uk/trud3/user/guest/group/0/home>
+SNOMED CT (UK edition) can be downloaded from the NHS Digital site: <https://isd.digital.nhs.uk/trud/user/guest/group/0/home>
 
 The NHS Digital terminology browser can be used to search for terms interactively: <https://termbrowser.nhs.uk/>
 

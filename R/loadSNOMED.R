@@ -5,6 +5,10 @@
 #' two folders (e.g. International and UK versions) can be loaded
 #' together and appended.
 #'
+#' These files are available from the NHS Digital Technology Reference
+#' Update Distribution:
+#' \url{https://isd.digital.nhs.uk/trud/user/guest/group/0/home}
+#'
 #' @param folders Vector of folder paths containing SNOMED CT files
 #' @param active_only Whether to limit to current (active) SNOMED CT
 #'   concepts
@@ -388,8 +392,8 @@ getSNOMED <- function(SNOMEDname = 'SNOMED'){
 #'
 #' Creates a mapping table derived from NHS Digital
 #' Data Migration distribution. These tables are available from
-#' the Technology Reference data Update Distribution
-#' \url{https://isd.digital.nhs.uk/trud3/user/guest/group/0/pack/9/subpack/9/releases}.
+#' the Technology Reference Update Distribution:
+#' \url{https://isd.digital.nhs.uk/trud/user/guest/group/0/pack/9/subpack/9/releases}
 #' 
 #' The final release was in April 2020. The mapping tables are
 #' intended for converting entires in clinical records from

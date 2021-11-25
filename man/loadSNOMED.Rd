@@ -26,6 +26,11 @@ distribution and loads them into an R environment. Files from
 two folders (e.g. International and UK versions) can be loaded
 together and appended.
 }
+\details{
+These files are available from the NHS Digital Technology Reference
+Update Distribution:
+\url{https://isd.digital.nhs.uk/trud/user/guest/group/0/home}
+}
 \examples{
 # Create a TEST environment and load the sample dictionaries
 TEST <- sampleSNOMED()

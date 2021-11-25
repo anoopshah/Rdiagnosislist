@@ -6,7 +6,7 @@
 #' concepts, according to a supplied mapping file. 
 #' The source data are available from the NHS Digital Technology
 #' Reference data Update Distribution
-#' \url{https://isd.digital.nhs.uk/trud3/user/guest/group/0/pack/9/subpack/9/releases}.
+#' \url{https://isd.digital.nhs.uk/trud/user/guest/group/0/pack/9/subpack/9/releases}.
 #' 
 #' @name READMAPS
 #' @importFrom utils data

@@ -1,6 +1,6 @@
 Package: Rdiagnosislist
 Title: Manipulate SNOMED CT Diagnosis Lists
-Version: 0.4
+Version: 1.0
 Authors@R: 
     person(given = "Anoop",
            family = "Shah",

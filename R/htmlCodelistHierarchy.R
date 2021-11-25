@@ -26,7 +26,7 @@
 #' # The codelist.html file can now be viewed in a web browser
 #'
 #' # Clean up temporary file
-#' file.remove(paste0(tempdir(), 'codelist.html')
+#' file.remove(paste0(tempdir(), 'codelist.html'))
 htmlCodelistHierarchy <- function(x, file = NULL, title = NULL,
 	description = NULL, extracols = NULL, ...){
 
