@@ -252,6 +252,75 @@ print(tree)
 # print(reloaded_codelist)
 ```
 
+'History of' SNOMED CT concepts
+------------------
+
+Some SNOMED CT concepts state 'History of' a disorder or procedure, such as 
+'History of heart failure'. These concepts may be important to include in a search for patients with a past history of a condition, which may be recorded using either the disorder concept or a history concept.
+
+'History of' concepts are of the semantic type 'Situation' with attributes:
+
+- Temporal context = In the past
+- Associated finding = concept ID of the historic condition
+- Finding context = Known present
+- Subject relationship context = Subject of record
+
+'Suspected' concepts are also of the semantic type 'Situation' and have the following attributes:
+
+- Temporal context = Current or specified time
+- Associated finding = concept ID of the condition that is suspected
+- Finding context = Suspected
+- Subject relationship context = Subject of record
+
+The sample SNOMED dictionary included in this package does not include all these attributes, so the following example requires a full SNOMED CT dictionary to be loaded.
+
+```
+find_historic <- function(x, SNOMED){
+  # returns a vector of concepts which are historic versions of
+  # the supplied concepts
+  # Arguments: x = a SNOMEDconcept vector
+  #            SNOMED = a SNOMED environment
+
+  R <- unique(relatedConcepts(x,
+    type = SNOMEDconcept('Associated finding'), reverse = TRUE))
+  Rpast = hasAttributes(R,
+    typeIds = SNOMEDconcept('Temporal context'),
+    destinationIds = SNOMEDconcept('In the past'), SNOMED = SNOMED)
+  Rknown = hasAttributes(R,
+    typeIds = SNOMEDconcept('Finding context'),
+    destinationIds = SNOMEDconcept('Known present'), SNOMED = SNOMED)
+  Rsubj = hasAttributes(R,
+    typeIds = SNOMEDconcept('Subject relationship context'),
+    destinationIds = SNOMEDconcept('Subject of record'), SNOMED = SNOMED)
+  
+  R[Rpast & Rknown & Rsubj]
+}
+
+find_suspected <- function(x, SNOMED){
+  # returns a vector of concepts which are suspected versions of
+  # the supplied concepts
+  # Arguments: x = a SNOMEDconcept vector
+  #            SNOMED = a SNOMED environment
+
+  R <- unique(relatedConcepts(x,
+    type = SNOMEDconcept('Associated finding'), reverse = TRUE))
+  Rcurrent = hasAttributes(R,
+    typeIds = SNOMEDconcept('Temporal context'),
+    destinationIds = SNOMEDconcept('Current or specified time'),
+    SNOMED = SNOMED)
+  Rsuspected = hasAttributes(R,
+    typeIds = SNOMEDconcept('Finding context'),
+    destinationIds = SNOMEDconcept('Suspected'), SNOMED = SNOMED)
+  Rsubj = hasAttributes(R,
+    typeIds = SNOMEDconcept('Subject relationship context'),
+    destinationIds = SNOMEDconcept('Subject of record'), SNOMED = SNOMED)
+  
+  R[Rcurrent & Rsuspected & Rsubj]
+}
+
+```
+
+
 SNOMED CT simple refsets
 -----------------
 

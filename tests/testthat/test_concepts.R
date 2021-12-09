@@ -18,8 +18,8 @@ test_that('inactiveIncluded checks metadata of SNOMED dictionary', {
 context('Identifying concepts in test SNOMED dictionary')
 
 test_that('Single term matching', {
-	expect_equal(as.SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED()),
-		as.SNOMEDconcept('84114007'))
+	expect_equal(SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED()),
+		SNOMEDconcept('84114007'))
 })
 
 test_that('Ensure that only concepts in the concept table are returned', {
@@ -31,22 +31,32 @@ test_that('Ensure that only concepts in the concept table are returned', {
 		term := 'Heart failure']
 	TEST$metadata$active_only <- TRUE
 	# Add a description without a concept in the concept table
-	expect_equal(as.SNOMEDconcept('Heart failure', SNOMED = TEST),
-		as.SNOMEDconcept('84114007'))
+	expect_equal(SNOMEDconcept('Heart failure', SNOMED = TEST),
+		SNOMEDconcept('84114007'))
 })
 
 test_that('Duplicates', {
-	expect_equal(as.SNOMEDconcept(c('Heart failure', 'Weak heart'),
-		SNOMED = sampleSNOMED()), as.SNOMEDconcept('84114007'))
-	expect_equal(as.SNOMEDconcept(c('Heart failure', 'Systolic heart failure',
+	expect_equal(SNOMEDconcept(c('Heart failure', 'Weak heart'),
+		SNOMED = sampleSNOMED()), SNOMEDconcept('84114007'))
+	expect_equal(SNOMEDconcept(c('Heart failure', 'Systolic heart failure',
 		'Weak heart', 'Acute heart failure'), unique = FALSE,
-		SNOMED = sampleSNOMED()), as.SNOMEDconcept(c('84114007',
+		SNOMED = sampleSNOMED()), SNOMEDconcept(c('84114007',
 		'417996009', '84114007', '56675007')))
 })
 
+test_that('Descriptions with duplicates', {
+	expect_equal(description(rep(SNOMEDconcept('Heart failure',
+		SNOMED = sampleSNOMED()), 2), SNOMED = sampleSNOMED())$term,
+		rep('Heart failure (disorder)', 2))
+	expect_equal(description(rep(SNOMEDconcept('History of heart failure',
+		SNOMED = sampleSNOMED()), 2), SNOMED = sampleSNOMED())$term,
+		rep('History of heart failure (situation)', 2))
+})
+
+
 test_that('Regular expressions', {
-	expect_equal(as.SNOMEDconcept('hfnef|HFNEF', exact = FALSE,
-		SNOMED = sampleSNOMED()), as.SNOMEDconcept('446221000'))
+	expect_equal(SNOMEDconcept('hfnef|HFNEF', exact = FALSE,
+		SNOMED = sampleSNOMED()), SNOMEDconcept('446221000'))
 })
 
 test_that('Semantic types', {
@@ -55,30 +65,30 @@ test_that('Semantic types', {
 })
 
 test_that('Pattern matching', {
-	expect_equal(as.SNOMEDconcept('Systolic heart', exact = FALSE,
-		SNOMED = sampleSNOMED()), as.SNOMEDconcept(c('417996009',
+	expect_equal(SNOMEDconcept('Systolic heart', exact = FALSE,
+		SNOMED = sampleSNOMED()), SNOMEDconcept(c('417996009',
 		'120851000119104', '120861000119102', '15629741000119102')))
 })
 
 test_that('Match not found', {
 	empty_concept <- bit64::integer64(0)
 	setattr(empty_concept, 'class', c('SNOMEDconcept', 'integer64'))
-	expect_equal(as.SNOMEDconcept('Angina',
+	expect_equal(SNOMEDconcept('Angina',
 		SNOMED = sampleSNOMED()), empty_concept)
 })
 
 test_that('Check concept ID', {
 	# Convert character to integer64
-	expect_equal(as.SNOMEDconcept('900000000000003001'),
-		as.SNOMEDconcept(bit64::as.integer64('900000000000003001')))
+	expect_equal(SNOMEDconcept('900000000000003001'),
+		SNOMEDconcept(bit64::as.integer64('900000000000003001')))
 	# Do not allow numeric input for SNOMEDconcept in case it is
 	# incorrect (inadequate precision)
-	expect_error(as.SNOMEDconcept(84114007))
+	expect_error(SNOMEDconcept(84114007))
 	# Allow integer input, which is converted to integer64
-	expect_equal(as.SNOMEDconcept(as.integer(84114007)),
-		as.SNOMEDconcept(bit64::as.integer64('84114007')))
+	expect_equal(SNOMEDconcept(as.integer(84114007)),
+		SNOMEDconcept(bit64::as.integer64('84114007')))
 	# Do not allow lists
-	expect_error(as.SNOMEDconcept(list(bit64::as.integer64('1234'))))
+	expect_error(SNOMEDconcept(list(bit64::as.integer64('1234'))))
 })
 
 test_that('Generic set functions for strings', {
@@ -129,7 +139,7 @@ test_that('SNOMEDconcept set functions', {
 test_that('SNOMEDconcept set functions with empty sets', {
 	sys_acute <- SNOMEDconcept(c('Systolic heart failure',
 		'Acute heart failure'), SNOMED = sampleSNOMED())
-	empty <- as.SNOMEDconcept(bit64::integer64(0))
+	empty <- SNOMEDconcept(bit64::integer64(0))
 	expect_equal(union(sys_acute, empty), sys_acute)
 	expect_equal(union(empty, sys_acute), sys_acute)
 	expect_equal(union(empty, empty), empty)

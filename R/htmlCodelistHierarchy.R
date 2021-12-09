@@ -11,6 +11,7 @@
 #'   <p></p> tags)
 #' @param extracols character vector of additional columns of 
 #'   codelist_with_hierarchy to include in HTML output
+#' @param SNOMED environment containing the SNOMED dictionary to use
 #' @param ... extra arguments to pass to as.SNOMEDcodelist
 #' @return a character vector containing HTML output
 #' @export
@@ -28,13 +29,14 @@
 #' # Clean up temporary file
 #' file.remove(paste0(tempdir(), 'codelist.html'))
 htmlCodelistHierarchy <- function(x, file = NULL, title = NULL,
-	description = NULL, extracols = NULL, ...){
+	description = NULL, extracols = NULL, SNOMED = getSNOMED(), ...){
 
 	included <- out <- rowid <- conceptId <- NULL
 	roworder <- checked <- NULL
 	
 	if (!('codelistHierarchy' %in% class(x))){
-		x <- showCodelistHierarchy(as.SNOMEDcodelist(x, ...))
+		x <- showCodelistHierarchy(as.SNOMEDcodelist(x, SNOMED = SNOMED,
+			...), SNOMED = SNOMED)
 	}
 	x <- data.table::copy(x)[order(roworder)]
 	if (!is.null(extracols)){
@@ -315,8 +317,8 @@ ifelse(is.null(title), 'SNOMED CT codelist', title), '</h1>',
 ifelse(is.null(description), '', paste0('<h2>Description</h2><p>',
 	description, '</p>')),
 '<h2>Instructions</h2>
-<p>This HTML document presents the hierarchy of SNOMED CT concepts for
-heart failure. In SNOMED CT, each concept has a distinct meaning and can
+<p>This HTML document presents a hierarchy of SNOMED CT concepts.
+In SNOMED CT, each concept has a distinct meaning and can
 be linked to more general terms (ancestors) and more specific terms (descendants). The buttons allow you to explore the codelist at
 different levels of the hierarchy, and mark whether or not you agree
 with the inclusion of individual concepts or concept hierarchies. When

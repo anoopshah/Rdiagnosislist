@@ -236,7 +236,7 @@ description <- function(conceptIds,
 	# Declare names used for non-standard evaluation for R CMD check
 	id <- term <- active <- typeId <- conceptId <- NULL
 	
-	# Return and emtpy data.table if there is no input data
+	# Return an empty data.table if there is no input data
 	if (length(conceptIds) == 0){
 		return(data.table(id = integer64(0), conceptId = integer64(0),
 			term = character(0)))
@@ -255,10 +255,6 @@ description <- function(conceptIds,
 			typeId == bit64::as.integer64('900000000000003001'),
 			'Fully specified name', 'Synonym'), term, active)]
 	}
-	# Restore original order
-	OUT <- OUT[CONCEPTS, on = 'conceptId']
-	data.table::setkeyv(OUT, 'order')
-	OUT[, order := NULL]
 	# Remove inactive terms if necessary
 	if (active_only){
 		if (inactiveIncluded(SNOMED)){
@@ -266,6 +262,10 @@ description <- function(conceptIds,
 		}
 		OUT[, active := NULL]
 	}
+	# Restore original order
+	OUT <- OUT[CONCEPTS, on = 'conceptId', allow.cartesian = TRUE]
+	data.table::setkeyv(OUT, 'order')
+	OUT[, order := NULL]
 	OUT[]
 }
 

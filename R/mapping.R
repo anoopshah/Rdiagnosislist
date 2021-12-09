@@ -118,13 +118,21 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 	} else {
 		stop('x must be a SNOMEDcodelist or SNOMEDconcept')
 	}
+	
+	clean <- function(x){
+		# removes NULLs from a list of character vectors
+		lapply(x, function(i){
+			if (is.null(i)) character(0) else i
+		})
+	}
+	
 	# Extract the relevant codeset
 	if ('read2' %in% to){
 		if ('read2_code' %in% names(out)) out[, read2_code := NULL]
 		if ('read2_term' %in% names(out)) out[, read2_term := NULL]
 		if (single_row_per_concept){
-			out[, read2_code := M[out, on = 'conceptId']$read2_code]
-			out[, read2_term := M[out, on = 'conceptId']$read2_term]
+			out[, read2_code := clean(M[out, on = 'conceptId']$read2_code)]
+			out[, read2_term := clean(M[out, on = 'conceptId']$read2_term)]
 		} else {
 			out <- merge(M[, list(read2_code = unlist(read2_code),
 				read2_term = unlist(read2_term)), by = conceptId], out,
@@ -135,8 +143,8 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 		if ('ctv3_concept' %in% names(out)) out[, ctv3_concept := NULL]
 		if ('ctv3_termid' %in% names(out)) out[, ctv3_termid := NULL]
 		if (single_row_per_concept){
-			out[, ctv3_concept := M[out, on = 'conceptId']$ctv3_concept]
-			out[, ctv3_termid := M[out, on = 'conceptId']$ctv3_termid]
+			out[, ctv3_concept := clean(M[out, on = 'conceptId']$ctv3_concept)]
+			out[, ctv3_termid := clean(M[out, on = 'conceptId']$ctv3_termid)]
 		} else {
 			out <- merge(M[, list(ctv3_concept = unlist(ctv3_concept),
 				ctv3_termid = unlist(ctv3_termid)), by = conceptId], out,
@@ -152,7 +160,7 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 			by = list(conceptId = referencedComponentId)],
 			out[, list(conceptId)], by = 'conceptId')
 		if (single_row_per_concept){
-			out[, ctv3_simple := TEMP[out, on = 'conceptId']$ctv3_simple]
+			out[, ctv3_simple := clean(TEMP[out, on = 'conceptId']$ctv3_simple)]
 		} else {
 			out <- merge(TEMP[, list(ctv3_simple = unlist(ctv3_simple)),
 				by = conceptId], out, on = 'conceptId')
@@ -173,7 +181,7 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 			by = list(conceptId = referencedComponentId)],
 			out[, list(conceptId)], by = 'conceptId')
 		if (single_row_per_concept){
-			out[, icd10_code := TEMP[out, on = 'conceptId']$icd10_code]
+			out[, icd10_code := clean(TEMP[out, on = 'conceptId']$icd10_code)]
 		} else {
 			out <- merge(TEMP[, list(icd10_code = unlist(icd10_code)),
 				by = conceptId], out, on = 'conceptId')
@@ -188,7 +196,7 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 			by = list(conceptId = referencedComponentId)],
 			out[, list(conceptId)], by = 'conceptId')
 		if (single_row_per_concept){
-			out[, opcs4_code := TEMP[out, on = 'conceptId']$opcs4_code]
+			out[, opcs4_code := clean(TEMP[out, on = 'conceptId']$opcs4_code)]
 		} else {
 			out <- merge(TEMP[,
 				list(opcs4_code = unlist(opcs4_code)),

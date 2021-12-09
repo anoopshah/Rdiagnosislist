@@ -53,6 +53,11 @@ test_that('Creating codelists from concept IDs or tables', {
 	# Converting from a data.table with extra columns
 	table_codelist4 <- as.SNOMEDcodelist(data.table(conceptId = myconcepts,
 		nice = 1, include_desc = TRUE), SNOMED = sampleSNOMED())
+	# Strip timestamp in order to enable comparisons
+	data.table::setattr(concept_codelist, 'timestamp', NULL)
+	data.table::setattr(table_codelist, 'timestamp', NULL)
+	data.table::setattr(table_codelist3, 'timestamp', NULL)
+	data.table::setattr(table_codelist4, 'timestamp', NULL)
 	# Comparisions
 	expect_equal(all.equal(concept_codelist, table_codelist), TRUE)
 	expect_equal(all.equal(concept_codelist, table_codelist3), TRUE)
@@ -92,6 +97,16 @@ test_that('Expand and contract codelists', {
 	e4a <- SNOMEDcodelist(e4, format = 'simple', SNOMED = sampleSNOMED())
 	e5a <- SNOMEDcodelist(e5, format = 'simple', SNOMED = sampleSNOMED())
 	
+	# Strip timestamp in order to enable comparisons
+	data.table::setattr(orig, 'timestamp', NULL)
+	data.table::setattr(e4, 'timestamp', NULL)
+	data.table::setattr(e5, 'timestamp', NULL)
+	data.table::setattr(e1a, 'timestamp', NULL)
+	data.table::setattr(e2a, 'timestamp', NULL)
+	data.table::setattr(e3a, 'timestamp', NULL)
+	data.table::setattr(e4a, 'timestamp', NULL)
+	data.table::setattr(e5a, 'timestamp', NULL)
+	
 	expect_equal(all.equal(e4, e5), TRUE) # contracted tree
 	expect_equal(all.equal(orig, e1a), TRUE) # exptree
 	expect_equal(all.equal(orig, e2a), TRUE) # tree, incl excluded
@@ -126,17 +141,21 @@ test_that('Expand codelist with nothing to expand', {
 	# (ignore indices)
 	data.table::setindex(my_codelist, NULL)
 	data.table::setindex(roundtrip_codelist, NULL)
+	data.table::setattr(my_codelist, 'timestamp', NULL)
+	data.table::setattr(roundtrip_codelist, 'timestamp', NULL)
 	expect_equal(all.equal(my_codelist, roundtrip_codelist), TRUE)
 	
 	# If the attribute is changed, expanded is equal to original
 	data.table::setattr(expanded_codelist, 'format', 'tree')
 	data.table::setindex(my_codelist, NULL)
 	data.table::setindex(expanded_codelist, NULL)
+	data.table::setattr(my_codelist, 'timestamp', NULL)
+	data.table::setattr(expanded_codelist, 'timestamp', NULL)
 	expect_equal(all.equal(my_codelist, expanded_codelist), TRUE)
 })
 
 test_that('Safely contract codelist', {
-	my_codelist <- as.SNOMEDcodelist(data.frame(
+	my_codelist <- SNOMEDcodelist(data.frame(
 		conceptId = SNOMEDconcept(c('Heart failure', 'Is a'),
 		SNOMED = sampleSNOMED()), include_desc = c(TRUE, NA)),
 		format = 'tree', SNOMED = sampleSNOMED())
@@ -146,6 +165,8 @@ test_that('Safely contract codelist', {
 		SNOMED = sampleSNOMED())
 	data.table::setindex(my_codelist, NULL)
 	data.table::setindex(roundtrip_codelist, NULL)
+	data.table::setattr(my_codelist, 'timestamp', NULL)
+	data.table::setattr(roundtrip_codelist, 'timestamp', NULL)
 	expect_equal(all.equal(my_codelist, roundtrip_codelist), TRUE)
 })
 
@@ -154,4 +175,31 @@ test_that('Codelist with some concepts not in dictionary', {
 		'78643003', '9999999999'))
 	expect_equal(nrow(SNOMEDcodelist(myconcepts,
 		SNOMED = sampleSNOMED())), 3)
+})
+
+test_that('Importing and exporting a codelist', {
+	data(READMAPS)
+	my_concepts <- SNOMEDconcept('Heart failure',
+		SNOMED = sampleSNOMED())
+	A <- SNOMEDcodelist(data.frame(conceptId = my_concepts,
+		include_desc = TRUE), SNOMED = sampleSNOMED(),
+		format = 'simple', codelist_name = 'sample',
+		date = '1 Dec 2021', version = 1, author = 'test')[1:20]
+	A <- getMaps(A, to = 'ctv3simple', SNOMED = sampleSNOMED())
+	A <- getMaps(A, to = 'read2', mappingtable = READMAPS,
+		SNOMED = sampleSNOMED())
+	# Export to file
+	tempfile = paste0(tempdir(), 'temp.csv')
+	export(A, filename = tempfile)
+	# Re-import
+	B <- SNOMEDcodelist(fread(tempfile), SNOMED = sampleSNOMED())
+	# Check metadata
+	expect_equal(attr(A, 'codelist_name'), attr(B, 'codelist_name'))
+	expect_equal(attr(A, 'date'), attr(B, 'date'))
+	expect_equal(attr(A, 'version'), attr(B, 'version'))
+	expect_equal(attr(A, 'author'), attr(B, 'author'))
+	# Check terms
+	expect_equal(A$conceptId, B$conceptId)
+	# Clean up
+	unlink(tempfile)
 })

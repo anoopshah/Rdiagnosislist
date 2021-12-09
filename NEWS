@@ -1,4 +1,29 @@
 =====================================================================
+Version 1.1
+=====================================================================
+
+BUG FIXES:
+- Showing a concept description caused an error if there were
+  multiple descriptions for a concept and duplicate concepts in the
+  SNOMEDconcept vector
+- SNOMEDcodelist timestamps were set to the user-supplied date instead
+  of the system time
+- Error on exporting SNOMEDcodelists with single row maps that had NULL
+  values. Instead the NULLs are now zero-length character vectors, which
+  can be exported correctly with fwrite.
+- Ensure that SNOMED environment is passed from htmlCodelistHierarchy
+  to showCodelistHierarchy
+
+- TODO *** Bug in hasAttribute when SNOMED RELATIONSHIP table contains
+  duplicate source-type-destination triples (e.g. if some are inactive)
+
+CHANGES:
+- New vignette explaining how to create a custom SNOMED-like database
+  to enable the hierarchical view
+- Vignette shows how to obtain 'History of' terms for phenotyping
+  algorithms
+
+=====================================================================
 Version 1.0
 Second release on CRAN
 =====================================================================

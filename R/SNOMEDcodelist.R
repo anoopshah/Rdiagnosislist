@@ -263,11 +263,11 @@ SNOMEDcodelist <- function(x, include_desc = FALSE,
 		'data.table', 'data.frame'))
 	
 	# 3. SET METADATA
-	data.table::setattr(out, 'codelist_name', codelist_name)
-	data.table::setattr(out, 'version', version)
-	data.table::setattr(out, 'author', author)
-	data.table::setattr(out, 'date', date)
-	data.table::setattr(out, 'timestamp', date)
+	data.table::setattr(out, 'codelist_name', as.character(codelist_name))
+	data.table::setattr(out, 'version', as.character(version))
+	data.table::setattr(out, 'author', as.character(author))
+	data.table::setattr(out, 'date', as.character(date))
+	data.table::setattr(out, 'timestamp', Sys.time())
 	data.table::setattr(out, 'sct_version', SNOMED$metadata$version)
 	data.table::setattr(out, 'format', format)
 	data.table::setkeyv(out, 'conceptId')
