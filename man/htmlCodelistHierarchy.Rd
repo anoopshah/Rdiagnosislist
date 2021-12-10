@@ -10,6 +10,7 @@ htmlCodelistHierarchy(
   title = NULL,
   description = NULL,
   extracols = NULL,
+  SNOMED = getSNOMED(),
   ...
 )
 }
@@ -27,6 +28,8 @@ a SNOMEDcodelist (such as a SNOMEDconcept vector).}
 
 \item{extracols}{character vector of additional columns of 
 codelist_with_hierarchy to include in HTML output}
+
+\item{SNOMED}{environment containing the SNOMED dictionary to use}
 
 \item{...}{extra arguments to pass to as.SNOMEDcodelist}
 }

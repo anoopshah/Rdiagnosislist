@@ -1,0 +1,287 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head><title>Interactice custom hierarchy</title><meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<style type="text/css">
+table {border-spacing: 0px; font-family:Arial;}
+td, th {border-bottom: 1px solid #ddd; padding: 1px; text-align: left}
+.button {border: 1px solid white}
+.button:hover {border: 1px solid black}
+.tree {color: black}
+.add {background-color: green; color: white}
+.remove {background-color: red; color: white}
+tr:hover {background-color: #D6EEEE;}</style><script type="text/javascript">
+const c_allrows = [1,2,3,4,5,6,7,8,10,11,12,13,9];
+function showuncheckedrows(rows){
+  if (document.getElementById("showuncheckedbutton").innerHTML ==
+      "Show unchecked concepts only"){
+    clearhighlight();
+    let all_checked = true;
+    rows.forEach(function(thisrow) {
+      if (document.getElementById("checked".concat(thisrow)).innerHTML == "Y"){
+        hiderow(thisrow);
+      } else {
+        all_checked = false;
+        showrow(thisrow);
+      }
+    })
+    if (all_checked == true){
+      document.getElementById("showuncheckedbutton").innerHTML =
+        "<strong>ALL CONCEPTS CHECKED!</strong>";
+    }
+  }
+}
+function toggle(thisrow, childrows, descendantrows){
+  clearhighlight();
+  if (document.getElementById("buttree".concat(thisrow)).innerHTML == "Expand"){
+    childrows.forEach(showrow);
+    childrows.forEach(highlightrow);
+    highlightrow(thisrow);
+    changebuttoncontract(thisrow);
+  } else {
+    childrows.forEach(changebuttonexpand);
+    descendantrows.forEach(hiderow);
+    highlightrow(thisrow);
+    changebuttonexpand(thisrow);
+  }
+}
+function changebuttonexpand(rownum){
+  var mybutton = document.getElementById("buttree".concat(rownum));
+  if (typeof(mybutton) != "undefined" && mybutton != null){
+    mybutton.innerHTML = "Expand"
+  }
+}
+function changebuttoncontract(rownum){
+  var mybutton = document.getElementById("buttree".concat(rownum));
+  if (typeof(mybutton) != "undefined" && mybutton != null){
+    mybutton.innerHTML = "Contract"
+  }
+}
+function clearhighlight(){
+  /* Clears all highlights on all rows */
+  c_allrows.forEach(backwhite);
+}
+function selectrow(rownum){
+  document.getElementById("term".concat(rownum)
+    ).style.color = "black";
+  document.getElementById("include".concat(rownum)
+    ).style.color = "black";
+  document.getElementById("checked".concat(rownum)
+    ).style.color = "black";
+  document.getElementById("include".concat(rownum)
+    ).innerHTML = "Y";
+}
+function checkrow(rownum){
+  document.getElementById("checked".concat(rownum)
+    ).innerHTML = "Y";
+}
+function checkrows(rows_to_check){
+  clearhighlight();
+  rows_to_check.forEach(checkrow);
+  rows_to_check.forEach(highlightrow);
+  /* Check if all are checked */
+  var all_checked = true
+  c_allrows.forEach(function(i) {
+    if (document.getElementById("checked".concat(i)).innerHTML != "Y"){
+      all_checked = false;
+    }
+  })
+  if (all_checked == true){
+    document.getElementById("showuncheckedbutton").innerHTML =
+      "<strong>ALL CONCEPTS CHECKED!</strong>";
+  }
+}
+function selectrows(thisrow, rows_to_select){
+  clearhighlight();
+  rows_to_select.forEach(selectrow);
+  rows_to_select.forEach(checkrow);
+  rows_to_select.forEach(highlightrow);
+}
+function deselectrow(rownum){
+  document.getElementById("term".concat(rownum)
+    ).style.color = "red";
+  document.getElementById("include".concat(rownum)
+    ).style.color = "red";
+  document.getElementById("checked".concat(rownum)
+    ).style.color = "red";
+  document.getElementById("include".concat(rownum)
+    ).innerHTML = "N";
+}
+function deselectrows(thisrow, rows_to_deselect){
+  clearhighlight();
+  rows_to_deselect.forEach(deselectrow);
+  rows_to_deselect.forEach(checkrow);
+  rows_to_deselect.forEach(highlightrow);
+}
+function uncheckrow(rownum){
+  document.getElementById("checked".concat(rownum)
+    ).innerHTML = "N";
+  document.getElementById("showuncheckedbutton").innerHTML =
+    "Show unchecked concepts only"
+}
+function uncheckrows(rows_to_uncheck){
+  clearhighlight();
+  rows_to_uncheck.forEach(uncheckrow);
+  rows_to_uncheck.forEach(highlightrow);
+}
+function highlightrow(rownum){
+  document.getElementById("row".concat(rownum)
+    ).style.backgroundColor = "#D6EEEE";
+}
+function backwhite(rownum){
+  document.getElementById("row".concat(rownum)
+    ).style.backgroundColor = "white";
+}
+function hiderow(rownum){
+  document.getElementById("row".concat(rownum)
+    ).style.display = "none";
+}
+function showrow(rownum){
+  document.getElementById("row".concat(rownum)
+    ).style.display = "";
+}
+function hideall(allrows, alldescendantrows){
+  clearhighlight();
+  allrows.forEach(changebuttonexpand);
+  alldescendantrows.forEach(hiderow);
+}
+function showall(rows){
+  clearhighlight();
+  rows.forEach(changebuttoncontract);
+  rows.forEach(showrow);
+}
+function addcomment(thisrow_ids){
+  /* Get comment from user */
+  var comment = prompt("Comment", "").replace("<", "").replace(">", "");
+  if (comment == "") {comment = "...";}
+  thisrow_ids.forEach(function(i) {
+    var cells = document.getElementById("comment".concat(i)
+      ).innerHTML.split(">");
+    document.getElementById("comment".concat(i)
+      ).innerHTML = cells[0] + ">" + comment + "</a>";
+  })
+}
+function exportall(){
+  /* Get filename to export to */
+  var filename = document.getElementById("exportfilename").value;
+  /* Exports all selected terms to a text document */
+  const dictionary = {"7":1, "6":2, "2":3, "3":4, "4":5, "5":6, "1":7}
+  var output = "conceptId,term,include_desc,included,checked,comment\r\n"
+  var space = document.getElementById("sample").innerHTML
+  var term
+  var included
+  var comment
+  var checked
+  /* Loop through concepts, check the relevant included field */
+  for (var conceptId in dictionary) {
+    if (dictionary.hasOwnProperty(conceptId)) {
+      if (document.getElementById("include".concat(
+        dictionary[conceptId])).innerHTML == "Y"){
+        included = "TRUE"
+      } else {
+        included = "FALSE"
+      }
+      /* parse comment */
+      comment = document.getElementById("comment".concat(
+        dictionary[conceptId])).innerHTML.replace("</a>",
+        "").replace("<a href", "").split(">")[1]
+      if (comment == "..."){
+        comment = ""
+      }
+      if (document.getElementById("checked".concat(
+        dictionary[conceptId])).innerHTML == "Y"){
+        checked = "TRUE"
+      } else {
+        checked = "FALSE"
+      }
+      /* parse term */
+      term = document.getElementById("term".concat(dictionary[conceptId])).innerHTML
+      term = term.replace("<strong>",
+        "").replace("</strong>", "").split(space
+        ).join("").split("\"").join(",")
+      /* to print to file */
+      output = output + conceptId + ",\"" + term + "\",FALSE," +
+        included + "," + checked + ",\"" + comment + "\"\r\n";
+    }
+  }
+  
+  /* To debug output */
+  // console.log(output)
+  
+  /* Alternative approach */
+  var link = document.createElement("a");
+  if (filename == ""){
+    filename = "codelist.csv"
+  }
+  if (/\.csv$/.test(filename) == false){
+    filename = filename + ".csv"
+  }
+  link.setAttribute("href",
+    "data:text/csv;charset=utf-8,%EF%BB%BF" +
+      encodeURIComponent(output));
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+</script>
+</head><body><h1>Phenotype concept hierarchy</h1><h2>Instructions</h2>
+<p>This HTML document is an edited version of an output from the
+htmlCodelistHierarchy function. It presents a hierarchy of concepts, which
+can be viewed in different ways.
+Each concept has a distinct meaning and can
+be linked to more general terms (ancestors) and more specific terms 
+(descendants). The buttons allow you to explore the codelist at
+different levels of the hierarchy, and mark whether or not you agree
+with the inclusion of individual concepts or concept hierarchies. When
+you have finished your review, you can download your final selection as a
+ .CSV file by clicking the <strong>Export</strong> button below.</p>
+
+<h3>Key to buttons for each concept</h3>
+<ul>
+<li><button class="button tree">Expand</button> Show descendants of this concept</li>
+<li><button class="button tree">Contract</button> Hide descendants of this concept</li>
+<li><button class="button tree"><strong>?</strong></button> Mark as unchecked</li>
+<li><button class="button add"><strong>+</strong></button> Add a concept</li>
+<li><button class="button remove"><strong>-</strong></button> Remove a concept</li>
+<li><button class="button add"><strong>++</strong></button> Add a concept and all descendants</li>
+<li><button class="button remove"><strong>--</strong></button> Remove a concept and all descendants</li>
+</ul>
+
+<h2>Reviewing tools</h2>
+<p><button class="button tree" onclick="hideall(c_allrows, [2,3,4,5,6,8,10,11,12,13,9]);">Show top-level concepts only</button> <button class="button tree" onclick="showall(c_allrows);">Show all concepts</button></p>
+<p><button class="button add" onclick="checkrows(c_allrows);"><strong>Mark all concepts as "checked"</strong></button> <button class="button remove" onclick="uncheckrows(c_allrows);"><strong>Mark all concepts as "unchecked"</strong></button> <button id="showuncheckedbutton" class="button tree" onclick="showuncheckedrows(c_allrows);">Show unchecked concepts only</button></p>
+<p><button id="exportbutton" class="button tree" onclick="exportall()"><strong>Export</strong></button> to
+<input id="exportfilename"> .csv
+</p>
+
+<table style="width:100%">
+<tbody><tr><th>Expand</th><th>Concept</th><th>Comment</th><th>Checked</th><th>Included</th><th></th></tr>
+
+<tr id="row1" style="background-color: white;"><td><button class="button tree" background-color="#D6D6D6" id="buttree1" onclick="toggle(1, [2,3], [2,3,4,5,6])">Contract</button></td><td id="term1" style="color:black;"><strong>Heart failure (phenotype)</strong></td><td id="comment1"><a href="#" onclick="addcomment([1])">...</a></td><td id="checked1" style="color:black;"></td><td id="include1" style="color:black;">Y</td><td><button class="button tree" onclick="uncheckrows([1])"><strong>?</strong></button><button class="button add" onclick="selectrows(1, [1])"><strong>+</strong></button><button class="button remove" onclick="deselectrows(1, [1])"><strong>-</strong></button><button class="button add" onclick="selectrows(1, [1,2,3,4,5,6])"><strong>++</strong></button><button class="button remove" onclick="deselectrows(1, [1,2,3,4,5,6])"><strong>--</strong></button></td></tr>
+
+<tr id="row2" style="background-color: white;"><td></td><td id="term2" style="color:black;">·&#8195;I11.0 Hypertensive heart disease with (congestive) heart failure (leaf)</td><td id="comment2"><a href="#" onclick="addcomment([2,10,9])">...</a></td><td id="checked2" style="color:black;"></td><td id="include2" style="color:black;">Y</td><td><button class="button tree" onclick="uncheckrows([2,10,9])"><strong>?</strong></button><button class="button add" onclick="selectrows(2, [2,10,9])"><strong>+</strong></button><button class="button remove" onclick="deselectrows(2, [2,10,9])"><strong>-</strong></button></td></tr>
+
+<tr id="row3" style="background-color: rgb(214, 238, 238);"><td><button class="button tree" background-color="#D6D6D6" id="buttree3" onclick="toggle(3, [4,5,6], [4,5,6])">Contract</button></td><td id="term3" style="color:black;">·&#8195;<strong>I50 Heart failure (icd3)</strong></td><td id="comment3"><a href="#" onclick="addcomment([3,8])">...</a></td><td id="checked3" style="color:black;"></td><td id="include3" style="color:black;">Y</td><td><button class="button tree" onclick="uncheckrows([3,8])"><strong>?</strong></button><button class="button add" onclick="selectrows(3, [3,8])"><strong>+</strong></button><button class="button remove" onclick="deselectrows(3, [3,8])"><strong>-</strong></button><button class="button add" onclick="selectrows(3, [3,8,4,5,6])"><strong>++</strong></button><button class="button remove" onclick="deselectrows(3, [3,8,4,5,6])"><strong>--</strong></button></td></tr>
+
+<tr id="row4" style="background-color: rgb(214, 238, 238);"><td></td><td id="term4" style="color:black;">·&#8195;·&#8195;I50.0 Congestive heart failure (leaf)</td><td id="comment4"><a href="#" onclick="addcomment([4,11])">not sure about this one</a></td><td id="checked4" style="color:black;"></td><td id="include4" style="color:black;">Y</td><td><button class="button tree" onclick="uncheckrows([4,11])"><strong>?</strong></button><button class="button add" onclick="selectrows(4, [4,11])"><strong>+</strong></button><button class="button remove" onclick="deselectrows(4, [4,11])"><strong>-</strong></button></td></tr>
+
+<tr id="row5" style="background-color: rgb(214, 238, 238);"><td></td><td id="term5" style="color:black;">·&#8195;·&#8195;I50.1 Left ventricular failure (leaf)</td><td id="comment5"><a href="#" onclick="addcomment([5,12])">...</a></td><td id="checked5" style="color:black;"></td><td id="include5" style="color:black;">Y</td><td><button class="button tree" onclick="uncheckrows([5,12])"><strong>?</strong></button><button class="button add" onclick="selectrows(5, [5,12])"><strong>+</strong></button><button class="button remove" onclick="deselectrows(5, [5,12])"><strong>-</strong></button></td></tr>
+
+<tr id="row6" style="background-color: rgb(214, 238, 238);"><td></td><td id="term6" style="color:black;">·&#8195;·&#8195;I50.9 Heart failure, unspecified (leaf)</td><td id="comment6"><a href="#" onclick="addcomment([6,13])">...</a></td><td id="checked6" style="color:black;"></td><td id="include6" style="color:black;">Y</td><td><button class="button tree" onclick="uncheckrows([6,13])"><strong>?</strong></button><button class="button add" onclick="selectrows(6, [6,13])"><strong>+</strong></button><button class="button remove" onclick="deselectrows(6, [6,13])"><strong>-</strong></button></td></tr>
+
+<tr id="row7" style="background-color: white;"><td><button class="button tree" background-color="#D6D6D6" id="buttree7" onclick="toggle(7, [8], [8,10,11,12,13,9])">Expand</button></td><td id="term7" style="color:black;"><strong>IX Diseases of the circulatory system (icdchapter)</strong></td><td id="comment7"><a href="#" onclick="addcomment([7])">...</a></td><td id="checked7" style="color:black;"></td><td id="include7" style="color:black;">Y</td><td><button class="button tree" onclick="uncheckrows([7])"><strong>?</strong></button><button class="button add" onclick="selectrows(7, [7])"><strong>+</strong></button><button class="button remove" onclick="deselectrows(7, [7])"><strong>-</strong></button><button class="button add" onclick="selectrows(7, [7,8,10,11,12,13,9])"><strong>++</strong></button><button class="button remove" onclick="deselectrows(7, [7,8,10,11,12,13,9])"><strong>--</strong></button></td></tr>
+
+<tr id="row8" style="background-color: white; display: none;"><td><button class="button tree" background-color="#D6D6D6" id="buttree8" onclick="toggle(8, [10,11,12,13,9], [10,11,12,13,9])">Expand</button></td><td id="term8" style="color:black;">·&#8195;<strong>I50 Heart failure (icd3)</strong></td><td id="comment8"><a href="#" onclick="addcomment([3,8])">...</a></td><td id="checked8" style="color:black;"></td><td id="include8" style="color:black;">Y</td><td><button class="button tree" onclick="uncheckrows([3,8])"><strong>?</strong></button><button class="button add" onclick="selectrows(8, [3,8])"><strong>+</strong></button><button class="button remove" onclick="deselectrows(8, [3,8])"><strong>-</strong></button><button class="button add" onclick="selectrows(8, [3,8,4,5,6,10,11,12,13,9])"><strong>++</strong></button><button class="button remove" onclick="deselectrows(8, [3,8,4,5,6,10,11,12,13,9])"><strong>--</strong></button></td></tr>
+
+<tr id="row10" style="background-color: white; display: none;"><td></td><td id="term10" style="color:black;">·&#8195;·&#8195;I11.0 Hypertensive heart disease with (congestive) heart failure (leaf)</td><td id="comment10"><a href="#" onclick="addcomment([2,10,9])">...</a></td><td id="checked10" style="color:black;"></td><td id="include10" style="color:black;">Y</td><td><button class="button tree" onclick="uncheckrows([2,10,9])"><strong>?</strong></button><button class="button add" onclick="selectrows(10, [2,10,9])"><strong>+</strong></button><button class="button remove" onclick="deselectrows(10, [2,10,9])"><strong>-</strong></button></td></tr>
+
+<tr id="row11" style="background-color: white; display: none;"><td></td><td id="term11" style="color:black;">·&#8195;·&#8195;I50.0 Congestive heart failure (leaf)</td><td id="comment11"><a href="#" onclick="addcomment([4,11])">not sure about this one</a></td><td id="checked11" style="color:black;"></td><td id="include11" style="color:black;">Y</td><td><button class="button tree" onclick="uncheckrows([4,11])"><strong>?</strong></button><button class="button add" onclick="selectrows(11, [4,11])"><strong>+</strong></button><button class="button remove" onclick="deselectrows(11, [4,11])"><strong>-</strong></button></td></tr>
+
+<tr id="row12" style="background-color: white; display: none;"><td></td><td id="term12" style="color:black;">·&#8195;·&#8195;I50.1 Left ventricular failure (leaf)</td><td id="comment12"><a href="#" onclick="addcomment([5,12])">...</a></td><td id="checked12" style="color:black;"></td><td id="include12" style="color:black;">Y</td><td><button class="button tree" onclick="uncheckrows([5,12])"><strong>?</strong></button><button class="button add" onclick="selectrows(12, [5,12])"><strong>+</strong></button><button class="button remove" onclick="deselectrows(12, [5,12])"><strong>-</strong></button></td></tr>
+
+<tr id="row13" style="background-color: white; display: none;"><td></td><td id="term13" style="color:black;">·&#8195;·&#8195;I50.9 Heart failure, unspecified (leaf)</td><td id="comment13"><a href="#" onclick="addcomment([6,13])">...</a></td><td id="checked13" style="color:black;"></td><td id="include13" style="color:black;">Y</td><td><button class="button tree" onclick="uncheckrows([6,13])"><strong>?</strong></button><button class="button add" onclick="selectrows(13, [6,13])"><strong>+</strong></button><button class="button remove" onclick="deselectrows(13, [6,13])"><strong>-</strong></button></td></tr>
+
+<tr id="row9" style="background-color: white; display: none;"><td></td><td id="term9" style="color:black;">·&#8195;·&#8195;I11.0 Hypertensive heart disease with (congestive) heart failure (leaf)</td><td id="comment9"><a href="#" onclick="addcomment([2,10,9])">...</a></td><td id="checked9" style="color:black;"></td><td id="include9" style="color:black;">Y</td><td><button class="button tree" onclick="uncheckrows([2,10,9])"><strong>?</strong></button><button class="button add" onclick="selectrows(9, [2,10,9])"><strong>+</strong></button><button class="button remove" onclick="deselectrows(9, [2,10,9])"><strong>-</strong></button></td></tr>
+
+
+</tbody></table><p id="sample" style="display:none">·&#8195;</p>
+</body></html>

@@ -9,7 +9,8 @@ hasAttributes(
   destinationIds,
   typeIds = bit64::as.integer64("116680003"),
   SNOMED = getSNOMED(),
-  tables = c("RELATIONSHIP", "STATEDRELATIONSHIP")
+  tables = c("RELATIONSHIP", "STATEDRELATIONSHIP"),
+  active_only = TRUE
 )
 }
 \arguments{
@@ -26,6 +27,9 @@ Defaults to 116680003 = 'Is a' (child/parent)}
 \item{SNOMED}{environment containing a SNOMED dictionary}
 
 \item{tables}{character vector of relationship tables to use}
+
+\item{active_only}{whether only active relationships
+should be considered, default TRUE}
 }
 \value{
 a vector of Booleans stating whether the attribute exists

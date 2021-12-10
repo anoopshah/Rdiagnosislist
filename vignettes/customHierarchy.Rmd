@@ -38,6 +38,9 @@ The concepts are of the following semantic types:
 As there is only one description per concept in this example, the data can be specified by two tables: a 'description' table and a 'relations' table.
 
 ```{r}
+# Load package
+require(Rdiagnosislist)
+
 CUSTOM <- sampleSNOMED()
 
 NEW_DESCRIPTION <- data.table::data.table(
@@ -56,15 +59,15 @@ NEW_RELATIONSHIP <- data.table::data.table(
   child =  bit64::as.integer64(c(2,3,4,5,6,2,6)))
 
 CUSTOM$CONCEPT <- NEW_DESCRIPTION[, list(id = conceptId,
-  effectiveTime = as.IDate(Sys.Date()), active = TRUE,
+  effectiveTime = as.Date(Sys.Date()), active = TRUE,
   moduleId = 0, definitionStatusId = 0)]
 CUSTOM$DESCRIPTION <- NEW_DESCRIPTION[, list(id = conceptId,
-  effectiveTime = as.IDate(Sys.Date()), active = TRUE,
+  effectiveTime = as.Date(Sys.Date()), active = TRUE,
   moduleId = 0, conceptId = conceptId, languageCode = 'en',
   typeId = bit64::as.integer64('900000000000003001'), # fully specified name
   term, caseSignificanceId = 0)]
 CUSTOM$STATEDRELATIONSHIP <- NEW_RELATIONSHIP[, list(id = 1:.N,
-  effectiveTime = as.IDate(Sys.Date()), active = TRUE,
+  effectiveTime = as.Date(Sys.Date()), active = TRUE,
   moduleId = 0, sourceId = child, destinationId = parent,
   relationshipGroup = 0, typeId = bit64::as.integer64('116680003'), # is a
   characteristicTypeId = 0, modifierId = 0)]

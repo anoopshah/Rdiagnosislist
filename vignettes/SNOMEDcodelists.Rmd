@@ -26,7 +26,7 @@ The SNOMED dictionaries are contained within four key tables:
 - STATEDRELATIONSHIP - directly stated relationships
 - RELATIONSHIP - relationships between terms inferred from other relationships
 
-The following additional tables are also used 
+The following additional tables are also included: 
 - SIMPLEMAP - Maps to Clinical Terms Version 3 and some other terms (e.g. COVID-19 terms)
 - EXTENDEDMAP - Maps to ICD-10 and OPCS4
 - REFSET - Sets of SNOMED CT concepts used for specific clinical / operational purposes 
@@ -42,6 +42,8 @@ Loading the SNOMED CT dictionaries
 ----------------------------------
 
 This package contains functions to import a set of SNOMED CT release files which should be obtained from NHS Digital TRUD (https://isd.digital.nhs.uk/trud/user/guest/group/0/home). The International and UK release files are provided in two separate downloads, and need to be combined to create the  whole dictionary. This can be done using the loadSNOMED() function and specifying a vector of folder paths to load.
+
+The SNOMED CT UK drug extension is available as a separate file and can (in theory) be added to the SNOMED environment, but this has not yet been tested.
   
 For most users the 'Snapshot' files, containing the current versions of the entries, will be the most useful, and these are loaded by loadSNOMED() function. The  sample dictionaries in this package are also based on the Snapshot file format. The 'Delta' files contain changes since the previous version, and the 'Full' files contain a history of the changes to each entry.
 
@@ -272,7 +274,7 @@ Some SNOMED CT concepts state 'History of' a disorder or procedure, such as
 - Finding context = Suspected
 - Subject relationship context = Subject of record
 
-The sample SNOMED dictionary included in this package does not include all these attributes, so the following example requires a full SNOMED CT dictionary to be loaded.
+The sample SNOMED dictionary included in this package does not include all these attributes, so the following examples require a full SNOMED CT dictionary to be loaded.
 
 ```
 find_historic <- function(x, SNOMED){
@@ -318,6 +320,14 @@ find_suspected <- function(x, SNOMED){
   R[Rcurrent & Rsuspected & Rsubj]
 }
 
+# Example (using full SNOMED CT dictionary):
+#
+# > find_historic(SNOMEDconcept('Heart failure'), SNOMED)
+# [1] "309634009 | History of heart failure in last year (situation)"
+# [2] "161505003 | History of heart failure (situation)"
+#             
+# > find_suspected(SNOMEDconcept('Heart failure'), SNOMED)
+# [1] "394887005 | Suspected heart failure (situation)" 
 ```
 
 

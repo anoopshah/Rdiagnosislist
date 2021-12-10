@@ -238,7 +238,7 @@ function showall(rows){
   rows.forEach(showrow);
 }
 function addcomment(thisrow_ids){
-  /* Get comment from user -- TO WRITE */
+  /* Get comment from user */
   var comment = prompt("Comment", "").replace("<", "").replace(">", "");
   if (comment == "") {comment = "...";}
   thisrow_ids.forEach(function(i) {

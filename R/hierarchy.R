@@ -216,6 +216,8 @@ descendants <- function(conceptIds, include_self = FALSE,
 #'   for renationship types, recycled if necessary.
 #'   Defaults to 116680003 = 'Is a' (child/parent)
 #' @param SNOMED environment containing a SNOMED dictionary
+#' @param active_only whether only active relationships
+#'   should be considered, default TRUE
 #' @param tables character vector of relationship tables to use
 #' @return a vector of Booleans stating whether the attribute exists
 #' @export
@@ -228,16 +230,30 @@ descendants <- function(conceptIds, include_self = FALSE,
 hasAttributes <- function(sourceIds, destinationIds,
 	typeIds = bit64::as.integer64('116680003'),
 	SNOMED = getSNOMED(), 
-	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
-	TOMATCH <- data.table(sourceId = as.SNOMEDconcept(sourceIds),
+	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP'),
+	active_only = TRUE){
+	IN <- data.table(sourceId = as.SNOMEDconcept(sourceIds),
 		destinationId = as.SNOMEDconcept(destinationIds),
 		typeId = as.SNOMEDconcept(typeIds))
+	TOMATCH <- IN[!duplicated(IN)]
+	
+	sourceId <- destinationId <- typeId <- active <- NULL
 	
 	# add matches and combine Boolean
 	addRelationship <- function(tablename, out){
 		TABLE <- as.data.table(get(tablename, envir = SNOMED))
-		out | !is.na(TABLE[TOMATCH,
-			on = c('sourceId', 'destinationId', 'typeId')]$id)
+		if (active_only & inactiveIncluded(SNOMED)){
+			TEMP <- merge(TOMATCH, TABLE[active == TRUE,
+				list(sourceId, destinationId, typeId, found = TRUE)],
+				by = c('sourceId', 'destinationId', 'typeId'))
+		} else {
+			TEMP <- merge(TOMATCH, TABLE[,
+				list(sourceId, destinationId, typeId, found = TRUE)],
+				by = c('sourceId', 'destinationId', 'typeId'))
+		}
+		TEMP <- TEMP[!duplicated(TEMP)]
+		out | !is.na(TEMP[IN, on = c('sourceId', 'destinationId',
+			'typeId')]$found)
 	}
 	
 	# Blank output logical vector

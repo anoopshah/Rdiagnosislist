@@ -13,13 +13,12 @@ BUG FIXES:
   can be exported correctly with fwrite.
 - Ensure that SNOMED environment is passed from htmlCodelistHierarchy
   to showCodelistHierarchy
-
-- TODO *** Bug in hasAttribute when SNOMED RELATIONSHIP table contains
+- Corrected bug in hasAttribute when SNOMED RELATIONSHIP table contains
   duplicate source-type-destination triples (e.g. if some are inactive)
 
 CHANGES:
-- New vignette explaining how to create a custom SNOMED-like database
-  to enable the hierarchical view
+- New vignette 'customHierarchy.Rmd' explaining how to create a custom
+  SNOMED-like database to enable the hierarchical view
 - Vignette shows how to obtain 'History of' terms for phenotyping
   algorithms
 
