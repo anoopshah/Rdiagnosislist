@@ -232,9 +232,10 @@ hasAttributes <- function(sourceIds, destinationIds,
 	SNOMED = getSNOMED(), 
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP'),
 	active_only = TRUE){
-	IN <- data.table(sourceId = as.SNOMEDconcept(sourceIds),
-		destinationId = as.SNOMEDconcept(destinationIds),
-		typeId = as.SNOMEDconcept(typeIds))
+	IN <- data.table(
+		sourceId = as.SNOMEDconcept(sourceIds, SNOMED = SNOMED),
+		destinationId = as.SNOMEDconcept(destinationIds, SNOMED = SNOMED),
+		typeId = as.SNOMEDconcept(typeIds, SNOMED = SNOMED))
 	TOMATCH <- IN[!duplicated(IN)]
 	
 	sourceId <- destinationId <- typeId <- active <- NULL

@@ -71,7 +71,7 @@ CUSTOM$STATEDRELATIONSHIP <- NEW_RELATIONSHIP[, list(id = 1:.N,
   moduleId = 0, sourceId = child, destinationId = parent,
   relationshipGroup = 0, typeId = bit64::as.integer64('116680003'), # is a
   characteristicTypeId = 0, modifierId = 0)]
-CUSTOM$RELATIONSHIP <- CUSTOM$STATEDRELATIONSHIP[-1]
+CUSTOM$RELATIONSHIP <- CUSTOM$STATEDRELATIONSHIP[0]
 
 # Using the new dictionaries
 myconcept <- SNOMEDconcept('Diseases of the circulatory system',
