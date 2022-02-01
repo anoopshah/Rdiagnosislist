@@ -187,8 +187,8 @@ Refset_SimpleSnapshot|REFSET')
 	# Assign version
 	if (is.null(version)){
 		version <- paste(
-			paste0(ifelse(regexpr('International', folders), 
-			'Int', ifelse(regexpr('UKClinical', folders), 'UK', ''))),
+			paste0(ifelse(folders %like% 'International', 
+			'Int', ifelse(folders %like% 'UKClinical', 'UK', ''))),
 			sub('.*PRODUCTION_([0-9]{8})T.*', '\\1', folders),
 			collapse = ' & ')
 	}
