@@ -248,55 +248,64 @@ createSNOMEDindices <- function(SNOMED){
 	mapTarget <- mapGroup <- mapPriority <- mapRule <- NULL
 	correlationId <- mapCategoryId <- NULL
 	
-	data.table::setindex(SNOMED$CONCEPT, id)
-	data.table::setindex(SNOMED$CONCEPT, active)
+	SNOMED$CONCEPT[, id := bit64::as.integer64(id)]
+	SNOMED$CONCEPT[, active := bit64::as.integer64(active)]
+	data.table::setindexv(SNOMED$CONCEPT, c('id', 'active'))
 	
-	data.table::setindex(SNOMED$DESCRIPTION, id)
-	data.table::setindex(SNOMED$DESCRIPTION, conceptId)
-	data.table::setindex(SNOMED$DESCRIPTION, typeId)
-	data.table::setindex(SNOMED$DESCRIPTION, term)
-	data.table::setindex(SNOMED$DESCRIPTION, active)
+	SNOMED$DESCRIPTION[, id := bit64::as.integer64(id)]
+	SNOMED$DESCRIPTION[, conceptId := bit64::as.integer64(conceptId)]
+	SNOMED$DESCRIPTION[, typeId := bit64::as.integer64(typeId)]
+	SNOMED$DESCRIPTION[, term := as.character(term)]
+	SNOMED$DESCRIPTION[, active := as.logical(active)]
+	data.table::setindexv(SNOMED$DESCRIPTION, c('id', 'conceptId', 'typeId', 'term', 'active'))
 
-	data.table::setindex(SNOMED$STATEDRELATIONSHIP, id)
-	data.table::setindex(SNOMED$STATEDRELATIONSHIP, sourceId)
-	data.table::setindex(SNOMED$STATEDRELATIONSHIP, destinationId)
-	data.table::setindex(SNOMED$STATEDRELATIONSHIP, typeId)
-	data.table::setindex(SNOMED$STATEDRELATIONSHIP, active)
+	SNOMED$STATEDRELATIONSHIP[, id := bit64::as.integer64(id)]
+	SNOMED$STATEDRELATIONSHIP[, sourceId := bit64::as.integer64(sourceId)]
+	SNOMED$STATEDRELATIONSHIP[, destinationId := bit64::as.integer64(destinationId)]
+	SNOMED$STATEDRELATIONSHIP[, typeId := bit64::as.integer64(typeId)]
+	SNOMED$STATEDRELATIONSHIP[, active := as.logical(active)]
+	data.table::setindexv(SNOMED$STATEDRELATIONSHIP, c('id', 'sourceId', 'destinationId', 'typeId', 'active'))
 
-	data.table::setindex(SNOMED$RELATIONSHIP, id)
-	data.table::setindex(SNOMED$RELATIONSHIP, sourceId)
-	data.table::setindex(SNOMED$RELATIONSHIP, destinationId)
-	data.table::setindex(SNOMED$RELATIONSHIP, typeId)
-	data.table::setindex(SNOMED$RELATIONSHIP, active)
+	SNOMED$RELATIONSHIP[, id := bit64::as.integer64(id)]
+	SNOMED$RELATIONSHIP[, sourceId := bit64::as.integer64(sourceId)]
+	SNOMED$RELATIONSHIP[, destinationId := bit64::as.integer64(destinationId)]
+	SNOMED$RELATIONSHIP[, typeId := bit64::as.integer64(typeId)]
+	SNOMED$RELATIONSHIP[, active := as.logical(active)]
+	data.table::setindexv(SNOMED$RELATIONSHIP, c('id', 'sourceId', 'destinationId', 'typeId', 'active'))
 
 	# data.table::setindex(SNOMED$REFSET, id)
 	# not including id to save space
-	data.table::setindex(SNOMED$REFSET, moduleId)
-	data.table::setindex(SNOMED$REFSET, refsetId)
-	data.table::setindex(SNOMED$REFSET, referencedComponentId)
-	data.table::setindex(SNOMED$REFSET, active)
-
+	SNOMED$REFSET[, moduleId := bit64::as.integer64(moduleId)]
+	SNOMED$REFSET[, refsetId := bit64::as.integer64(refsetId)]
+	SNOMED$REFSET[, referencedComponentId := bit64::as.integer64(referencedComponentId)]
+	SNOMED$REFSET[, active := as.logical(active)]
+	data.table::setindexv(SNOMED$REFSET, c('moduleId', 'refsetId', 'referencedComponentId', 'active'))
+	
 	# data.table::setindex(SNOMED$SIMPLEMAP, id)
 	# not including id to save space
-	data.table::setindex(SNOMED$SIMPLEMAP, moduleId)
-	data.table::setindex(SNOMED$SIMPLEMAP, refsetId)
-	data.table::setindex(SNOMED$SIMPLEMAP, referencedComponentId)
-	data.table::setindex(SNOMED$SIMPLEMAP, mapTarget)
-	data.table::setindex(SNOMED$SIMPLEMAP, active)
+	SNOMED$SIMPLEMAP[, moduleId := bit64::as.integer64(moduleId)]
+	SNOMED$SIMPLEMAP[, refsetId := bit64::as.integer64(refsetId)]
+	SNOMED$SIMPLEMAP[, referencedComponentId := bit64::as.integer64(referencedComponentId)]
+	SNOMED$SIMPLEMAP[, mapTarget := as.character(mapTarget)]
+	SNOMED$SIMPLEMAP[, active := as.logical(active)]
+	data.table::setindexv(SNOMED$SIMPLEMAP, c('moduleId', 'refsetId', 'referencedComponentId',
+		'mapTarget', 'active'))
 
 	# data.table::setindex(SNOMED$EXTENDEDMAP, id)
 	# not including id to save space
-	data.table::setindex(SNOMED$EXTENDEDMAP, moduleId)
-	data.table::setindex(SNOMED$EXTENDEDMAP, refsetId)
-	data.table::setindex(SNOMED$EXTENDEDMAP, referencedComponentId)
-	data.table::setindex(SNOMED$EXTENDEDMAP, mapGroup)
-	data.table::setindex(SNOMED$EXTENDEDMAP, mapPriority)
-	data.table::setindex(SNOMED$EXTENDEDMAP, mapRule)
-	data.table::setindex(SNOMED$EXTENDEDMAP, mapTarget)
+	SNOMED$EXTENDEDMAP[, moduleId := bit64::as.integer64(moduleId)]
+	SNOMED$EXTENDEDMAP[, refsetId := bit64::as.integer64(refsetId)]
+	SNOMED$EXTENDEDMAP[, referencedComponentId := bit64::as.integer64(referencedComponentId)]
+	SNOMED$EXTENDEDMAP[, mapGroup := as.integer(mapGroup)]
+	SNOMED$EXTENDEDMAP[, mapPriority := as.integer(mapPriority)]
+	SNOMED$EXTENDEDMAP[, mapRule := as.character(mapRule)]
+	SNOMED$EXTENDEDMAP[, mapTarget := as.character(mapTarget)]
 	# data.table::setindex(SNOMED$EXTENDEDMAP, correlationId)
 	# not using correlationId because they are all the same
-	data.table::setindex(SNOMED$EXTENDEDMAP, mapCategoryId)
-	data.table::setindex(SNOMED$EXTENDEDMAP, active)
+	SNOMED$EXTENDEDMAP[, mapCategoryId := bit64::as.integer64(mapCategoryId)]
+	SNOMED$EXTENDEDMAP[, active := as.logical(active)]
+	data.table::setindexv(SNOMED$EXTENDEDMAP, c('moduleId', 'refsetId', 'referencedComponentId',
+		'mapGroup', 'mapPriority', 'mapRule', 'mapTarget', 'mapCategoryId', 'active'))
 
 	return(SNOMED)
 }
