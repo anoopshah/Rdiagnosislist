@@ -35,10 +35,11 @@
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param show_excluded_descendants Whether to show excluded
 #'   descendants alongside the codes included in the codelist (for
-#'   a 'tree' or 'expandedtree' format codelist).
+#'   a 'tree' or 'exptree' format codelist).
 #' @param ... other arguments to pass to SNOMEDcodelist
 #' @return An object of class 'SNOMEDcodelist'
 #' @family SNOMEDcodelist functions
+#' @seealso htmlCodelistHierarchy
 #' @export
 #' @examples
 #' SNOMED <- sampleSNOMED()
