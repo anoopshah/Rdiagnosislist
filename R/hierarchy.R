@@ -331,7 +331,8 @@ semanticType <- function(conceptIds,
 	
 	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
 	DESC <- description(conceptIds, SNOMED = SNOMED)
-	DESC[, tag := sub('^.*\\(([[:alnum:]\\/\\+ ]+)\\)$', '\\1', term)]
+	DESC[, tag := ifelse(term %like% '^.*\\(([[:alnum:]\\/\\+ ]+)\\)$',
+		sub('^.*\\(([[:alnum:]\\/\\+ ]+)\\)$', '\\1', term), '')]
 	return(DESC$tag)
 }
 
@@ -355,7 +356,7 @@ semanticType <- function(conceptIds,
 #' @return a data.table with the following columns:
 #'   originalId (integer64) = original conceptId,
 #'   ancestorId (integer64) = closest single ancestor, or original
-#'   concept ID if no ancestor is included in the 
+#'   concept ID if no ancestor is included among ancestorIds
 #'   
 #' @export
 #' @examples
