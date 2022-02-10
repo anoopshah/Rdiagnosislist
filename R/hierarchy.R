@@ -275,6 +275,7 @@ hasAttributes <- function(sourceIds, destinationIds,
 #' @param conceptIds character or integer64 vector of SNOMED concept IDs
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param tables character vector of relationship tables to use
+#' @param active_only whether to return only active attributes
 #' @return a data.table with the following columns: 
 #'   sourceId (concept ID of source for relationship),
 #'   destinationId (concept ID of source for relationship),
@@ -288,11 +289,12 @@ hasAttributes <- function(sourceIds, destinationIds,
 #' attrConcept(as.SNOMEDconcept('Heart failure'))
 attrConcept <- function(conceptIds,
 	SNOMED = getSNOMED(), 
-	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
+	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP'),
+	active_only = TRUE){
 	# Retrieves a table of attributes for a given set of concepts
 	# add matches and combine Boolean
 	sourceId <- destinationId <- typeId <- relationshipGroup <- NULL
-	sourceDesc <- destinationDesc <- typeDesc <- NULL
+	sourceDesc <- destinationDesc <- typeDesc <- active <- NULL
 
 	MATCHSOURCE <- data.table(sourceId =
 		as.SNOMEDconcept(conceptIds, SNOMED = SNOMED))
@@ -300,13 +302,16 @@ attrConcept <- function(conceptIds,
 		as.SNOMEDconcept(conceptIds, SNOMED = SNOMED))
 	OUT <- rbind(rbindlist(lapply(tables, function(table){
 			get(table, envir = SNOMED)[MATCHSOURCE, on = 'sourceId',
-			list(sourceId, destinationId, typeId, relationshipGroup)]
+			list(sourceId, destinationId, typeId, relationshipGroup, active)]
 		}), use.names = TRUE, fill = TRUE),
 		rbindlist(lapply(tables, function(table){
 			get(table, envir = SNOMED)[MATCHDEST, on = 'destinationId',
-			list(sourceId, destinationId, typeId, relationshipGroup)]
+			list(sourceId, destinationId, typeId, relationshipGroup, active)]
 		}), use.names = TRUE, fill = TRUE)
 	)
+	if (active_only == TRUE & inactiveIncluded(SNOMED)){
+		OUT <- OUT[active == TRUE]
+	}
 	OUT[, sourceDesc := description(sourceId, SNOMED = SNOMED)$term]
 	OUT[, destinationDesc := description(destinationId,
 		SNOMED = SNOMED)$term]
@@ -346,6 +351,8 @@ semanticType <- function(conceptIds,
 #' This functionality can be used to translate concepts into simpler
 #' forms for display, e.g. 'Heart failure' instead of 'Heart failure
 #' with reduced ejection fraction'.
+#'
+#' This function is intended for use with active SNOMED CT concepts only.
 #'
 #' @param conceptIds character or integer64 vector of SNOMED concept IDs
 #'   for concepts for which an ancestor is sought

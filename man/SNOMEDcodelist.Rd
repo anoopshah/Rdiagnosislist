@@ -50,7 +50,7 @@ the SNOMED CT dictionary being used.}
 
 \item{show_excluded_descendants}{Whether to show excluded
 descendants alongside the codes included in the codelist (for
-a 'tree' or 'expandedtree' format codelist).}
+a 'tree' or 'exptree' format codelist).}
 
 \item{...}{other arguments to pass to SNOMEDcodelist}
 }
@@ -66,8 +66,12 @@ SNOMED codelists.
 \details{
 Input is a data.frame or data.table with column names 'conceptId'
 and optionally 'include_desc', which is FALSE by default, but if
-TRUE then the codelist automatically includes all descendants of that
-concept.
+TRUE then the codelist automatically includes all active descendants
+of that concept.
+
+If the codelist is intended to contain inactive concepts, it can
+only exist in the 'simple' format. Inactive concepts will be lost if
+the codelist is converted between formats.
 
 as.SNOMEDcodelist converts its argument into a SNOMEDcodelist but
   leaves it unchanged if it is already a SNOMEDcodelist.
@@ -82,6 +86,8 @@ as.SNOMEDcodelist(data.frame(conceptId = my_concepts,
   include_desc = TRUE))
 }
 \seealso{
+htmlCodelistHierarchy
+
 Other SNOMEDcodelist functions: 
 \code{\link{expandSNOMED}()},
 \code{\link{export}()},

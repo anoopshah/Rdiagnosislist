@@ -1,0 +1,97 @@
+---
+title: "Converting and creating codelists"
+author: "Anoop Shah"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Converting and creating codelists}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+Converting and creating codelists
+=================================
+
+This vignette describes a suggested method for creating and reviewing SNOMED CT codelists. Before using the code in this vignette, please follow the vignette 'Using SNOMED dictionaries and codelists' to download the NHS SNOMED distribution and create a R SNOMED dictionary. If you want to include inactive concept descriptions, ensure that when the SNOMED dictionary created by `loadSNOMED`, you use the option `active_only = FALSE`.
+
+Searching for and using inactive concepts in SNOMED CT
+------------------------------------------------------
+
+As SNOMED CT is maintained over time, some concepts are inactivated because they are duplicates, ambiguous or no longer used. Data in existing database may still be recorded using inactive concepts, so it is important that queries account for this.
+
+Prior to using any codelist to perform a search in a healthcare database, it is important to use the NHS Digital query table (downloadable from NHS Digital TRUD - https://isd.digital.nhs.uk/trud/user/guest/group/0/home) to augment the codelist with inactive concepts. The Query Table contains ancestor - descendant relationships for inactive concepts which correspond to current locations in the SNOMED CT hierarchy. This allows appropriate inactive terms to be included as needed, as per your chosen provenance level.
+
+The available provenance levels are:
+
+0 = subsumption is always true (i.e. the descendant is always a subtype of the ancestor)
+1 = subsumption is usually true (but there is a theoretical risk of false positives)
+2 = both ancestors and descendents are only approximately known
+3 = the original concept has at least two distinct meanings, so there is a risk of false positives
+
+The query table should be loaded using code such as `QUERY <- fread('path_to_query_table.txt')`.
+
+For this exercise, we create a sample query table using the sample SNOMED dictionary.
+
+```{r}
+library(Rdiagnosislist)
+SNOMED <- sampleSNOMED()
+
+QUERY <- SNOMED$RELATIONSHIP[
+	active == FALSE & typeId == as.SNOMEDconcept('Is a'),
+	list(SUPERTYPEID = destinationId, SUBTYPEID = sourceId, PROVENANCE = 0)]
+	
+addInactive <- function(x, QUERY){
+	# x is a SNOMEDcodelist with columns conceptId, term
+	# QUERY is a SNOMED CT Query Table (containing inactive concepts)
+	x <- as.SNOMEDcodelist(x, format = 'simple')
+	x[, active := SNOMED$CONCEPT[, list(conceptId = id, active)][x, on = 'conceptId']$active]
+	
+	# Find inactive concepts not included
+	# (note that the arguments for setdiff must be in SNOMEDconcept format)
+	extra <- setdiff(as.SNOMEDconcept(QUERY[SUPERTYPEID %in% x$conceptId]$SUBTYPEID), as.SNOMEDconcept(x$conceptId))
+	extra <- as.SNOMEDcodelist(extra, format = 'simple')
+	extra[, active := FALSE]
+	
+	# return the combined codelist
+	rbind(x, extra)
+}
+
+# Create a codelist for right heart failure
+rhf <- SNOMEDcodelist('Right heart failure', include_desc = TRUE)
+
+addInactive(rhf, QUERY)
+```
+ 
+Creating SNOMED CT codelists from scratch
+-----------------------------------------
+
+A suggested process is:
+
+- Browse the SNOMED CT terminology to find ancestor terms that may be relevant.
+- Create a putative codelist using the ancestor terms and their descendants.
+- Export the codelist to HTML for clinical review. Reviewers can export/save the results of their review using the functions on the HTML document.
+- Import the reviewed codelist, and use the as.SNOMEDcodelist function to convert it into a parsimonious form for curation.
+
+When using the data for querying, the process is:
+
+- Convert the codelist to the 'simple' format (i.e. enumerating all terms).
+- Add inactive terms using the Query table, as above.
+
+Converting Read codelists to SNOMED CT
+--------------------------------------
+
+A suggested process is:
+
+- Map Read terms to SNOMED CT using the NHS Digital mapping.
+- Export the codelist to HTML for clinical review. Reviewers can export/save the results of their review using the functions on the HTML document.
+- Import the reviewed codelist, and use the as.SNOMEDcodelist function to convert it into a parsimonious form for curation.
+
+More information
+----------------
+
+For more information about SNOMED CT, visit the SNOMED CT international website: <https://www.snomed.org/>
+
+SNOMED CT (UK edition) can be downloaded from the NHS Digital site: <https://isd.digital.nhs.uk/trud/user/guest/group/0/home>
+
+The NHS Digital terminology browser can be used to search for terms interactively: <https://termbrowser.nhs.uk/>
+
