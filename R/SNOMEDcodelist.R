@@ -7,8 +7,12 @@
 #' 
 #' Input is a data.frame or data.table with column names 'conceptId'
 #' and optionally 'include_desc', which is FALSE by default, but if
-#' TRUE then the codelist automatically includes all descendants of that
-#' concept.
+#' TRUE then the codelist automatically includes all active descendants
+#' of that concept.
+#'
+#' If the codelist is intended to contain inactive concepts, it can
+#' only exist in the 'simple' format. Inactive concepts will be lost if
+#' the codelist is converted between formats.
 #'
 #' as.SNOMEDcodelist converts its argument into a SNOMEDcodelist but
 #'   leaves it unchanged if it is already a SNOMEDcodelist.
@@ -35,10 +39,11 @@
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param show_excluded_descendants Whether to show excluded
 #'   descendants alongside the codes included in the codelist (for
-#'   a 'tree' or 'expandedtree' format codelist).
+#'   a 'tree' or 'exptree' format codelist).
 #' @param ... other arguments to pass to SNOMEDcodelist
 #' @return An object of class 'SNOMEDcodelist'
 #' @family SNOMEDcodelist functions
+#' @seealso htmlCodelistHierarchy
 #' @export
 #' @examples
 #' SNOMED <- sampleSNOMED()
@@ -176,7 +181,7 @@ SNOMEDcodelist <- function(x, include_desc = FALSE,
 	# 2. CONVERT TO DESIRED FORMAT
 	if (show_excluded_descendants == TRUE &
 		format %in% c('tree', 'exptree')){
-		# Add non-included descendants (for tree format codelists)
+		# Add non-included active descendants (for tree format codelists)
 		desc <- setdiff(descendants(out$conceptId, SNOMED = SNOMED),
 			out$conceptId)
 		# Add these concepts to the inclusion and exclusion lists
@@ -759,4 +764,3 @@ makeCodelistFilename <- function(x){
 	paste0(attr(x, 'codelist_name'), '.SNOMEDcodelist.',
 		as.character(floor(as.numeric(attr(x, 'version')))), '.csv')
 }
-
