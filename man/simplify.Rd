@@ -27,7 +27,7 @@ for possible ancestors}
 a data.table with the following columns:
   originalId (integer64) = original conceptId,
   ancestorId (integer64) = closest single ancestor, or original
-  concept ID if no ancestor is included in the
+  concept ID if no ancestor is included among ancestorIds
 }
 \description{
 Returns a vector of SNOMED CT concept IDs for an ancestor of each
@@ -37,6 +37,9 @@ the original concept ID is returned).
 This functionality can be used to translate concepts into simpler
 forms for display, e.g. 'Heart failure' instead of 'Heart failure
 with reduced ejection fraction'.
+}
+\details{
+This function is intended for use with active SNOMED CT concepts only.
 }
 \examples{
 SNOMED <- sampleSNOMED()

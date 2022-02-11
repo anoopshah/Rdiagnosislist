@@ -7,7 +7,8 @@
 attrConcept(
   conceptIds,
   SNOMED = getSNOMED(),
-  tables = c("RELATIONSHIP", "STATEDRELATIONSHIP")
+  tables = c("RELATIONSHIP", "STATEDRELATIONSHIP"),
+  active_only = TRUE
 )
 }
 \arguments{
