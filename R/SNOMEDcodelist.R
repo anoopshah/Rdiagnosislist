@@ -392,7 +392,7 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 				desc[, included := FALSE]
 				out <- rbind(out, desc, fill = TRUE)
 			} else {
-				desc <- as.SNOMEDcodelist(setdiff(
+				desc <- SNOMEDcodelist(setdiff(
 					children(out$conceptId, SNOMED = SNOMED),
 					out$conceptId), include_desc = FALSE)
 				if (nrow(desc) <= max_excluded_descendants){
