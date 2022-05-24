@@ -9,6 +9,9 @@
 #' Update Distribution:
 #' \url{https://isd.digital.nhs.uk/trud/user/guest/group/0/home}
 #'
+#' (Note: May 2022 - This function needs to be updated to use the 
+#' latest SNOMED CT TRUD versions including the SNOMED CT definitions).
+#'
 #' @param folders Vector of folder paths containing SNOMED CT files
 #' @param active_only Whether to limit to current (active) SNOMED CT
 #'   concepts
@@ -48,10 +51,10 @@ loadSNOMED <- function(folders, active_only = TRUE,
 	id <- correlationId <- mapTarget <- pattern <- NULL
 
 	FILENAMES <- fread('pattern|table
-_Concept_Snapshot|CONCEPT
-_Description_Snapshot|DESCRIPTION
-_StatedRelationship_Snapshot|STATEDRELATIONSHIP
-_Relationship_Snapshot|RELATIONSHIP
+_Concept_.*Snapshot|CONCEPT
+_Description_.*Snapshot|DESCRIPTION
+_StatedRelationship_.*Snapshot|STATEDRELATIONSHIP
+_Relationship_.*Snapshot|RELATIONSHIP
 Refset_SimpleMapSnapshot|SIMPLEMAP
 Refset_ExtendedMapSnapshot|EXTENDEDMAP
 Refset_SimpleSnapshot|REFSET')
@@ -273,39 +276,39 @@ createSNOMEDindices <- function(SNOMED){
 	SNOMED$RELATIONSHIP[, active := as.logical(active)]
 	data.table::setindexv(SNOMED$RELATIONSHIP, c('id', 'sourceId', 'destinationId', 'typeId', 'active'))
 
-	# data.table::setindex(SNOMED$REFSET, id)
-	# not including id to save space
-	SNOMED$REFSET[, moduleId := bit64::as.integer64(moduleId)]
-	SNOMED$REFSET[, refsetId := bit64::as.integer64(refsetId)]
-	SNOMED$REFSET[, referencedComponentId := bit64::as.integer64(referencedComponentId)]
-	SNOMED$REFSET[, active := as.logical(active)]
-	data.table::setindexv(SNOMED$REFSET, c('moduleId', 'refsetId', 'referencedComponentId', 'active'))
+	if ('REFSET' %in% ls(SNOMED)){
+		SNOMED$REFSET[, moduleId := bit64::as.integer64(moduleId)]
+		SNOMED$REFSET[, refsetId := bit64::as.integer64(refsetId)]
+		SNOMED$REFSET[, referencedComponentId := bit64::as.integer64(referencedComponentId)]
+		SNOMED$REFSET[, active := as.logical(active)]
+		data.table::setindexv(SNOMED$REFSET, c('moduleId', 'refsetId', 'referencedComponentId', 'active'))
+	}
 	
-	# data.table::setindex(SNOMED$SIMPLEMAP, id)
-	# not including id to save space
-	SNOMED$SIMPLEMAP[, moduleId := bit64::as.integer64(moduleId)]
-	SNOMED$SIMPLEMAP[, refsetId := bit64::as.integer64(refsetId)]
-	SNOMED$SIMPLEMAP[, referencedComponentId := bit64::as.integer64(referencedComponentId)]
-	SNOMED$SIMPLEMAP[, mapTarget := as.character(mapTarget)]
-	SNOMED$SIMPLEMAP[, active := as.logical(active)]
-	data.table::setindexv(SNOMED$SIMPLEMAP, c('moduleId', 'refsetId', 'referencedComponentId',
-		'mapTarget', 'active'))
+	if ('SIMPLEMAP' %in% ls(SNOMED)){
+		SNOMED$SIMPLEMAP[, moduleId := bit64::as.integer64(moduleId)]
+		SNOMED$SIMPLEMAP[, refsetId := bit64::as.integer64(refsetId)]
+		SNOMED$SIMPLEMAP[, referencedComponentId := bit64::as.integer64(referencedComponentId)]
+		SNOMED$SIMPLEMAP[, mapTarget := as.character(mapTarget)]
+		SNOMED$SIMPLEMAP[, active := as.logical(active)]
+		data.table::setindexv(SNOMED$SIMPLEMAP, c('moduleId', 'refsetId', 'referencedComponentId',
+			'mapTarget', 'active'))
+	}
 
-	# data.table::setindex(SNOMED$EXTENDEDMAP, id)
-	# not including id to save space
-	SNOMED$EXTENDEDMAP[, moduleId := bit64::as.integer64(moduleId)]
-	SNOMED$EXTENDEDMAP[, refsetId := bit64::as.integer64(refsetId)]
-	SNOMED$EXTENDEDMAP[, referencedComponentId := bit64::as.integer64(referencedComponentId)]
-	SNOMED$EXTENDEDMAP[, mapGroup := as.integer(mapGroup)]
-	SNOMED$EXTENDEDMAP[, mapPriority := as.integer(mapPriority)]
-	SNOMED$EXTENDEDMAP[, mapRule := as.character(mapRule)]
-	SNOMED$EXTENDEDMAP[, mapTarget := as.character(mapTarget)]
-	# data.table::setindex(SNOMED$EXTENDEDMAP, correlationId)
-	# not using correlationId because they are all the same
-	SNOMED$EXTENDEDMAP[, mapCategoryId := bit64::as.integer64(mapCategoryId)]
-	SNOMED$EXTENDEDMAP[, active := as.logical(active)]
-	data.table::setindexv(SNOMED$EXTENDEDMAP, c('moduleId', 'refsetId', 'referencedComponentId',
-		'mapGroup', 'mapPriority', 'mapRule', 'mapTarget', 'mapCategoryId', 'active'))
+	if ('EXTENDEDMAP' %in% ls(SNOMED)){	
+		SNOMED$EXTENDEDMAP[, moduleId := bit64::as.integer64(moduleId)]
+		SNOMED$EXTENDEDMAP[, refsetId := bit64::as.integer64(refsetId)]
+		SNOMED$EXTENDEDMAP[, referencedComponentId := bit64::as.integer64(referencedComponentId)]
+		SNOMED$EXTENDEDMAP[, mapGroup := as.integer(mapGroup)]
+		SNOMED$EXTENDEDMAP[, mapPriority := as.integer(mapPriority)]
+		SNOMED$EXTENDEDMAP[, mapRule := as.character(mapRule)]
+		SNOMED$EXTENDEDMAP[, mapTarget := as.character(mapTarget)]
+		# data.table::setindex(SNOMED$EXTENDEDMAP, correlationId)
+		# not using correlationId because they are all the same
+		SNOMED$EXTENDEDMAP[, mapCategoryId := bit64::as.integer64(mapCategoryId)]
+		SNOMED$EXTENDEDMAP[, active := as.logical(active)]
+		data.table::setindexv(SNOMED$EXTENDEDMAP, c('moduleId', 'refsetId', 'referencedComponentId',
+			'mapGroup', 'mapPriority', 'mapRule', 'mapTarget', 'mapCategoryId', 'active'))
+	}
 
 	return(SNOMED)
 }
@@ -385,13 +388,13 @@ getSNOMED <- function(SNOMEDname = 'SNOMED'){
 		stop('No table named DESCRIPTION in SNOMED environment')
 	}
 	if (is.null(SNOMED$REFSET)){
-		stop('No table named REFSET in SNOMED environment')
+		warning('No table named REFSET in SNOMED environment')
 	}
 	if (is.null(SNOMED$SIMPLEMAP)){
-		stop('No table named SIMPLEMAP in SNOMED environment')
+		warning('No table named SIMPLEMAP in SNOMED environment')
 	}
 	if (is.null(SNOMED$EXTENDEDMAP)){
-		stop('No table named EXTENDEDMAP in SNOMED environment')
+		warning('No table named EXTENDEDMAP in SNOMED environment')
 	}
 	# Return the retrieved environment
 	SNOMED
