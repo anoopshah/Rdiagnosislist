@@ -253,35 +253,44 @@ createSNOMEDindices <- function(SNOMED){
 	
 	SNOMED$CONCEPT[, id := bit64::as.integer64(id)]
 	SNOMED$CONCEPT[, active := bit64::as.integer64(active)]
-	data.table::setindexv(SNOMED$CONCEPT, c('id', 'active'))
+	data.table::setkeyv(SNOMED$CONCEPT, 'id')
 	
 	SNOMED$DESCRIPTION[, id := bit64::as.integer64(id)]
 	SNOMED$DESCRIPTION[, conceptId := bit64::as.integer64(conceptId)]
 	SNOMED$DESCRIPTION[, typeId := bit64::as.integer64(typeId)]
 	SNOMED$DESCRIPTION[, term := as.character(term)]
 	SNOMED$DESCRIPTION[, active := as.logical(active)]
-	data.table::setindexv(SNOMED$DESCRIPTION, c('id', 'conceptId', 'typeId', 'term', 'active'))
+	data.table::setkeyv(SNOMED$DESCRIPTION, 'id')
+	data.table::setindexv(SNOMED$DESCRIPTION, c('conceptId', 'typeId', 'term', 'active'))
+	data.table::setindexv(SNOMED$DESCRIPTION, c('term', 'active'))
+	data.table::setindexv(SNOMED$DESCRIPTION, c('typeId', 'active'))
 
 	SNOMED$STATEDRELATIONSHIP[, id := bit64::as.integer64(id)]
 	SNOMED$STATEDRELATIONSHIP[, sourceId := bit64::as.integer64(sourceId)]
 	SNOMED$STATEDRELATIONSHIP[, destinationId := bit64::as.integer64(destinationId)]
 	SNOMED$STATEDRELATIONSHIP[, typeId := bit64::as.integer64(typeId)]
 	SNOMED$STATEDRELATIONSHIP[, active := as.logical(active)]
-	data.table::setindexv(SNOMED$STATEDRELATIONSHIP, c('id', 'sourceId', 'destinationId', 'typeId', 'active'))
+	data.table::setkeyv(SNOMED$STATEDRELATIONSHIP, c('sourceId', 'typeId', 'active'))
+	data.table::setindexv(SNOMED$STATEDRELATIONSHIP, c('destinationId', 'typeId', 'active'))
+	data.table::setindexv(SNOMED$STATEDRELATIONSHIP, c('sourceId', 'destinationId', 'typeId', 'active'))
+	data.table::setindexv(SNOMED$STATEDRELATIONSHIP, c('destinationId', 'sourceId', 'typeId', 'active'))
 
 	SNOMED$RELATIONSHIP[, id := bit64::as.integer64(id)]
 	SNOMED$RELATIONSHIP[, sourceId := bit64::as.integer64(sourceId)]
 	SNOMED$RELATIONSHIP[, destinationId := bit64::as.integer64(destinationId)]
 	SNOMED$RELATIONSHIP[, typeId := bit64::as.integer64(typeId)]
 	SNOMED$RELATIONSHIP[, active := as.logical(active)]
-	data.table::setindexv(SNOMED$RELATIONSHIP, c('id', 'sourceId', 'destinationId', 'typeId', 'active'))
+	data.table::setkeyv(SNOMED$RELATIONSHIP, c('sourceId', 'typeId', 'active'))
+	data.table::setindexv(SNOMED$RELATIONSHIP, c('destinationId', 'typeId', 'active'))
+	data.table::setindexv(SNOMED$RELATIONSHIP, c('sourceId', 'destinationId', 'typeId', 'active'))
+	data.table::setindexv(SNOMED$RELATIONSHIP, c('destinationId', 'sourceId', 'typeId', 'active'))
 
 	if ('REFSET' %in% ls(SNOMED)){
 		SNOMED$REFSET[, moduleId := bit64::as.integer64(moduleId)]
 		SNOMED$REFSET[, refsetId := bit64::as.integer64(refsetId)]
 		SNOMED$REFSET[, referencedComponentId := bit64::as.integer64(referencedComponentId)]
 		SNOMED$REFSET[, active := as.logical(active)]
-		data.table::setindexv(SNOMED$REFSET, c('moduleId', 'refsetId', 'referencedComponentId', 'active'))
+		data.table::setkeyv(SNOMED$REFSET, c('refsetId', 'referencedComponentId'))
 	}
 	
 	if ('SIMPLEMAP' %in% ls(SNOMED)){
@@ -290,8 +299,7 @@ createSNOMEDindices <- function(SNOMED){
 		SNOMED$SIMPLEMAP[, referencedComponentId := bit64::as.integer64(referencedComponentId)]
 		SNOMED$SIMPLEMAP[, mapTarget := as.character(mapTarget)]
 		SNOMED$SIMPLEMAP[, active := as.logical(active)]
-		data.table::setindexv(SNOMED$SIMPLEMAP, c('moduleId', 'refsetId', 'referencedComponentId',
-			'mapTarget', 'active'))
+		data.table::setkeyv(SNOMED$SIMPLEMAP, c('refsetId', 'mapTarget', 'referencedComponentId'))
 	}
 
 	if ('EXTENDEDMAP' %in% ls(SNOMED)){	
@@ -306,8 +314,8 @@ createSNOMEDindices <- function(SNOMED){
 		# not using correlationId because they are all the same
 		SNOMED$EXTENDEDMAP[, mapCategoryId := bit64::as.integer64(mapCategoryId)]
 		SNOMED$EXTENDEDMAP[, active := as.logical(active)]
-		data.table::setindexv(SNOMED$EXTENDEDMAP, c('moduleId', 'refsetId', 'referencedComponentId',
-			'mapGroup', 'mapPriority', 'mapRule', 'mapTarget', 'mapCategoryId', 'active'))
+		data.table::setkeyv(SNOMED$EXTENDEDMAP, c('mapPriority', 'mapCategoryId', 'refsetId',
+			'referencedComponentId'))
 	}
 
 	return(SNOMED)
@@ -491,6 +499,7 @@ loadREADMAPS <- function(not_assured_rcsctmap_uk,
 		V3MAPS[, list(ctv3_concept = list(ctv3_concept),
 		ctv3_termid = list(ctv3_termid)),
 		by = conceptId], by = 'conceptId')
+	setkeyv(READMAPS, 'conceptId')
 	READMAPS
 }
 
