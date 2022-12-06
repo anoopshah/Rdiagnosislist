@@ -372,7 +372,7 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 	allthisrowid <- alldescendantrowid <- NULL
 	
 	# Ensure that x is a SNOMEDcodelist
-	x <- as.SNOMEDcodelist(x, ...)
+	x <- as.SNOMEDcodelist(x, SNOMED = SNOMED, ...)
 	
 	out <- expandSNOMED(data.table::copy(x), SNOMED = SNOMED)
 	out[, included := TRUE]
