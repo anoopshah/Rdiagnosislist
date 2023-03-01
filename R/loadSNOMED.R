@@ -55,9 +55,9 @@ _Concept_.*Snapshot|CONCEPT
 _Description_.*Snapshot|DESCRIPTION
 _StatedRelationship_.*Snapshot|STATEDRELATIONSHIP
 _Relationship_.*Snapshot|RELATIONSHIP
-Refset_SimpleMapSnapshot|SIMPLEMAP
-Refset_ExtendedMapSnapshot|EXTENDEDMAP
-Refset_SimpleSnapshot|REFSET')
+Refset_SimpleMap.*Snapshot|SIMPLEMAP
+Refset_ExtendedMap.*Snapshot|EXTENDEDMAP
+Refset_Simple.*Snapshot|REFSET
 
 	SNOMED <- new.env()
 	append <- FALSE
