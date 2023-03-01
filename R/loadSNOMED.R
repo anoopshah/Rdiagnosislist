@@ -57,7 +57,7 @@ _StatedRelationship_.*Snapshot|STATEDRELATIONSHIP
 _Relationship_.*Snapshot|RELATIONSHIP
 Refset_SimpleMap.*Snapshot|SIMPLEMAP
 Refset_ExtendedMap.*Snapshot|EXTENDEDMAP
-Refset_Simple.*Snapshot|REFSET
+Refset_Simple.*Snapshot|REFSET')
 
 	SNOMED <- new.env()
 	append <- FALSE
