@@ -9,7 +9,7 @@
 \usage{
 \method{as.data.frame}{SNOMEDconcept}(x, ...)
 
-\method{as.integer64}{SNOMEDconcept}(x)
+\method{as.integer64}{SNOMEDconcept}(x, ...)
 
 SNOMEDconcept(
   x,

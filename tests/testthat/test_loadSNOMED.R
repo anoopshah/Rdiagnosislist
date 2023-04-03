@@ -38,7 +38,7 @@ test_that('Test exporting and reloading multiple files', {
 	dir.create(paste0(tempdir(), '/2'))
 	# Export to temporary directories
 	exportSNOMEDenvir(TEST, paste0(tempdir(), '/1/'))
-	# Move somme files to the other directory
+	# Move some files to the other directory
 	for (table in c('_Concept_', '_Relationship_',
 		'Refset_SimpleMap', 'Refset_Simple')){
 		file.rename(paste0(tempdir(), '/1/', table, 'Snapshot.txt'),

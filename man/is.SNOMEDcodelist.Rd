@@ -49,6 +49,7 @@ The function does not check if the codelist contains valid data.
 \seealso{
 Other SNOMEDcodelist functions: 
 \code{\link{SNOMEDcodelist}()},
+\code{\link{addInactiveConcepts}()},
 \code{\link{expandSNOMED}()},
 \code{\link{export}()},
 \code{\link{print.SNOMEDcodelist}()}

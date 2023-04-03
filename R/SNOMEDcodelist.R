@@ -290,9 +290,9 @@ as.data.frame.SNOMEDconcept <- function(x, ...){
 #' @rdname SNOMEDconcept
 #' @family SNOMEDconcept functions
 #' @export
-as.integer64.SNOMEDconcept <- function(x){
+as.integer64.SNOMEDconcept <- function(x, ...){
 	class(x) <- 'integer64'
-	bit64::as.integer64(x)
+	bit64::as.integer64(x, ...)
 }
 
 #' @rdname SNOMEDcodelist
@@ -694,6 +694,46 @@ print.SNOMEDcodelist <- function(x, ...){
 	printTerms(x)
 	invisible(x)
 }
+
+#' Add inactive concepts to a SNOMEDcodelist or SNOMEDconcept vector
+#'
+#' Adds inactive conceptsDisplays a SNOMEDcodelist on screen, including metadata.
+#' Truncates term descriptions in order to fit within the line width.
+#'
+#' @param x SNOMEDcodelist or SNOMEDconcept object
+#' @param provenance vector of provenance values to use
+#' @param SNOMED SNOMED environment containing HISTORY and QUERY tables
+#' @return SNOMEDcodelist or SNOMEDconcept with linked inactive concepts included
+#' @family SNOMEDcodelist functions
+#' @export
+addInactiveConcepts <- function(x, provenance = 0:3, SNOMED = getSNOMED()){
+	if (is.SNOMEDconcept(x)){
+		out <- union(union(x, as.SNOMEDconcept(SNOMED$QUERY[supertypeId %in% x &
+			provenance %in% provenance]$subtypeId)),
+			as.SNOMEDconcept(SNOMED$HISTORY[NEWCONCEPTID %in% x]$OLDCONCEPTID))
+	} else if (is.SNOMEDcodelist(x)){
+		x <- as.SNOMEDcodelist(x, format = 'simple')
+		extra_concepts <- setdiff(addInactiveConcepts(
+			as.SNOMEDconcept(x$conceptId),
+			provenance = provenance, SNOMED = getSNOMED()), x$conceptId)
+		out <- rbind(x, data.table(conceptId = extra_concepts,
+			term = description(extra_concepts)$term), fill = TRUE)
+		data.table::setattr(out, 'codelist_name', attr(x, 'codelist_name'))
+		data.table::setattr(out, 'version', attr(x, 'version'))
+		data.table::setattr(out, 'author', attr(x, 'author'))
+		data.table::setattr(out, 'date', attr(x, 'date'))
+		data.table::setattr(out, 'timestamp', Sys.time())
+		data.table::setattr(out, 'sct_version', SNOMED$metadata$version)
+		data.table::setattr(out, 'format', 'simple')
+		data.table::setkeyv(out, 'conceptId')
+		return(out)
+	} else {
+		warning('x is not a SNOMEDconcept or SNOMEDcodelist')
+		return(x)
+	}
+}
+
+
 
 # Internal function
 padTo <- function(string, length){

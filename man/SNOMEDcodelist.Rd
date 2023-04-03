@@ -89,12 +89,14 @@ as.SNOMEDcodelist(data.frame(conceptId = my_concepts,
 htmlCodelistHierarchy
 
 Other SNOMEDcodelist functions: 
+\code{\link{addInactiveConcepts}()},
 \code{\link{expandSNOMED}()},
 \code{\link{export}()},
 \code{\link{is.SNOMEDcodelist}()},
 \code{\link{print.SNOMEDcodelist}()}
 
 Other SNOMEDcodelist functions: 
+\code{\link{addInactiveConcepts}()},
 \code{\link{expandSNOMED}()},
 \code{\link{export}()},
 \code{\link{is.SNOMEDcodelist}()},

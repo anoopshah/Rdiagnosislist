@@ -21,6 +21,7 @@ Truncates term descriptions in order to fit within the line width.
 \seealso{
 Other SNOMEDcodelist functions: 
 \code{\link{SNOMEDcodelist}()},
+\code{\link{addInactiveConcepts}()},
 \code{\link{expandSNOMED}()},
 \code{\link{export}()},
 \code{\link{is.SNOMEDcodelist}()}

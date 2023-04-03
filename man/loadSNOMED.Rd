@@ -18,18 +18,25 @@ folder paths and expressed in the form: INT{date} & UK{date}}
 \value{
 An environment containing data.table objects: CONCEPT,
   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, REFSET,
-  SIMPLEMAP, EXTENDEDMAP
+  SIMPLEMAP, EXTENDEDMAP, HISTORY (optional), QUERY (optional)
 }
 \description{
-Identifies relevant SNOMED CT files from the 'Snapshot' of a 
-distribution and loads them into an R environment. Files from
+Identifies relevant SNOMED CT files from the folder structure of
+a SNOMED CT distribution. This includes the core 'Snapshot' tables
+mapping tables from the 'Refset' folder and the history substitution
+table and query table.
+The relevant tables are loaded into an R environment, which can be
+saved and then easily retrieved for future use. Files from
 two folders (e.g. International and UK versions) can be loaded
-together and appended.
+together, and are automatically appended by the function.
 }
 \details{
-These files are available from the NHS Digital Technology Reference
-Update Distribution:
+The SNOMED CT files are available from the NHS Digital Technology
+Reference Update Distribution:
 \url{https://isd.digital.nhs.uk/trud/user/guest/group/0/home}
+
+(Note: May 2022 - This function needs to be updated to use the 
+latest SNOMED CT TRUD versions including the SNOMED CT definitions).
 }
 \examples{
 # Create a TEST environment and load the sample dictionaries

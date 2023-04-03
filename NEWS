@@ -1,4 +1,19 @@
 =====================================================================
+Version 1.2
+Third release on CRAN
+=====================================================================
+
+BUG FIXES:
+- as.integer64.SNOMEDconcept now allows additional optional arguments,
+  like the generic as.integer64 function
+
+NEW FEATURES:
+- loadSNOMED also optionally loads history and query tables from a
+  SNOMED CT distribution
+- New function add_inactive to add inactive concepts to codelists, using
+  the history and query tables
+
+=====================================================================
 Version 1.1
 =====================================================================
 

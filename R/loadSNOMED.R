@@ -1,12 +1,16 @@
 #' Load SNOMED CT files from a folder(s) into R data.table objects
 #'
-#' Identifies relevant SNOMED CT files from the 'Snapshot' of a 
-#' distribution and loads them into an R environment. Files from
+#' Identifies relevant SNOMED CT files from the folder structure of
+#' a SNOMED CT distribution. This includes the core 'Snapshot' tables
+#' mapping tables from the 'Refset' folder and the history substitution
+#' table and query table.
+#' The relevant tables are loaded into an R environment, which can be
+#' saved and then easily retrieved for future use. Files from
 #' two folders (e.g. International and UK versions) can be loaded
-#' together and appended.
+#' together, and are automatically appended by the function.
 #'
-#' These files are available from the NHS Digital Technology Reference
-#' Update Distribution:
+#' The SNOMED CT files are available from the NHS Digital Technology
+#' Reference Update Distribution:
 #' \url{https://isd.digital.nhs.uk/trud/user/guest/group/0/home}
 #'
 #' (Note: May 2022 - This function needs to be updated to use the 
@@ -19,7 +23,7 @@
 #'   folder paths and expressed in the form: INT{date} & UK{date}
 #' @return An environment containing data.table objects: CONCEPT,
 #'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, REFSET,
-#'   SIMPLEMAP, EXTENDEDMAP
+#'   SIMPLEMAP, EXTENDEDMAP, HISTORY (optional), QUERY (optional)
 #' @export
 #' @seealso loadREADMAPS, CONCEPT, DESCRIPTION, RELATIONSHIP,
 #' STATEDRELATIONSHIP, REFSET, SIMPLEMAP, EXTENDEDMAP,
@@ -57,7 +61,9 @@ _StatedRelationship_.*Snapshot|STATEDRELATIONSHIP
 _Relationship_.*Snapshot|RELATIONSHIP
 Refset_SimpleMap.*Snapshot|SIMPLEMAP
 Refset_ExtendedMap.*Snapshot|EXTENDEDMAP
-Refset_Simple.*Snapshot|REFSET')
+Refset_Simple.*Snapshot|REFSET
+SNOMEDQueryTable|QUERY
+HistorySubstitutionTable_Concepts|HISTORY')
 
 	SNOMED <- new.env()
 	append <- FALSE
@@ -217,20 +223,52 @@ Refset_Simple.*Snapshot|REFSET')
 #' @return NULL 
 #' @export
 exportSNOMEDenvir <- function(SNOMED, folder){
-	data.table::fwrite(get('CONCEPT', envir = SNOMED, inherits = FALSE),
-		paste0(folder, '/_Concept_Snapshot.txt'), sep = '\t', quote = FALSE)
-	data.table::fwrite(get('DESCRIPTION', envir = SNOMED, inherits = FALSE),
-		paste0(folder, '/_Description_Snapshot.txt'), sep = '\t', quote = FALSE)
-	data.table::fwrite(get('RELATIONSHIP', envir = SNOMED, inherits = FALSE),
-		paste0(folder, '/_Relationship_Snapshot.txt'), sep = '\t', quote = FALSE)
-	data.table::fwrite(get('STATEDRELATIONSHIP', envir = SNOMED, inherits = FALSE),
-		paste0(folder, '/_StatedRelationship_Snapshot.txt'), sep = '\t', quote = FALSE)
-	data.table::fwrite(get('REFSET', envir = SNOMED, inherits = FALSE),
-		paste0(folder, '/Refset_SimpleSnapshot.txt'), sep = '\t', quote = FALSE)
-	data.table::fwrite(get('SIMPLEMAP', envir = SNOMED, inherits = FALSE),
-		paste0(folder, '/Refset_SimpleMapSnapshot.txt'), sep = '\t', quote = FALSE)
-	data.table::fwrite(get('EXTENDEDMAP', envir = SNOMED, inherits = FALSE),
-		paste0(folder, '/Refset_ExtendedMapSnapshot.txt'), sep = '\t', quote = FALSE)
+	data.table::fwrite(get('CONCEPT', envir = SNOMED, 
+		inherits = FALSE),
+		paste0(folder, '/_Concept_Snapshot.txt'), sep = '\t', 
+		quote = FALSE)
+	data.table::fwrite(get('DESCRIPTION', envir = SNOMED, 
+		inherits = FALSE),
+		paste0(folder, '/_Description_Snapshot.txt'), sep = '\t', 
+		quote = FALSE)
+	data.table::fwrite(get('RELATIONSHIP', envir = SNOMED, 
+		inherits = FALSE),
+		paste0(folder, '/_Relationship_Snapshot.txt'), sep = '\t', 
+		quote = FALSE)
+	data.table::fwrite(get('STATEDRELATIONSHIP', envir = SNOMED,
+		inherits = FALSE),
+		paste0(folder, '/_StatedRelationship_Snapshot.txt'), sep = '\t',
+		quote = FALSE)
+	if ('REFSET' %in% names(SNOMED)){
+		data.table::fwrite(get('REFSET', envir = SNOMED,
+			inherits = FALSE),
+			paste0(folder, '/Refset_SimpleSnapshot.txt'), sep = '\t',
+			quote = FALSE)
+	}
+	if ('SIMPLEMAP' %in% names(SNOMED)){
+		data.table::fwrite(get('SIMPLEMAP', envir = SNOMED,
+			inherits = FALSE),
+			paste0(folder, '/Refset_SimpleMapSnapshot.txt'), sep = '\t',
+			quote = FALSE)
+	}
+	if ('EXTENDEDMAP' %in% names(SNOMED)){
+		data.table::fwrite(get('EXTENDEDMAP', envir = SNOMED,
+			inherits = FALSE),
+			paste0(folder, '/Refset_ExtendedMapSnapshot.txt'),
+			sep = '\t', quote = FALSE)
+	}
+	if ('HISTORY' %in% names(SNOMED)){
+		data.table::fwrite(get('HISTORY', envir = SNOMED,
+			inherits = FALSE),
+			paste0(folder, '/HistorySubstitutionTable_Concepts.txt'),
+			sep = '\t', quote = FALSE)
+	}
+	if ('QUERY' %in% names(SNOMED)){
+		data.table::fwrite(get('QUERY', envir = SNOMED,
+			inherits = FALSE),
+			paste0(folder, '/SNOMEDQueryTable.txt'), sep = '\t',
+			quote = FALSE)
+	}
 	return(NULL)
 }
 
@@ -318,6 +356,20 @@ createSNOMEDindices <- function(SNOMED){
 			'referencedComponentId'))
 	}
 
+	if ('QUERY' %in% ls(SNOMED)){	
+		SNOMED$QUERY[, supertypeId := bit64::as.integer64(supertypeId)]
+		SNOMED$QUERY[, subtypeId := bit64::as.integer64(subtypeId)]
+		SNOMED$QUERY[, provenance := as.integer(provenance)]
+		data.table::setkeyv(SNOMED$QUERY, c('supertypeId', 'subtypeId'))
+	}
+
+	if ('HISTORY' %in% ls(SNOMED)){	
+		SNOMED$HISTORY[, OLDCONCEPTID := bit64::as.integer64(OLDCONCEPTID)]
+		SNOMED$HISTORY[, NEWCONCEPTID := bit64::as.integer64(NEWCONCEPTID)]
+		data.table::setkeyv(SNOMED$HISTORY, c('NEWCONCEPTID', 'OLDCONCEPTID'))
+		data.table::setindexv(SNOMED$HISTORY, 'OLDCONCEPTID')
+	}
+	
 	return(SNOMED)
 }
 
@@ -332,7 +384,7 @@ createSNOMEDindices <- function(SNOMED){
 #'   and a list named 'metadata'
 #' @export
 #' @seealso CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, 
-#' REFSET, SIMPLEMAP, EXTENDEDMAP, loadSNOMED, sampleSNOMED
+#' REFSET, SIMPLEMAP, EXTENDEDMAP, HISTORY, QUERY, loadSNOMED, sampleSNOMED
 #' @examples
 #' TEST <- sampleSNOMED()
 #' inactiveIncluded(TEST)
@@ -349,6 +401,8 @@ sampleSNOMED <- function(){
 	data(REFSET, envir = SNOMED)
 	data(SIMPLEMAP, envir = SNOMED)
 	data(EXTENDEDMAP, envir = SNOMED)
+	data(HISTORY, envir = SNOMED)
+	data(QUERY, envir = SNOMED)
 	SNOMED <- createSNOMEDindices(SNOMED)
 	assign('metadata', value = list(source = 'sample',
 		active_only = FALSE, version = 'Sample'), envir = SNOMED)
@@ -403,6 +457,12 @@ getSNOMED <- function(SNOMEDname = 'SNOMED'){
 	}
 	if (is.null(SNOMED$EXTENDEDMAP)){
 		warning('No table named EXTENDEDMAP in SNOMED environment')
+	}
+	if (is.null(SNOMED$HISTORY)){
+		warning('No table named HISTORY in SNOMED environment')
+	}
+	if (is.null(SNOMED$QUERY)){
+		warning('No table named QUERY in SNOMED environment')
 	}
 	# Return the retrieved environment
 	SNOMED

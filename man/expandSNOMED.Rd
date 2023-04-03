@@ -59,18 +59,21 @@ contractSNOMED(expanded_codelist)
 \seealso{
 Other SNOMEDcodelist functions: 
 \code{\link{SNOMEDcodelist}()},
+\code{\link{addInactiveConcepts}()},
 \code{\link{export}()},
 \code{\link{is.SNOMEDcodelist}()},
 \code{\link{print.SNOMEDcodelist}()}
 
 Other SNOMEDcodelist functions: 
 \code{\link{SNOMEDcodelist}()},
+\code{\link{addInactiveConcepts}()},
 \code{\link{export}()},
 \code{\link{is.SNOMEDcodelist}()},
 \code{\link{print.SNOMEDcodelist}()}
 
 Other SNOMEDcodelist functions: 
 \code{\link{SNOMEDcodelist}()},
+\code{\link{addInactiveConcepts}()},
 \code{\link{export}()},
 \code{\link{is.SNOMEDcodelist}()},
 \code{\link{print.SNOMEDcodelist}()}

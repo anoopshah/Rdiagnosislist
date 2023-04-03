@@ -50,5 +50,10 @@ data(STATEDRELATIONSHIP, envir = TEST)
 str(TEST$RELATIONSHIP)
 str(TEST$STATEDRELATIONSHIP)
 }
+\seealso{
+Other SNOMEDsample: 
+\code{\link{HISTORY}},
+\code{\link{QUERY}}
+}
 \concept{SNOMEDsample}
 \keyword{datasets}

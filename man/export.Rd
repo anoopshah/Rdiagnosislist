@@ -28,12 +28,14 @@ a filename is created from the 'codelist_name' attribute.
 \seealso{
 Other SNOMEDcodelist functions: 
 \code{\link{SNOMEDcodelist}()},
+\code{\link{addInactiveConcepts}()},
 \code{\link{expandSNOMED}()},
 \code{\link{is.SNOMEDcodelist}()},
 \code{\link{print.SNOMEDcodelist}()}
 
 Other SNOMEDcodelist functions: 
 \code{\link{SNOMEDcodelist}()},
+\code{\link{addInactiveConcepts}()},
 \code{\link{expandSNOMED}()},
 \code{\link{is.SNOMEDcodelist}()},
 \code{\link{print.SNOMEDcodelist}()}
