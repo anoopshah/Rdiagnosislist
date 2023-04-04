@@ -26,7 +26,7 @@
 #'   SIMPLEMAP, EXTENDEDMAP, HISTORY (optional), QUERY (optional)
 #' @export
 #' @seealso loadREADMAPS, CONCEPT, DESCRIPTION, RELATIONSHIP,
-#' STATEDRELATIONSHIP, REFSET, SIMPLEMAP, EXTENDEDMAP,
+#' STATEDRELATIONSHIP, REFSET, SIMPLEMAP, EXTENDEDMAP, QUERY, HISTORY
 #' sampleSNOMED, getSNOMED, exportSNOMEDenvir
 #' @examples
 #' # Create a TEST environment and load the sample dictionaries
@@ -288,7 +288,9 @@ createSNOMEDindices <- function(SNOMED){
 	moduleId <- refsetId <- referencedComponentId <- NULL
 	mapTarget <- mapGroup <- mapPriority <- mapRule <- NULL
 	correlationId <- mapCategoryId <- NULL
-	
+	supertypeId <- subtypeId <- provenance <- NULL
+	OLDCONCEPTID <- NEWCONCEPTID <- NULL
+
 	SNOMED$CONCEPT[, id := bit64::as.integer64(id)]
 	SNOMED$CONCEPT[, active := bit64::as.integer64(active)]
 	data.table::setkeyv(SNOMED$CONCEPT, 'id')

@@ -707,10 +707,22 @@ print.SNOMEDcodelist <- function(x, ...){
 #' @family SNOMEDcodelist functions
 #' @export
 addInactiveConcepts <- function(x, provenance = 0:3, SNOMED = getSNOMED()){
+	supertypeId <- NEWCONCEPTID <- NULL
+
 	if (is.SNOMEDconcept(x)){
-		out <- union(union(x, as.SNOMEDconcept(SNOMED$QUERY[supertypeId %in% x &
-			provenance %in% provenance]$subtypeId)),
-			as.SNOMEDconcept(SNOMED$HISTORY[NEWCONCEPTID %in% x]$OLDCONCEPTID))
+		if ('QUERY' %in% names(SNOMED)){
+			x <- union(x, as.SNOMEDconcept(SNOMED$QUERY[supertypeId %in% x &
+				provenance %in% provenance]$subtypeId))
+		} else {
+			warning('SNOMED does not contain a query table')
+		}
+		if ('HISTORY' %in% names(SNOMED)){
+			x <- union(x, as.SNOMEDconcept(SNOMED$HISTORY[
+				NEWCONCEPTID %in% x]$OLDCONCEPTID))
+		} else {
+			warning('SNOMED does not contain a history table')
+		}
+		return(x)
 	} else if (is.SNOMEDcodelist(x)){
 		x <- as.SNOMEDcodelist(x, format = 'simple')
 		extra_concepts <- setdiff(addInactiveConcepts(
@@ -718,6 +730,7 @@ addInactiveConcepts <- function(x, provenance = 0:3, SNOMED = getSNOMED()){
 			provenance = provenance, SNOMED = getSNOMED()), x$conceptId)
 		out <- rbind(x, data.table(conceptId = extra_concepts,
 			term = description(extra_concepts)$term), fill = TRUE)
+		# Ensure metadata is not lost in the conversion
 		data.table::setattr(out, 'codelist_name', attr(x, 'codelist_name'))
 		data.table::setattr(out, 'version', attr(x, 'version'))
 		data.table::setattr(out, 'author', attr(x, 'author'))

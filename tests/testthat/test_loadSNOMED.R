@@ -18,6 +18,8 @@ test_that('Test exporting and reloading sample SNOMED dictionary', {
 	expect_equal(TEST$STATEDRELATIONSHIP, TEST2$STATEDRELATIONSHIP)
 	expect_equal(TEST$REFSET, TEST2$REFSET)
 	expect_equal(TEST$SIMPLEMAP, TEST2$SIMPLEMAP)
+	expect_equal(TEST$HISTORY, TEST2$HISTORY)
+	expect_equal(TEST$QUERY, TEST2$QUERY)
 	# expect_equal(TEST$EXTENDEDMAP, TEST2$EXTENDEDMAP)
 	# Comments fields in EXTENDEDMAP may have different
 	# handling of missing data
@@ -54,6 +56,8 @@ test_that('Test exporting and reloading multiple files', {
 	expect_equal(TEST$STATEDRELATIONSHIP, TEST2$STATEDRELATIONSHIP)
 	expect_equal(TEST$REFSET, TEST2$REFSET)
 	expect_equal(TEST$SIMPLEMAP, TEST2$SIMPLEMAP)
+	expect_equal(TEST$QUERY, TEST2$QUERY)
+	expect_equal(TEST$HISTORY, TEST2$HISTORY)
 	# expect_equal(TEST$EXTENDEDMAP, TEST2$EXTENDEDMAP)
 	
 	# Try with one file completely missing
@@ -66,6 +70,10 @@ test_that('Test exporting and reloading multiple files', {
 		'Refset_ExtendedMap')){
 		file.remove(paste0(tempdir(), '/1/', table, 'Snapshot.txt'))
 	}
+	file.remove(paste0(tempdir(),
+		'/1/HistorySubstitutionTable_Concepts.txt'))
+	file.remove(paste0(tempdir(),
+		'/1/SNOMEDQueryTable.txt'))
 	file.remove(paste0(tempdir(), '/1'))
 	for (table in c('_Concept_', 'Refset_SimpleMap', 'Refset_Simple')){
 		file.remove(paste0(tempdir(), '/2/', table, 'Snapshot.txt'))
