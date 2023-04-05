@@ -10,8 +10,8 @@ BUG FIXES:
 NEW FEATURES:
 - loadSNOMED also optionally loads history and query tables from a
   SNOMED CT distribution
-- New function add_inactive to add inactive concepts to codelists, using
-  the history and query tables
+- New function addInactiveConcepts to add inactive concepts to
+  codelists, using the history and query tables
 
 =====================================================================
 Version 1.1

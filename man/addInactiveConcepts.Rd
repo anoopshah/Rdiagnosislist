@@ -17,8 +17,15 @@ addInactiveConcepts(x, provenance = 0:3, SNOMED = getSNOMED())
 SNOMEDcodelist or SNOMEDconcept with linked inactive concepts included
 }
 \description{
-Adds inactive conceptsDisplays a SNOMEDcodelist on screen, including metadata.
-Truncates term descriptions in order to fit within the line width.
+Adds SNOMED concepts linked by the QUERY or HISTORY tables
+that are mapped to or descendants of concepts in a SNOMEDcodelist
+or a SNOMEDconcept vector. If a SNOMEDcodelist, it is automatically
+converted to the 'simple' format (all items enumerated).
+}
+\details{
+It is recommended to use this function to convert a reference
+into a codelist for running a query against an electronic health
+record database which might contain historic SNOMED CT concepts.
 }
 \seealso{
 Other SNOMEDcodelist functions: 

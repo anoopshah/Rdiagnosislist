@@ -697,8 +697,14 @@ print.SNOMEDcodelist <- function(x, ...){
 
 #' Add inactive concepts to a SNOMEDcodelist or SNOMEDconcept vector
 #'
-#' Adds inactive conceptsDisplays a SNOMEDcodelist on screen, including metadata.
-#' Truncates term descriptions in order to fit within the line width.
+#' Adds SNOMED concepts linked by the QUERY or HISTORY tables
+#' that are mapped to or descendants of concepts in a SNOMEDcodelist
+#' or a SNOMEDconcept vector. If a SNOMEDcodelist, it is automatically
+#' converted to the 'simple' format (all items enumerated).
+#'
+#' It is recommended to use this function to convert a reference
+#' into a codelist for running a query against an electronic health
+#' record database which might contain historic SNOMED CT concepts.
 #'
 #' @param x SNOMEDcodelist or SNOMEDconcept object
 #' @param provenance vector of provenance values to use
