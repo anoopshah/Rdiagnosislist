@@ -1,6 +1,5 @@
 =====================================================================
-Version 1.2
-Third release on CRAN
+Version 1.2 - Third release on CRAN
 =====================================================================
 
 BUG FIXES:
@@ -38,8 +37,7 @@ CHANGES:
   algorithms
 
 =====================================================================
-Version 1.0
-Second release on CRAN
+Version 1.0 - Second release on CRAN
 =====================================================================
 
 NEW FEATURES:
@@ -60,8 +58,7 @@ CHANGES:
 - Updated method of displaying SNOMED CT codelists
 
 =====================================================================
-Version 0.2
-Initial release on CRAN
+Version 0.2 - Initial release on CRAN
 =====================================================================
 
 Initial release
