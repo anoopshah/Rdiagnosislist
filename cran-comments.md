@@ -3,11 +3,20 @@
 * win-builder (devel and release)
 
 ## R CMD check results
-Note_to_CRAN_maintainers
-Maintainer: ‘Anoop Shah <anoop@doctors.org.uk>’
+* checking CRAN incoming feasibility ... [11s] NOTE
+Maintainer: 'Anoop Shah <anoop@doctors.org.uk>'
 
-Status: OK
+New submission
 
-## Changes in this version 1.2 (5 April 2023)
+Package was archived on CRAN
 
-Added the facility to upload SNOMED CT history and query tables.
+Possibly misspelled words in DESCRIPTION:
+  SNOMED (2:19, 10:53, 11:52, 12:43, 13:37, 14:46, 16:67)
+
+CRAN repository db overrides:
+  X-CRAN-Comment: Archived on 2023-04-10 as issues were not corrected
+    despite reminders.
+
+
+(Note that SNOMED is not misspelt. R CMD checks on
+winbuilder show only the above NOTE).
