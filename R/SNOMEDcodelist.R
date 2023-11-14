@@ -618,6 +618,8 @@ is.SNOMEDcodelist <- function(x, format = NULL, codelist_name = NULL,
 #' @param filename character vector of length 1 for the file
 #'   to write to. If NULL, a filename is generated from the
 #'   codelist filename.
+#' @param metadata Whether meta-data is exported or not.
+#' Default is TRUE. 
 #' @param ... not used
 #' @return invisibly returns the exported codelist
 #' @family SNOMEDcodelist functions
@@ -630,7 +632,8 @@ export <- function(x, ...){
 #' @rdname export
 #' @family SNOMEDcodelist functions
 #' @export
-export.SNOMEDcodelist <- function(x, filename = NULL, ...){
+export.SNOMEDcodelist <- function(x, filename = NULL, 
+				  metadata = TRUE, ...){
 	# Exports a codelist to file.
 	# All metadata must be stored in the codelist.
 
@@ -647,6 +650,8 @@ export.SNOMEDcodelist <- function(x, filename = NULL, ...){
 	# Prepare output file
 	out <- copy(x)
 
+	if (metadata == TRUE) {
+	
 	# Create the metadata character vector
 	metadata <- encodeMetadata(x)
 	metadataWidth <- max(nchar(metadata)) + 1
@@ -669,6 +674,8 @@ export.SNOMEDcodelist <- function(x, filename = NULL, ...){
 	setcolorder(out, c('metadata', setdiff(colnames(out),
 		c('metadata'))))
 
+		}
+		
 	 if (grepl('.csv$', tolower(filename))){
 		data.table::fwrite(out, file = filename)
 	} else {
