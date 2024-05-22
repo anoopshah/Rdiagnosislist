@@ -3,10 +3,10 @@
 * win-builder (devel and release)
 
 ## R CMD check results
-Note_to_CRAN_maintainers
-Maintainer: ‘Anoop Shah <anoop@doctors.org.uk>’
+* checking CRAN incoming feasibility ... [11s] NOTE
+Maintainer: 'Anoop Shah <anoop@doctors.org.uk>'
 
-Status: OK
+New submission
 
 ## Changes in this version 1.2 (11 April 2023)
 
