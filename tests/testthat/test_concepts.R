@@ -91,6 +91,16 @@ test_that('Check concept ID', {
 	expect_error(SNOMEDconcept(list(bit64::as.integer64('1234'))))
 })
 
+test_that('Acronyms', {
+	expect_equal(acronyms(as.SNOMEDconcept('Heart failure',
+		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED())$term, 'HF')
+	expect_equal(acronyms(as.SNOMEDconcept('Right ventricular abnormality',
+		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED())$term,
+		'RV abnormality')
+})
+
+context('SNOMEDconcept set functions')
+
 test_that('Generic set functions for strings', {
 	# These tests are essential to ensure that the new
 	# generic functions work just like the base functions

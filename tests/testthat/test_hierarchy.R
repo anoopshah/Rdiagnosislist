@@ -15,7 +15,7 @@ test_that('Related concepts', {
 
 test_that('createTransitive', {
 	TRANSITIVE <- createTransitive(
-		as.SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED()),
+		descendants('Heart failure', SNOMED = sampleSNOMED()),
 		SNOMED = sampleSNOMED())
 	ahf <- as.SNOMEDconcept('Acute heart failure', SNOMED = sampleSNOMED())
 	expect_equal(descendants(ahf, SNOMED = sampleSNOMED()),

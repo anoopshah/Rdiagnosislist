@@ -238,8 +238,13 @@ description <- function(conceptIds,
 	
 	# Return an empty data.table if there is no input data
 	if (length(conceptIds) == 0){
-		return(data.table(id = integer64(0), conceptId = integer64(0),
-			term = character(0)))
+		if (include_synonyms == TRUE){
+			return(data.table(id = integer64(0), conceptId = integer64(0),
+				type = character(0), term = character(0)))
+		} else {
+			return(data.table(id = integer64(0), conceptId = integer64(0),
+				term = character(0)))
+		}
 	}
 	
 	CONCEPTS <- data.table(conceptId = as.SNOMEDconcept(conceptIds),
@@ -267,6 +272,74 @@ description <- function(conceptIds,
 	data.table::setkeyv(OUT, 'order')
 	OUT[, order := NULL]
 	OUT[]
+}
+
+#' Extract acronyms stated in the description of SNOMED CT concepts
+#'
+#' Returns acronyms, if any, expressed within SNOMED CT descriptions
+#' in the form 'ABCD - Another Bland Cardiovascular Disease'.
+#'
+#' @param conceptIds character or integer64 vector
+#' @param SNOMED environment containing SNOMED dictionary. Defaults
+#'   to an object named 'SNOMED' in the global environment
+#' @return a data.table with the following columns: id, conceptId,
+#'   type = 'Acronym', term = acronym
+#' @export
+#' @examples
+#' SNOMED <- sampleSNOMED()
+#' acronyms('Heart failure')
+#'
+#' # Get all synonyms and acronyms
+#' rva <- SNOMEDconcept('Right ventricular abnormality')
+#' rbind(description(rva, include_synonyms = TRUE), acronyms(rva))
+acronyms <- function(conceptIds, SNOMED = getSNOMED()){
+	D <- description(conceptIds, SNOMED = SNOMED, include_synonyms = TRUE)
+	terms <- D$term
+
+	acronym <- rep(NA_character_, length(terms))
+	words <- strsplit(terms, split = ' ')
+	maybe_acronym <- sapply(words, length) >= 3 & terms %like%
+		'^([[:alnum:]]+) - '
+	stated_acronym <- strsplit(sapply(words, function(x) tolower(x[1])),
+		split = character(0))
+	stated_expansion <- tolower(sub('^([[:alnum:]]+) - (.*)$', '\\2',
+		terms))
+	created_acronym <- lapply(words, function(x){
+		tolower(substr(x[3:length(x)], 1, 1))
+	})
+	
+	if (any(maybe_acronym)){
+		for (i in seq_along(acronym)[maybe_acronym == TRUE]){
+			# 1. Check for exact match
+			if (identical(stated_acronym[[i]], created_acronym[[i]])){
+				acronym[i] <- words[[i]][1]
+			# 2. Check for exact match for first part of the phrase
+			#    e.g. 'ica - internal carotid artery stenosis'
+			} else if (identical(stated_acronym[[i]],
+				created_acronym[[i]][1:length(stated_acronym[[i]])])){
+				acronym[i] <- paste(words[[i]][c(1,
+					(length(stated_acronym[[i]]) + 3):length(words[[i]]))],
+					collapse = ' ')
+			# 4. Allow leeway in match if acronym is longer than 3 characters
+			} else if (length(stated_acronym[[i]]) > 3 &
+				length(created_acronym[[i]]) > 2 & (stated_acronym[[i]][1] ==
+				created_acronym[[i]][1])) {
+				# allow up to one extra character in stated_acronym 
+				matches <- unlist(sapply(2:length(stated_acronym[[i]]),
+					function(x){
+						ifelse(identical(stated_acronym[[i]][-x],
+							created_acronym[[i]]), TRUE, FALSE)
+					}))
+				if (any(matches)){
+					acronym[i] <- words[[i]][1]
+				}
+			} else {
+				# no acronym
+			}
+		}
+	}
+	D[!is.na(acronym), .(id, conceptId, type = 'Acronym',
+		term = acronym[!is.na(acronym)])]
 }
 
 #' Set operations for SNOMEDconcept vectors

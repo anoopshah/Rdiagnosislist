@@ -3,6 +3,8 @@ Version 1.3 - IN DEVELOPMENT
 =====================================================================
 
 BUG FIXES:
+- Ensure that description returns a 'type' column if there are 0 rows
+  and include_synonyms = TRUE
 
 NEW FEATURES:
 - New function createTransitive to generate a transitive closure
@@ -16,7 +18,8 @@ NEW FEATURES:
 PROPOSED:
 - New functions to generate a concept database for named entity
   recognition
-- New functions to decompose and compose (precoordinate) SNOMED CT concepts
+- New functions to decompose and compose (precoordinate) SNOMED CT
+  concepts
 
 =====================================================================
 Version 1.2 - Third release on CRAN

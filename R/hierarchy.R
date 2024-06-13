@@ -128,7 +128,7 @@ relatedConcepts <- function(conceptIds,
 #' descendants('Heart failure')
 parents <- function(conceptIds, include_self = FALSE, 
 	SNOMED = getSNOMED(), TRANSITIVE = NULL, ...){
-	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
+	conceptIds <- as.SNOMEDconcept(unique(conceptIds), SNOMED = SNOMED)
 	parentIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = FALSE, recursive = FALSE, SNOMED = SNOMED, ...)
@@ -150,7 +150,7 @@ parents <- function(conceptIds, include_self = FALSE,
 #' @export
 ancestors <- function(conceptIds, include_self = FALSE, 
 	SNOMED = getSNOMED(), TRANSITIVE = NULL, ...){
-	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
+	conceptIds <- as.SNOMEDconcept(unique(conceptIds), SNOMED = SNOMED)
 	if (is.null(TRANSITIVE)){
 		ancestorIds <- relatedConcepts(conceptIds = conceptIds,
 			typeId = bit64::as.integer64('116680003'),
@@ -177,7 +177,7 @@ ancestors <- function(conceptIds, include_self = FALSE,
 #' @export
 children <- function(conceptIds, include_self = FALSE, 
 	SNOMED = getSNOMED(), TRANSITIVE = NULL, ...){
-	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
+	conceptIds <- as.SNOMEDconcept(unique(conceptIds), SNOMED = SNOMED)
 	childIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = TRUE, recursive = FALSE, SNOMED = SNOMED, ...)
@@ -199,7 +199,7 @@ children <- function(conceptIds, include_self = FALSE,
 #' @export
 descendants <- function(conceptIds, include_self = FALSE, 
 	SNOMED = getSNOMED(), TRANSITIVE = NULL, ...){
-	conceptIds <- as.SNOMEDconcept(unique(conceptIds))
+	conceptIds <- as.SNOMEDconcept(unique(conceptIds), SNOMED = SNOMED)
 	if (is.null(TRANSITIVE)){
 		descendantIds <- relatedConcepts(conceptIds = conceptIds,
 			typeId = bit64::as.integer64('116680003'),
@@ -230,7 +230,6 @@ descendants <- function(conceptIds, include_self = FALSE,
 #'
 #' @param conceptIds character or integer64 vector of SNOMED concept IDs
 #'   for the subset of concepts to include in the transitive table.
-#'   The descendants of these concepts will also be included.
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param tables vector of names of relationship table(s) to use;
 #'   by default use both RELATIONSHIP and STATEDRELATIONSHIP
@@ -242,13 +241,18 @@ descendants <- function(conceptIds, include_self = FALSE,
 #' TRANSITIVE <- createTransitive('Heart failure')
 createTransitive <- function(conceptIds, SNOMED = getSNOMED(),
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
-	conceptIds <- descendants(as.SNOMEDconcept(conceptIds,
-		SNOMED = SNOMED), include_self = TRUE, SNOMED = SNOMED)
+	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
 	WORKING <- rbindlist(lapply(tables, function(x){
-		get(x, envir = SNOMED)[(sourceId %in% conceptIds |
-			destinationId %in% conceptIds) &
-			typeId == bit64::as.integer64('116680003'),
-			.(childId = sourceId, parentId = destinationId)]
+		TEMP <- get(x, envir = SNOMED)
+		if (nrow(TEMP) == 0){
+			data.table(childId = bit64::as.integer64(0),
+				parentId = bit64::as.integer64(0))
+		} else {
+			TEMP[(sourceId %in% conceptIds |
+				destinationId %in% conceptIds) &
+				typeId == bit64::as.integer64('116680003'),
+				.(childId = sourceId, parentId = destinationId)]
+		}
 	}))
 	WORKING <- WORKING[!duplicated(WORKING)]
 	new_nrows <- nrow(WORKING)

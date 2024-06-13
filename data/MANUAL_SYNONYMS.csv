@@ -1,0 +1,80 @@
+term1,term2
+ischemic stroke,cerebral ischemic stroke
+aortic stenosis,aortic valve stenosis
+inactive,non active
+non organic,functional
+osteoporotic,osteoporosis
+humerus,humeral
+mandibular,mandible
+muscle atrophy,atrophy of muscle
+muscle strain,strain of muscle
+ligament injury,injury of ligament
+ligament strain,ligamentous strain
+strain of ligament,ligamentous strain
+ligament,ligamentous
+acute-on-chronic,acute on chronic
+acute,sudden onset and/or short duration
+exacerbation,worsening
+pulmonary,lung
+cardiac,heart
+gastrointestinal,digestive system
+gastrointestinal system,digestive system
+basal cell carcinoma,basal cell carcinoma of skin
+AF,atrial fibrillation
+AAA,abdominal aortic aneurysm
+CAD,coronary artery disease
+CCF,congestive cardiac failure
+CHD,coronary heart disease
+DM,diabetes mellitus
+flu,influenza
+PAH,pulmonary artery hypertension
+MI,myocardial infarction
+MS,multiple sclerosis
+PID,pelvic inflammatory disease
+RAPD,relative afferent pupillary defect
+NFA,no fixed abode
+TB,tuberculosis
+AOM,acute otitis media
+ITP,immune thrombocytopenia
+NOF,fracture of neck of femur
+SVT,supraventricular tachycardia
+IBS,irritable bowel syndrome
+AKI,acute renal failure syndrome
+SAH,subarachnoid intracranial hemorrhage
+HF,heart failure
+PSP,progressive supranuclear palsy
+VF,ventricular fibrillation
+HTN,hypertension
+CVA,cerebrovascular accident
+CVD,cardiovascular disease
+MCA,middle cerebral artery
+ACA,anterior cerebral artery
+PCA,posterior cerebral artery
+LAD,left anterior descending
+RCA,right coronary artery
+NOF,neck of femur
+OA,osteoarthrosis
+OA,osteoarthritis
+HOH,hard of hearing
+HOH,hard hearing
+GORD,gastroesophageal reflux disease
+Ca,cancer
+PMR,polymyalgia rheumatica
+GIST,gastrointestinal stromal tumor
+GIST,gastrointestinal stromal tumour
+GI,gastrointestinal
+GIT,gastrointestinal tract
+GIH,gastrointestinal haemorrhage
+HCC,hepatocellular carcinoma
+STEMI,st segment elevation myocardial infarction
+nSTEMI,non-st segment elevation mi
+nonSTEMI,non-st segment elevation mi
+NSTEMI,non-st segment elevation mi
+T2DM,diabetes mellitus type 2
+HFREF,heart failure with reduced ejection fraction
+HFrEF,heart failure with reduced ejection fraction
+HFPEF,heart failure with preserved ejection fraction
+HFpEF,heart failure with preserved ejection fraction
+HFMEF,heart failure with mid range ejection fraction
+HFmEF,heart failure with mid range ejection fraction
+NFA,no fixed abode
