@@ -7,13 +7,37 @@
 \alias{descendants}
 \title{Ancestors and descendants of SNOMED CT concepts}
 \usage{
-parents(conceptIds, include_self = FALSE, SNOMED = getSNOMED(), ...)
+parents(
+  conceptIds,
+  include_self = FALSE,
+  SNOMED = getSNOMED(),
+  TRANSITIVE = NULL,
+  ...
+)
 
-ancestors(conceptIds, include_self = FALSE, SNOMED = getSNOMED(), ...)
+ancestors(
+  conceptIds,
+  include_self = FALSE,
+  SNOMED = getSNOMED(),
+  TRANSITIVE = NULL,
+  ...
+)
 
-children(conceptIds, include_self = FALSE, SNOMED = getSNOMED(), ...)
+children(
+  conceptIds,
+  include_self = FALSE,
+  SNOMED = getSNOMED(),
+  TRANSITIVE = NULL,
+  ...
+)
 
-descendants(conceptIds, include_self = FALSE, SNOMED = getSNOMED(), ...)
+descendants(
+  conceptIds,
+  include_self = FALSE,
+  SNOMED = getSNOMED(),
+  TRANSITIVE = NULL,
+  ...
+)
 }
 \arguments{
 \item{conceptIds}{character or integer64 vector of SNOMED concept IDs}
@@ -22,6 +46,13 @@ descendants(conceptIds, include_self = FALSE, SNOMED = getSNOMED(), ...)
 output, default = FALSE}
 
 \item{SNOMED}{environment containing a SNOMED dictionary}
+
+\item{TRANSITIVE}{transitive closure table for ancestors and
+descendants, containing is-a relationships. This table can be 
+created by createTransitive to speed up the ancestor / descendant
+functions. If a TRANSITIVE table is provided, the SNOMED environment
+is not used and relatedConcepts is not called. TRANSITIVE should be
+a data.table with columns ancestorId and descendantId.}
 
 \item{...}{other arguments to pass to relatedConcepts}
 }
@@ -41,4 +72,9 @@ parents('Heart failure')
 children('Heart failure')
 ancestors('Heart failure')
 descendants('Heart failure')
+}
+\seealso{
+[createTransitive()] for creation of TRANSITIVE table, and
+  [relatedConcepts()] for the underlying function to extract
+  SNOMED CT relationships.
 }

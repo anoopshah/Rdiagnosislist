@@ -13,6 +13,15 @@ test_that('Related concepts', {
 		as.SNOMEDconcept('Heart structure', SNOMED = sampleSNOMED()))
 })
 
+test_that('createTransitive', {
+	TRANSITIVE <- createTransitive(
+		as.SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED()),
+		SNOMED = sampleSNOMED())
+	ahf <- as.SNOMEDconcept('Acute heart failure', SNOMED = sampleSNOMED())
+	expect_equal(descendants(ahf, SNOMED = sampleSNOMED()),
+		descendants(ahf, SNOMED = sampleSNOMED(), TRANSITIVE = TRANSITIVE))
+})
+
 test_that('hasAttributes', {
 	expect_equal(hasAttributes(
 		as.SNOMEDconcept(c('Heart failure', 'Acute heart failure'),
