@@ -8,15 +8,15 @@ addWordNet(CDB_TABLE, wn_categories, WN)
 }
 \arguments{
 \item{CDB_TABLE}{data.frame or data.table with columns
-conceptId (integer64) and term (character, lower case) containing
-existing concepts and descriptions in the CDB}
+conceptId (integer64) and term (character, with space before
+and after) containing existing descriptions in the CDB}
 
 \item{wn_categories}{WordNet categories to use}
 
 \item{WN}{WordNet data.table as returned by downloadWordnet}
 }
 \value{
-CDB_TABLE  with extra rows for Wordnet synonyms
+CDB_TABLE with extra rows for Wordnet synonyms
 }
 \description{
 Adds terms from a WordNet thesaurus to a concept database, matching
@@ -25,7 +25,7 @@ ensure that words with multiple meanings are not linked to the wrong
 synonym.
 }
 \examples{
-WORDNET <- data.table(cat = c('noun.body', 'noun.state'),
+WORDNET <- data.table::data.table(cat = c('noun.body', 'noun.state'),
   wordnetId = bit64::as.integer64('1', '2'),
   synonyms = list(c('heart', 'pump', 'ticker'),
   c('infection', 'infectious')),
@@ -36,7 +36,7 @@ WORDNET <- data.table(cat = c('noun.body', 'noun.state'),
 SNOMED <- sampleSNOMED()
 CDB_TABLE <- description(c('Heart', 'Infection'),
   include_synonyms = TRUE)[type == 'Synonym',
-  .(conceptId, term = tolower(term))]
+  .(conceptId, term = paste0(' ', tolower(term), ' '))]
 addWordNet(CDB_TABLE, 'noun.state', WORDNET)
 }
 \references{

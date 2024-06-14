@@ -255,9 +255,9 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 				by = 'term')[, .(conceptId, term = extra)], fill = TRUE)
 		}
 		if (!is.null(WN)){
-			addWordNet(X, wn_categories = wn_categories, WN = WN)
+			return(addWordNet(X, wn_categories = wn_categories, WN = WN))
 		} else {
-			X[!duplicated(X)]
+			return(X[!duplicated(X)])
 		}
 	}
 	D$FINDINGS <- addmw(FINDINGS, c('noun.state',
@@ -267,6 +267,11 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	D$CAUSES <- addmw(CAUSES, c('noun.state',
 		'noun.process', 'noun.phenomenon', 'noun.animal', 'noun.plant'))
 	D$BODY <- addmw(BODY, c('noun.body'))
+	
+	D$SEVERITY <- SEVERITY
+	D$LATERALITY <- LATERALITY
+	D$STAGE <- STAGE
+	D$BODY_LATERALITY <- BODY_LATERALITY
 	
 	D$ORGSUB <- CAUSES[conceptId %in% union(desc('Substance'),
 		desc('Organism'))]
@@ -285,5 +290,18 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 
 	D$TRANSITIVE <- TRANSITIVE
 	D$metadata <- SNOMED$metadata
+	
+	D$SCT_assoc <- s('Associated with')
+	D$SCT_cause <- s('Causative agent')
+	D$SCT_after <- s('After')
+	D$SCT_dueto <- s('Due to')
+	D$SCT_findingsite <- s('Finding site')
+	D$SCT_disorder <- s('Disorder')
+	D$SCT_finding <- s('Clinical finding')
+	D$latConcepts <- s(c('Left', 'Right', 'Bilateral'))
+	setattr(D$latConcepts, 'names', c('Left', 'Right', 'Bilateral'))
+	D$stopwords <- c('the', 'of', 'by', 'with', 'to', 'into', 'and', 'or',
+		'both', 'at', 'as', 'and/or')
+	
 	return(D)
 }

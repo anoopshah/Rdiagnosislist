@@ -128,7 +128,7 @@ relatedConcepts <- function(conceptIds,
 #' descendants('Heart failure')
 parents <- function(conceptIds, include_self = FALSE, 
 	SNOMED = getSNOMED(), TRANSITIVE = NULL, ...){
-	conceptIds <- as.SNOMEDconcept(unique(conceptIds), SNOMED = SNOMED)
+	conceptIds <- unique(as.SNOMEDconcept(conceptIds, SNOMED = SNOMED))
 	parentIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = FALSE, recursive = FALSE, SNOMED = SNOMED, ...)
@@ -150,14 +150,15 @@ parents <- function(conceptIds, include_self = FALSE,
 #' @export
 ancestors <- function(conceptIds, include_self = FALSE, 
 	SNOMED = getSNOMED(), TRANSITIVE = NULL, ...){
-	conceptIds <- as.SNOMEDconcept(unique(conceptIds), SNOMED = SNOMED)
+	conceptIds <- unique(as.SNOMEDconcept(conceptIds, SNOMED = SNOMED))
 	if (is.null(TRANSITIVE)){
 		ancestorIds <- relatedConcepts(conceptIds = conceptIds,
 			typeId = bit64::as.integer64('116680003'),
 			reverse = FALSE, recursive = TRUE, SNOMED = SNOMED, ...)
 	} else {
-		ancestorIds <- TRANSITIVE[data.table(descendantId = conceptIds),
-			on = 'descendantId']$ancestorId
+		ancestorIds <- as.SNOMEDconcept(TRANSITIVE[
+			data.table(descendantId = conceptIds),
+			on = 'descendantId']$ancestorId)
 	}
 
 	if (include_self){
@@ -177,7 +178,7 @@ ancestors <- function(conceptIds, include_self = FALSE,
 #' @export
 children <- function(conceptIds, include_self = FALSE, 
 	SNOMED = getSNOMED(), TRANSITIVE = NULL, ...){
-	conceptIds <- as.SNOMEDconcept(unique(conceptIds), SNOMED = SNOMED)
+	conceptIds <- unique(as.SNOMEDconcept(conceptIds, SNOMED = SNOMED))
 	childIds <- relatedConcepts(conceptIds = conceptIds,
 		typeId = bit64::as.integer64('116680003'),
 		reverse = TRUE, recursive = FALSE, SNOMED = SNOMED, ...)
@@ -199,14 +200,15 @@ children <- function(conceptIds, include_self = FALSE,
 #' @export
 descendants <- function(conceptIds, include_self = FALSE, 
 	SNOMED = getSNOMED(), TRANSITIVE = NULL, ...){
-	conceptIds <- as.SNOMEDconcept(unique(conceptIds), SNOMED = SNOMED)
+	conceptIds <- unique(as.SNOMEDconcept(conceptIds, SNOMED = SNOMED))
 	if (is.null(TRANSITIVE)){
 		descendantIds <- relatedConcepts(conceptIds = conceptIds,
 			typeId = bit64::as.integer64('116680003'),
 			reverse = TRUE, recursive = TRUE, SNOMED = SNOMED, ...)
 	} else {
-		descendantIds <- TRANSITIVE[data.table(ancestorId = conceptIds),
-			on = 'ancestorId']$descendantId
+		descendantIds <- as.SNOMEDconcept(TRANSITIVE[
+			data.table(ancestorId = conceptIds),
+			on = 'ancestorId']$descendantId)
 	}
 
 	if (include_self){

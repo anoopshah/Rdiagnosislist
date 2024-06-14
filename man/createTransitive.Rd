@@ -13,8 +13,7 @@ createTransitive(
 }
 \arguments{
 \item{conceptIds}{character or integer64 vector of SNOMED concept IDs
-for the subset of concepts to include in the transitive table.
-The descendants of these concepts will also be included.}
+for the subset of concepts to include in the transitive table.}
 
 \item{SNOMED}{environment containing a SNOMED dictionary}
 

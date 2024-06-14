@@ -150,7 +150,7 @@ downloadWordnet <- function(
 #'   .(conceptId, term = paste0(' ', tolower(term), ' '))]
 #' addWordNet(CDB_TABLE, 'noun.state', WORDNET)
 addWordNet <- function(CDB_TABLE, wn_categories, WN){
-	term <- synonyms <- cat <- conceptId <- wordnetId
+	term <- synonyms <- cat <- conceptId <- wordnetId <- NULL
 	# Arguments:
 	# CDB_TABLE = cdb to supplement
 	# wn_categories = categories of wordnet
