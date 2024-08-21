@@ -9,12 +9,12 @@
 #'   categories, in the format: cat (character), wordnetId (integer64),
 #'   synonyms (list), parents (list), adj (list)
 #' @export
-#' @seealso [addWordnet()]
+#' @seealso [addWordNet()]
 #' @references \url{https://wordnet.princeton.edu/}
 #' @examples
 #' # Not run
-#' # WORDNET <- downloadWordnet()
-downloadWordnet <- function(
+#' # WORDNET <- downloadWordNet()
+downloadWordNet <- function(
 	wordnet_url = 'https://wordnetcode.princeton.edu/wn3.1.dict.tar.gz',
 	wn_categories = c('noun.body', 'noun.state', 'noun.process',
 		'noun.animal', 'noun.plant', 'noun.phenomenon')){
@@ -133,7 +133,7 @@ downloadWordnet <- function(
 #' @param WN WordNet data.table as returned by downloadWordnet
 #' @return CDB_TABLE with extra rows for Wordnet synonyms
 #' @export
-#' @seealso [downloadWordnet()]
+#' @seealso [downloadWordNet()]
 #' @references \url{https://wordnet.princeton.edu/}
 #' @examples
 #' WORDNET <- data.table::data.table(cat = c('noun.body', 'noun.state'),
@@ -159,7 +159,7 @@ addWordNet <- function(CDB_TABLE, wn_categories, WN){
 	WNLONG <- WN[cat %in% wn_categories, .(term = synonyms[1][[1]]),
 		by = wordnetId]
 	WNLONG[, term := sub('[1-9]$', '', term)]
-	WNLONG[, term := gsub('_', ' ', term)]
+	WNLONG[, term := paste0(' ', gsub('_', ' ', term), ' ')]
 	# Match up WNLONG with SNOMED CT concepts by term
 	MERGED <- merge(WNLONG, D[!duplicated(D)], by = 'term')
 	MERGED <- MERGED[!duplicated(MERGED)]

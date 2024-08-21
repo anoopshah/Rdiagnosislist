@@ -43,5 +43,5 @@ addWordNet(CDB_TABLE, 'noun.state', WORDNET)
 \url{https://wordnet.princeton.edu/}
 }
 \seealso{
-[downloadWordnet()]
+[downloadWordNet()]
 }

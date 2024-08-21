@@ -9,8 +9,10 @@
 #'
 #' @details
 #' \itemize{
-#'   \item{term1}{ character: First term, in lower case if case is unimportant} 
-#'   \item{term2}{ character: Second term, in lower case if case is unimportant}
+#'   \item{synonym}{ character: Synonym, in lower case if case is unimportant} 
+#'   \item{snomed}{ character: SNOMED CT term, in lower case if case is unimportant}
+#'   \item{bidirectional}{ boolean: whether synonym can only ever mean
+#'     snomed. Not to be used for abbreviations or acronyms.}
 #' }
 #' 
 #' @seealso [addManual()]

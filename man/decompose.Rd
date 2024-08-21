@@ -2,43 +2,63 @@
 % Please edit documentation in R/decompose.R
 \name{decompose}
 \alias{decompose}
-\title{WORK IN PROGRESS}
+\alias{test_decompose}
+\title{Decomposition of meaning of a finding or disorder SNOMED CT concept}
 \usage{
 decompose(
   the_conceptId,
   diagnosis_text,
   CDB,
   SNOMED = getSNOMED(),
+  noisy = FALSE,
+  omit_unmatched = TRUE
+)
+
+test_decompose(
+  the_conceptId,
+  CDB = NULL,
+  diagnosis_text = NULL,
+  SNOMED = getSNOMED(),
   noisy = FALSE
 )
 }
 \arguments{
+\item{the_conceptId}{SNOMED CT concept to decompose}
+
+\item{diagnosis_text}{SNOMED CT term (or in theory any text that
+has the same meaning as the SNOMED CT concept)}
+
 \item{CDB}{an environment containing CDB files, as created by
 createCDB}
 
-\item{SNOMED}{environment containing a SNOMED dictionary}
+\item{SNOMED}{an environment containing the SNOMED CT dictionary}
 
-\item{WN}{WordNet data.table as returned by downloadWordnet
-containing WordNet data from appropriate
-categories, in the format: cat (character), wordnetId (integer64),
-synonyms (list), parents (list), adj (list)}
+\item{noisy}{whether to output messages (for debugging)}
+
+\item{omit_unmatched}{whether to omit rows in which some attributes
+could not be matched to SNOMED CT concepts}
 }
 \value{
-environment containing the following data tables: FINDINGS,
-  QUAL, CAUSES, BODY, FINDINGS, OTHERSUB, OVERLAP
+a SNOMEDfinding object, which is a data.table with
 }
 \description{
-Extracts SNOMED CT concepts from appropriate places in the 
-hierarchy to create a set of CDB files in an environment.
-Uses WordNet and manual synonyms if available.
+Decomposes a SNOMED CT term into separate components according
+to the SNOMED CT information model and text parsing. Each term
+may have a number of possible decompositions. Requires a CDB
+environment created by createCDB.
 }
 \examples{
 # Not run
-# WORDNET <- downloadWordnet()
-}
-\references{
-\url{https://wordnet.princeton.edu/}
-}
-\seealso{
-[addWordnet()]
+# test_decompose('Acute heart failure', CDB = CDB)
+# Decomposition of 56675007 | Acute heart failure (disorder) :
+#
+# Acute heart failure 
+# 
+# --------------------------------------------------------------------------------
+# 56675007 | Acute heart failure (disorder)
+# --------------------------------------------------------------------------------
+# Root:  84114007 | Heart failure (disorder)
+# - Other attributes: 
+# -  424124008 | Sudden onset AND/OR short duration (qualifier value)
+
 }

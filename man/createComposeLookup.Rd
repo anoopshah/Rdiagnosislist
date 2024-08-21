@@ -2,36 +2,29 @@
 % Please edit documentation in R/createComposeLookup.R
 \name{createComposeLookup}
 \alias{createComposeLookup}
-\title{Creates an environment containing CDB files}
+\title{Creates a set of lookups for SNOMED composition}
 \usage{
-createComposeLookup(D)
+createComposeLookup(conceptIds, CDB, SNOMED = getSNOMED(), ...)
 }
 \arguments{
+\item{conceptIds}{for which to create lookup table}
+
+\item{CDB}{concept database environment, containing a table called
+FINDINGS}
+
 \item{SNOMED}{environment containing a SNOMED dictionary}
-
-\item{WN}{WordNet data.table as returned by downloadWordnet
-containing WordNet data from appropriate
-categories, in the format: cat (character), wordnetId (integer64),
-synonyms (list), parents (list), adj (list)}
-
-\item{MANUAL_SYNONYMS}{}
 }
 \value{
-environment containing the following data tables: FINDINGS,
-  QUAL, CAUSES, BODY, FINDINGS, OTHERSUB, OVERLAP
+data.table
 }
 \description{
-Extracts SNOMED CT concepts from appropriate places in the 
-hierarchy to create a set of CDB files in an environment.
-Uses WordNet and manual synonyms if available.
+Creates composition lookup table for a set of SNOMED CT concepts
 }
 \examples{
 # Not run
-# WORDNET <- downloadWordnet()
-}
-\references{
-\url{https://wordnet.princeton.edu/}
+
+mylookup <- createComposeLookup(D)
 }
 \seealso{
-[addWordnet()]
+[decompose()]
 }

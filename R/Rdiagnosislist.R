@@ -4,6 +4,5 @@
 #' into R and use the hierarchies to search for concepts and navigate
 #' relations between concepts.
 #'
-#' @docType package
-#' @name Rdiagnosislist
-NULL
+#' @keywords internal 
+"_PACKAGE"

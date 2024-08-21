@@ -20,7 +20,7 @@
 #' @examples
 #' #Not run
 #' #data(MANUAL_SYNONYMS)
-#' #WN <- downloadWordnet()
+#' #WN <- downloadWordNet()
 #' #D <- createCDB(WN = WN, MANUAL_SYNONYMS = MANUAL_SYNONYMS)
 createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	WN = NULL, MANUAL_SYNONYMS = NULL, noisy = TRUE){
@@ -29,6 +29,8 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	D <- new.env()
 
 	#### USEFUL FUNCTIONS ####
+	stopwords <- c('the', 'of', 'by', 'with', 'to', 'into', 'and', 'or',
+		'both', 'at', 'as', 'and/or', 'in')
 	s <- function(x) SNOMEDconcept(x, SNOMED = SNOMED)
 	desc <- function(x, ...){
 		descendants(x, SNOMED = SNOMED, TRANSITIVE = TRANSITIVE, ...)
@@ -40,7 +42,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		x <- desc(x)
 		rbind(description(x, SNOMED = SNOMED, include_synonyms = TRUE)[
 			type == 'Synonym', .(conceptId,
-			term = paste0(' ', tolower(term), ' '))],
+			term = std_term(term))],
 			acronyms(x, SNOMED = SNOMED)[, .(conceptId,
 			term = paste0(' ', term, ' '))])
 	}
@@ -51,7 +53,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		SNOMED$RELATIONSHIP[typeId %in% s(
 		c('Due to', 'Causative agent', 'After'))]$destinationId),
 		SNOMED = SNOMED, include_synonyms = T)[type == 'Synonym',
-		.(conceptId, term = paste0(' ', tolower(term), ' '))]
+		.(conceptId, term = std_term(term))]
 	
 	#### GENERATE TRANSITIVE TABLE ####
 	if (is.null(TRANSITIVE)){
@@ -95,13 +97,20 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	structure_terms <- lapply(structure_types, function(structure_type){
 		# Find concepts with structure
 		ANCESTOR <- BODY[term %like% paste0('^(', structure_type, ')$')]
-		TEMP <- BODY[term %like% structure_type &
-			conceptId %in% desc(ANCESTOR$conceptId),
-			.(conceptId, term = gsub(paste0(strip_structure, '|',
-			structure_type), ' ', gsub(paste0(strip_structure, '|',
-			structure_type), ' ', term)))]
-		TEMP[!duplicated(TEMP)]
-		TEMP
+		if (nrow(ANCESTOR) > 0){
+			if (noisy) message(paste0('Removing the words ',
+				structure_type, ' where possible.'))
+			TEMP <- BODY[term %like% structure_type &
+				conceptId %in% desc(ANCESTOR$conceptId),
+				.(conceptId, term = gsub(paste0(strip_structure, '|',
+				structure_type), ' ', gsub(paste0(strip_structure, '|',
+				structure_type), ' ', term)))]
+			TEMP[!duplicated(TEMP)]
+			TEMP
+		} else {
+			data.table(conceptId = bit64::as.integer64(0),
+				term = character(0))
+		}
 	})
 	setattr(structure_terms, 'names', structure_types)
 
@@ -237,22 +246,20 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		data.table(conceptId = bit64::as.integer64('51440002'),
 		term = ' left and right '))
 	QUAL <- QUAL[!(conceptId %in% LATERALITY$conceptId)]
-	
-	stopwords <- c('the', 'of', 'by', 'with', 'to', 'into', 'and', 'or',
-		'both', 'at', 'as', 'and/or')
 	QUAL <- QUAL[!(term %in% paste0(' ', stopwords, ' '))]
 
 	#### PREPARE CDB ENVIRONMENT ####
 	addmw <- function(X, wn_categories){
 		if (!is.null(MANUAL_SYNONYMS)){
-			M <- as.data.table(MANUAL_SYNONYMS)
-			M[, term1 := sub('^ *', ' ', sub(' *$', ' ', term1))]
-			M[, term2 := sub('^ *', ' ', sub(' *$', ' ', term2))]
+			M <- copy(as.data.table(MANUAL_SYNONYMS))
+			M[, snomed := sub('^ *', ' ', sub(' *$', ' ', snomed))]
+			M[, synonym := sub('^ *', ' ', sub(' *$', ' ', synonym))]
 			X <- rbind(X,
-				merge(X, M[, .(term = term1, extra = term2)],
+				merge(X, M[, .(term = snomed, extra = synomym)],
 				by = 'term')[, .(conceptId, term = extra)],
-				merge(X, M[, .(term = term2, extra = term1)],
-				by = 'term')[, .(conceptId, term = extra)], fill = TRUE)
+				merge(X, M[bidirectional == TRUE, .(term = synomym,
+				extra = snomed)], by = 'term')[,
+				.(conceptId, term = extra)], fill = TRUE)
 		}
 		if (!is.null(WN)){
 			return(addWordNet(X, wn_categories = wn_categories, WN = WN))
@@ -275,8 +282,8 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	
 	D$ORGSUB <- CAUSES[conceptId %in% union(desc('Substance'),
 		desc('Organism'))]
-	OTHERSEARCH <- rbind(QUAL, FINDINGS, CAUSES, BODY, fill = TRUE)
-	D$OTHERSEARCH <- OTHERSEARCH[!duplicated(OTHERSEARCH)]
+	#OTHERSEARCH <- rbind(QUAL, FINDINGS, CAUSES, BODY, fill = TRUE)
+	#D$OTHERSEARCH <- OTHERSEARCH[!duplicated(OTHERSEARCH)]
 	
 	# OVERLAP = concepts that are in findings as well as another
 	# (qual etc.)
@@ -305,3 +312,25 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	
 	return(D)
 }
+
+# Internal function: for a standardised form of words
+std_term <- function(x, stopwords = c('the', 'of', 'by', 'with', 'to',
+	'into', 'and', 'or', 'both', 'at', 'as', 'and/or', 'in')){
+	# lowercase except if single word concepts with second, third
+	# or final letter upper case (i.e. an acronym like HbA1c or
+	# nSTEMI)
+	# decapitalise the first letter if rest of first word is 
+	# lower case and non-numeric, otherwise keep case as is.
+	x <- gsub(' +', ' ', gsub('^ *|-|,|\\(|\\)| *$', '', x))
+	#paste0(' ', ifelse(nchar(gsub('[^ ]', '', x)) > 0, tolower(x),
+	#	ifelse(x %like% '[A-Z]$|^.[A-Z]|^..[A-Z]', x, tolower(x))), ' ')
+	words <- strsplit(x, ' ')
+	paste0(' ', sapply(lapply(words, function(y){
+		ifelse(y %like% '^[A-Z][a-z]+$' |
+			y %in% toupper(stopwords), tolower(y), y)
+	}), function(y) paste(y, collapse = ' ')), ' ')
+}
+#std_term('HbA1c') = ' HbA1c '
+#std_term('nSTEMI') = ' nSTEMI '
+#std_term('Fever') = ' fever '
+#std_term('MCA stroke') = ' MCA stroke '

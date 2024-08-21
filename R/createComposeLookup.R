@@ -1,34 +1,39 @@
-#' Creates an environment containing CDB files
+#' Creates a set of lookups for SNOMED composition
 #'
-#' Extracts SNOMED CT concepts from appropriate places in the 
-#' hierarchy to create a set of CDB files in an environment.
-#' Uses WordNet and manual synonyms if available.
-#'
+#' Creates composition lookup table for a set of SNOMED CT concepts
+
+#' @param conceptIds for which to create lookup table
+#' @param CDB concept database environment, containing a table called
+#'   FINDINGS 
 #' @param SNOMED environment containing a SNOMED dictionary
-#' @param WN WordNet data.table as returned by downloadWordnet
-#'   containing WordNet data from appropriate
-#'   categories, in the format: cat (character), wordnetId (integer64),
-#'   synonyms (list), parents (list), adj (list)
-#' @param MANUAL_SYNONYMS 
-#' @return environment containing the following data tables: FINDINGS,
-#'   QUAL, CAUSES, BODY, FINDINGS, OTHERSUB, OVERLAP
+#' @return data.table 
 #' @export
-#' @seealso [addWordnet()]
-#' @references \url{https://wordnet.princeton.edu/}
+#' @seealso [decompose()]
 #' @examples
 #' # Not run
-#' # WORDNET <- downloadWordnet()
-createComposeLookup <- function(D){
+#'
+#' mylookup <- createComposeLookup(D)
+createComposeLookup <- function(conceptIds, CDB, SNOMED = getSNOMED(),
+	...){
+	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
+	D <- rbindlist(lapply(as.character(conceptIds), function(the_concept){
+	texts <- description(the_concept, include_synonyms = TRUE,
+		SNOMED = SNOMED)[type == 'Synonym']$term
+	rbindlist(lapply(texts, function(the_text){
+		decompose(as.SNOMEDconcept(the_concept, SNOMED = SNOMED),
+			diagnosis_text = the_text, CDB = CDB, SNOMED = SNOMED, ...)
+		}))
+	}))
 	# D is the decompose table created by concatenating rows of the 
 	# output of decompose
 	# Remove rows with outstanding text
-	D <- copy(D[!(other_conceptId %like% '[[:alpha:]]')])
+	D <- copy(as.data.table(D)[!(other_conceptId %like% '[[:alpha:]]')])
 	D[, other_conceptId := gsub('^ +| +$', '', other_conceptId)]
 	
 	# Separate due to findings; due to anything else is other_attr
-	D[!(due_to %in% FINDINGS$conceptId) & !is.na(due_to),
+	D[!(due_to %in% CDB$FINDINGS$conceptId) & !is.na(due_to),
 		other_conceptId := paste(due_to, other_conceptId)]
-	D[!(due_to %in% FINDINGS$conceptId) & !is.na(due_to),
+	D[!(due_to %in% CDB$FINDINGS$conceptId) & !is.na(due_to),
 		due_to := NA_integer64_]
 	
 	# Add body site, severity, stage to other_conceptId

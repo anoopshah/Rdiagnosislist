@@ -40,6 +40,6 @@ Uses WordNet and manual synonyms if available.
 \examples{
 #Not run
 #data(MANUAL_SYNONYMS)
-#WN <- downloadWordnet()
+#WN <- downloadWordNet()
 #D <- createCDB(WN = WN, MANUAL_SYNONYMS = MANUAL_SYNONYMS)
 }
