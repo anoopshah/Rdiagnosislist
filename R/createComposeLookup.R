@@ -2,7 +2,47 @@
 #'
 #' Creates composition lookup table for a set of SNOMED CT concepts
 
-#' @param conceptIds for which to create lookup table
+#' @param conceptIds SNOMED CT concept IDs for creating decompositions
+#' @param CDB concept database environment, containing a table called
+#'   FINDINGS 
+#' @param SNOMED environment containing a SNOMED dictionary
+#' @param output_filename filename of output file 
+#' @return TRUE if successful 
+#' @export
+#' @seealso [decompose()]
+#' @examples
+#' # Not run
+#'
+#' mylookup <- createComposeLookup(D)
+batchDecompose <- function(conceptIds, CDB, output_filename,
+	SNOMED = getSNOMED(), ...){
+	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
+	started <- FALSE
+	for (i in seq_along(conceptIds)){
+		texts <- description(conceptIds[i], include_synonyms = TRUE,
+			SNOMED = SNOMED)[type == 'Synonym']$term
+		D <- NULL
+		try(D <- rbindlist(lapply(texts, function(the_text){
+			decompose(conceptIds[i], diagnosis_text = the_text,
+				CDB = CDB, SNOMED = SNOMED, ...)
+		})))
+		if (is.null(D)){
+			message('Error in analysing concept ', conceptIds[i],
+				' (', texts[1], ')')
+		} else {
+			fwrite(D, output_filename, append = started)
+			started <- TRUE
+		}
+	}
+	return(started)
+}
+
+#' Creates a set of lookups for SNOMED composition
+#'
+#' Creates composition lookup table for a set of SNOMED CT concepts
+
+#' @param decompositions filename of batchDecompose output or
+#'   data.frame containing decomposition outputs
 #' @param CDB concept database environment, containing a table called
 #'   FINDINGS 
 #' @param SNOMED environment containing a SNOMED dictionary
@@ -13,21 +53,17 @@
 #' # Not run
 #'
 #' mylookup <- createComposeLookup(D)
-createComposeLookup <- function(conceptIds, CDB, SNOMED = getSNOMED(),
-	...){
-	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
-	D <- rbindlist(lapply(as.character(conceptIds), function(the_concept){
-	texts <- description(the_concept, include_synonyms = TRUE,
-		SNOMED = SNOMED)[type == 'Synonym']$term
-	rbindlist(lapply(texts, function(the_text){
-		decompose(as.SNOMEDconcept(the_concept, SNOMED = SNOMED),
-			diagnosis_text = the_text, CDB = CDB, SNOMED = SNOMED, ...)
-		}))
-	}))
+createComposeLookup <- function(decompositions, CDB){
+	if (is.character(decompositions)){
+		D <- fread(decompositions)
+	} else {
+		D <- copy(as.data.table(D))
+	}
+	
 	# D is the decompose table created by concatenating rows of the 
 	# output of decompose
 	# Remove rows with outstanding text
-	D <- copy(as.data.table(D)[!(other_conceptId %like% '[[:alpha:]]')])
+	D <- D[!(other_conceptId %like% '[[:alpha:]]')]
 	D[, other_conceptId := gsub('^ +| +$', '', other_conceptId)]
 	
 	# Separate due to findings; due to anything else is other_attr
