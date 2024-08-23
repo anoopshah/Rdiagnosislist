@@ -704,10 +704,10 @@ print.SNOMEDfinding <- function(x, ...){
 	try(SNOMED <- getSNOMED(), silent = TRUE)
 	D <- x
 	if (nrow(D) == 0){
-		cat('No rows in SNOMED decomposition.\n')
+		cat('No rows in SNOMED finding object.\n')
 		return(NULL)
 	}
-	# Prints a SNOMED CT decomposition
+	# Prints a SNOMED CT finding object
 	show_concept <- function(x, offset = 16){
 		x <- as.SNOMEDconcept(x, SNOMED = SNOMED)
 		if (x %in% SNOMED$DESCRIPTION$conceptId){
@@ -735,30 +735,27 @@ print.SNOMEDfinding <- function(x, ...){
 					D[i]$onset_range_start, D[i]$onset_range_end))
 			}
 		}
-		if (!is.na(D[i]$with)){
-			cat('\n- With: ', show_concept(D[i]$with, 8))
+		show <- function(attr_name){
+			if (attr_name %in% names(D)){
+				if (!is.na(D[i][[attr_name]])){
+					attr_displayname <- paste0(
+						toupper(substr(attr_name, 1, 1)),
+						substr(gsub('_', ' ', attr_name), 2, 100))
+					cat('\n- ', attr_displayname, ': ',
+						show_concept(D[i][[attr_name]],
+						nchar(attr_name) + 3))
+				}
+			}
 		}
-		if (!is.na(D[i]$due_to)){
-			cat('\n- Due to: ', show_concept(D[i]$due_to, 10))
-		}
-		if (!is.na(D[i]$after)){
-			cat('\n- After: ', show_concept(D[i]$after, 9))
-		}
-		if (!is.na(D[i]$without)){
-			cat('\n- Without: ', show_concept(D[i]$without, 11))
-		}
-		if (!is.na(D[i]$body_site)){
-			cat('\n- Body site: ', show_concept(D[i]$body_site, 13))
-		}
-		if (!is.na(D[i]$severity)){
-			cat('\n- Severity: ', show_concept(D[i]$severity, 12))
-		}
-		if (!is.na(D[i]$stage)){
-			cat('\n- Stage: ', show_concept(D[i]$stage, 9))
-		}
-		if (!is.na(D[i]$laterality)){
-			cat('\n- Laterality: ', show_concept(D[i]$laterality, 14))
-		}
+		show('with')
+		show('due_to')
+		show('causing')
+		show('after')
+		show('without')
+		show('body_site')
+		show('severity')
+		show('stage')
+		show('laterality')
 		if (!(D[i]$other_conceptId == '' | is.na(D[i]$other_conceptId))){
 			cat('\n- Other attributes: ')
 			for (theconcept in strsplit(D[i]$other_conceptId, ' ')[[1]]){

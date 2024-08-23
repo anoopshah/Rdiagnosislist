@@ -33,4 +33,6 @@ refineSNOMEDfinding <- function(finding, CDB, TRANSITIVE,
 	# return either a single best match or multiple matches as per
 	# requirements (e.g. multiple may be more useful for research)
 	
+	# remove attributes which are now accounted for in the main concept
+	
 }

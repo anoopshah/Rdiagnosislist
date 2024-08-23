@@ -282,9 +282,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	
 	D$ORGSUB <- CAUSES[conceptId %in% union(desc('Substance'),
 		desc('Organism'))]
-	#OTHERSEARCH <- rbind(QUAL, FINDINGS, CAUSES, BODY, fill = TRUE)
-	#D$OTHERSEARCH <- OTHERSEARCH[!duplicated(OTHERSEARCH)]
-	
+
 	# OVERLAP = concepts that are in findings as well as another
 	# (qual etc.)
 	FindingsFSN <- description(FINDINGS$conceptId, SNOMED = SNOMED)[,
@@ -310,7 +308,17 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	D$stopwords <- c('the', 'of', 'by', 'with', 'to', 'into', 'and', 'or',
 		'both', 'at', 'as', 'and/or')
 	
+	D$DISAMBIG <- createDisambiguationTrainer(CDB, SNOMED, TRANSITIVE)
 	return(D)
+}
+
+createDisambiguationTrainer <- function(CDB, SNOMED, TRANSITIVE){
+	# Create disambiguation trainer by using SNOMED concepts containing
+	# 'Clinical finding', 'Qualifier value', 'Body structure'
+	# Output a data.table table text,p with {p ...} surrounding the
+	# acronym, which can be converted to MedCAT training data
+	
+	# TO BE WRITTEN
 }
 
 # Internal function: for a standardised form of words

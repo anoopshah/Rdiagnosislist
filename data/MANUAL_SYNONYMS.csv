@@ -78,3 +78,5 @@ HFpEF,heart failure with preserved ejection fraction,FALSE
 HFMEF,heart failure with mid range ejection fraction,FALSE
 HFmEF,heart failure with mid range ejection fraction,FALSE
 NFA,no fixed abode,FALSE
+hypersensitivity,hypersensitivity disposition,FALSE
+intolerance,intolerance to substance,FALSE
