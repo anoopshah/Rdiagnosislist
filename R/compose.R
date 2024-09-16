@@ -14,6 +14,7 @@
 #' due_to_conceptIds SNOMED concept Ids of cause
 #' without_conceptIds SNOMED concept Ids of conditions stated to be
 #'   absent
+#' with_conceptIds SNOMED concept Ids of conditions also present
 #' @param SNOMED environment containing SNOMED CT tables
 #' @return a refined SNOMED concept Id
 #' @examples
@@ -23,6 +24,7 @@ refineSNOMEDfinding <- function(conceptId, CDB, composeLookup,
 	attributes_conceptIds = bit64::as.integer64(0),
 	due_to_conceptIds = bit64::as.integer64(0),
 	without_conceptIds = bit64::as.integer64(0),
+	with_conceptIds = bit64::as.integer64(0),
 	SNOMED = getSNOMED()){
 	# Input: a SNOMEDfindings
 	# Output: a SNOMEDfindings 
@@ -50,7 +52,7 @@ refineSNOMEDfinding <- function(conceptId, CDB, composeLookup,
 	}
 	
 	limitToFindings <- function(conceptIds){
-		conceptIds[conceptIds %in% CDB$FINDINGS$conceptId]
+		intersect(conceptIds, CDB$FINDINGS$conceptId)
 	}
 	
 	# For 'causing': use due_to in reverse - not currently doing
@@ -75,19 +77,24 @@ refineSNOMEDfinding <- function(conceptId, CDB, composeLookup,
 		SNOMED = SNOMED, TRANSITIVE = CDB$TRANSITIVE, include_self =TRUE)]
 	
 	if (length(without_conceptIds) > 0){
-		composeLookup[, valid := valid &
-			without %in% limitToFindings(expand(without_conceptIds))]
+		composeLookup[, valid := valid & (is.na(without) |
+			without %in% limitToFindings(expand(without_conceptIds)))]
+	}
+
+	if (length(with_conceptIds) > 0){
+		composeLookup[, valid := valid & (is.na(with) |
+			with %in% limitToFindings(expand(with_conceptIds)))]
 	}
 	
 	if (length(due_to_conceptIds) > 0){
-		composeLookup[, valid := valid &
-			due_to %in% limitToFindings(expand(due_to_conceptIds))]
+		composeLookup[, valid := valid & (is.na(due_to) |
+			due_to %in% limitToFindings(expand(due_to_conceptIds)))]
 	}
 
 	if (length(attributes_conceptIds) > 0){
 		attributes_search <- expand(attributes_conceptIds)
 		for (j in 1:max_attr){
-			attr_x_name <- get(paste0('attr_', j)) 
+			attr_x_name <- paste0('attr_', j)
 			composeLookup[, valid := valid &
 				(is.na(get(attr_x_name)) |
 				get(attr_x_name) %in% attributes_search)]
@@ -99,8 +106,9 @@ refineSNOMEDfinding <- function(conceptId, CDB, composeLookup,
 	}
 	
 	# Remove all matches which are an ancestor of another match
-	matchIds <- unique(composeLookup[valid]$origId)
-	i <- 0
+	matchIds <- unique(as.SNOMEDconcept(
+		composeLookup[valid == TRUE]$origId, SNOMED = SNOMED))
+	i <- 1
 	while (i <= length(matchIds)){
 		ancIds <- ancestors(matchIds[i], SNOMED = SNOMED,
 			TRANSITIVE = CDB$TRANSITIVE, include_self = FALSE)
