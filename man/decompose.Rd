@@ -6,8 +6,8 @@
 \title{Decomposition of meaning of a finding or disorder SNOMED CT concept}
 \usage{
 decompose(
-  the_conceptId,
-  diagnosis_text,
+  conceptIds,
+  diagnosis_text = NULL,
   CDB,
   SNOMED = getSNOMED(),
   noisy = FALSE,
@@ -23,10 +23,10 @@ test_decompose(
 )
 }
 \arguments{
-\item{the_conceptId}{SNOMED CT concept to decompose}
-
-\item{diagnosis_text}{SNOMED CT term (or in theory any text that
-has the same meaning as the SNOMED CT concept)}
+\item{diagnosis_text}{vector of SNOMED CT terms (or in theory any
+text that has the same meaning as the SNOMED CT concept). If NULL,
+decompositions are created for all SNOMED CT synonyms of the
+concepts.}
 
 \item{CDB}{an environment containing CDB files, as created by
 createCDB}
@@ -37,9 +37,11 @@ createCDB}
 
 \item{omit_unmatched}{whether to omit rows in which some attributes
 could not be matched to SNOMED CT concepts}
+
+\item{conceptId}{vector of SNOMED CT concepts to decompose}
 }
 \value{
-a SNOMEDfinding object, which is a data.table with
+a SNOMEDfinding objects, which is a data.table with
 }
 \description{
 Decomposes a SNOMED CT term into separate components according

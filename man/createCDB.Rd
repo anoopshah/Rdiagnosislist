@@ -30,7 +30,7 @@ containing additional exact synonyms or abbreviations}
 }
 \value{
 environment containing the following data tables: FINDINGS,
-  QUAL, CAUSES, BODY, ORGSUB, OTHERSEARCH, OVERLAP, TRANSITIVE
+  QUAL, CAUSES, BODY, OTHERCAUSE, OTHERSEARCH, OVERLAP, TRANSITIVE
 }
 \description{
 Extracts SNOMED CT concepts from appropriate places in the 

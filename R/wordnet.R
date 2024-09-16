@@ -131,6 +131,10 @@ downloadWordNet <- function(
 #'   and after) containing existing descriptions in the CDB
 #' @param wn_categories WordNet categories to use
 #' @param WN WordNet data.table as returned by downloadWordnet
+#' @param CHECK_TABLE other table in the same format as CDB_TABLE
+#'   to check for WordNet synonyms that link to another unrelated
+#'   concept, where this synonym will be excluded because of the risk
+#'   of errors
 #' @return CDB_TABLE with extra rows for Wordnet synonyms
 #' @export
 #' @seealso [downloadWordNet()]
@@ -149,28 +153,36 @@ downloadWordNet <- function(
 #'   include_synonyms = TRUE)[type == 'Synonym',
 #'   .(conceptId, term = paste0(' ', tolower(term), ' '))]
 #' addWordNet(CDB_TABLE, 'noun.state', WORDNET)
-addWordNet <- function(CDB_TABLE, wn_categories, WN){
+addWordNet <- function(CDB_TABLE, wn_categories, WN,
+	CHECK_TABLE = NULL){
 	term <- synonyms <- cat <- conceptId <- wordnetId <- NULL
-	# Arguments:
-	# CDB_TABLE = cdb to supplement
-	# wn_categories = categories of wordnet
-	# WN = Wordnet data.table
 	D <- as.data.table(CDB_TABLE)
 	WNLONG <- WN[cat %in% wn_categories, .(term = synonyms[1][[1]]),
 		by = wordnetId]
 	WNLONG[, term := sub('[1-9]$', '', term)]
 	WNLONG[, term := paste0(' ', gsub('_', ' ', term), ' ')]
+	
 	# Match up WNLONG with SNOMED CT concepts by term
 	MERGED <- merge(WNLONG, D[!duplicated(D)], by = 'term')
 	MERGED <- MERGED[!duplicated(MERGED)]
-	# Extra synonyms from WNLONG
-	EXTRA_WNLONG <- merge(MERGED[, .(conceptId, wordnetId)],
-		WNLONG, by = 'wordnetId')[, .(conceptId, term)]
-	# Replace WNLONG concept IDs with SNOMED concept IDs
-	MERGELINK <- MERGED[, .(wordnetId, conceptId)]
+	
+	# Filter to WordNet ID groups that contain at least one member not
+	# linked to an existing SNOMED CT description
+	if (is.null(CHECK_TABLE)) CHECK_TABLE <- D[0]
+	CHECK <- merge(WNLONG, rbind(D[!duplicated(D)],
+		CHECK_TABLE[!duplicated(CHECK_TABLE)]), by = 'term',
+		all.x = TRUE, allow.cartesian = TRUE)
+	CHECK[, already := all(!is.na(conceptId)), by = wordnetId]
+	
+	# Do not use WordNet matches where all terms already in SNOMED CT
+	MERGELINK <- MERGED[!(wordnetId %in% CHECK[already == TRUE]$wordnetId),
+		.(wordnetId, conceptId)]
 	MERGELINK <- MERGELINK[!duplicated(MERGELINK)]
+	
+	# Replace WNLONG concept IDs with SNOMED concept IDs
 	MERGELINK <- merge(MERGELINK, WNLONG)[,
 		.(conceptId, term)]
+	
 	# Add WN synonyms
 	D <- rbind(D, MERGELINK[conceptId %in% D$conceptId])
 	return(D[!duplicated(D)])

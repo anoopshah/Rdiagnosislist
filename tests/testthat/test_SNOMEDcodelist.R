@@ -96,7 +96,7 @@ test_that('Expand and contract codelists', {
 	e3a <- SNOMEDcodelist(e3, format = 'simple', SNOMED = sampleSNOMED())
 	e4a <- SNOMEDcodelist(e4, format = 'simple', SNOMED = sampleSNOMED())
 	e5a <- SNOMEDcodelist(e5, format = 'simple', SNOMED = sampleSNOMED())
-	
+
 	# Strip timestamp in order to enable comparisons
 	data.table::setattr(orig, 'timestamp', NULL)
 	data.table::setattr(e4, 'timestamp', NULL)
@@ -106,7 +106,7 @@ test_that('Expand and contract codelists', {
 	data.table::setattr(e3a, 'timestamp', NULL)
 	data.table::setattr(e4a, 'timestamp', NULL)
 	data.table::setattr(e5a, 'timestamp', NULL)
-	
+
 	expect_equal(all.equal(e4, e5), TRUE) # contracted tree
 	expect_equal(all.equal(orig, e1a), TRUE) # exptree
 	expect_equal(all.equal(orig, e2a), TRUE) # tree, incl excluded

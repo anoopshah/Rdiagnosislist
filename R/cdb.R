@@ -15,7 +15,7 @@
 #'   containing additional exact synonyms or abbreviations
 #' @param noisy whether to output status messages 
 #' @return environment containing the following data tables: FINDINGS,
-#'   QUAL, CAUSES, BODY, ORGSUB, OTHERSEARCH, OVERLAP, TRANSITIVE
+#'   QUAL, CAUSES, BODY, OTHERCAUSE, OTHERSEARCH, OVERLAP, TRANSITIVE
 #' @export
 #' @examples
 #' #Not run
@@ -239,9 +239,11 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	STAGE <- rbind(FINDINGS[conceptId %in% STAGE],
 		QUAL[conceptId %in% STAGE])
 	QUAL <- QUAL[!(conceptId %in% STAGE$conceptId)]
-
-	LATERALITY <- QUAL[conceptId %in% desc('Side (qualifier value)')]
-	# Extra snynonym abbreviations
+	
+	# Laterality concepts
+	D$latConcepts <- s(c('Left', 'Right', 'Bilateral'))
+	setattr(D$latConcepts, 'names', c('Left', 'Right', 'Bilateral'))
+	LATERALITY <- QUAL[conceptId %in% D$latConcepts]
 	LATERALITY <- rbind(LATERALITY,
 		data.table(conceptId = bit64::as.integer64('51440002'),
 		term = ' left and right '))
@@ -255,14 +257,16 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 			M[, snomed := sub('^ *', ' ', sub(' *$', ' ', snomed))]
 			M[, synonym := sub('^ *', ' ', sub(' *$', ' ', synonym))]
 			X <- rbind(X,
-				merge(X, M[, .(term = snomed, extra = synomym)],
+				merge(X, M[, .(term = snomed, extra = synonym)],
 				by = 'term')[, .(conceptId, term = extra)],
-				merge(X, M[bidirectional == TRUE, .(term = synomym,
+				merge(X, M[bidirectional == TRUE, .(term = synonym,
 				extra = snomed)], by = 'term')[,
 				.(conceptId, term = extra)], fill = TRUE)
 		}
 		if (!is.null(WN)){
-			return(addWordNet(X, wn_categories = wn_categories, WN = WN))
+			return(addWordNet(X, wn_categories = wn_categories, WN = WN,
+				CHECK_TABLE <- rbind(QUAL, LATERALITY, FINDINGS,
+				BODY, STAGE, CAUSES, SEVERITY)))
 		} else {
 			return(X[!duplicated(X)])
 		}
@@ -279,9 +283,9 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	D$LATERALITY <- LATERALITY
 	D$STAGE <- STAGE
 	D$BODY_LATERALITY <- BODY_LATERALITY
-	
-	D$ORGSUB <- CAUSES[conceptId %in% union(desc('Substance'),
-		desc('Organism'))]
+	# Causes which are not other findings (may be events,
+	#	substances or organisms) 
+	D$OTHERCAUSE <- CAUSES[!(conceptId %in% FINDINGS$conceptId)]
 
 	# OVERLAP = concepts that are in findings as well as another
 	# (qual etc.)
@@ -303,25 +307,34 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	D$SCT_findingsite <- s('Finding site')
 	D$SCT_disorder <- s('Disorder')
 	D$SCT_finding <- s('Clinical finding')
-	D$latConcepts <- s(c('Left', 'Right', 'Bilateral'))
-	setattr(D$latConcepts, 'names', c('Left', 'Right', 'Bilateral'))
+	D$allergyConcepts <- s(c('Allergic disposition',
+		'Intolerance to substance', 'Hypersensitivity disposition'))
 	D$stopwords <- c('the', 'of', 'by', 'with', 'to', 'into', 'and', 'or',
 		'both', 'at', 'as', 'and/or')
-	
-	D$DISAMBIG <- createDisambiguationTrainer(CDB, SNOMED, TRANSITIVE)
+	D$SEMTYPE <- rbind(
+		CDB$FINDINGS[, .(conceptId, semType = 'finding')],
+		CDB$BODY[, .(conceptId, semType = 'body')],
+		CDB$QUAL[, .(conceptId, semType = 'qualifier')],
+		CDB$LATERALITY[, .(conceptId, semType = 'laterality')],
+		CDB$SEVERITY[, .(conceptId, semType = 'severity')])
+	setkey(D$SEMTYPE, conceptId)
+	D$SEMTYPE[!duplicated(D$SEMTYPE)]
+	# D$DISAMBIG <- createDisambiguationTrainer(CDB, SNOMED)
 	return(D)
 }
 
-createDisambiguationTrainer <- function(CDB, SNOMED, TRANSITIVE){
+createDisambiguationTrainer <- function(CDB, SNOMED){
 	# Create disambiguation trainer by using SNOMED concepts containing
 	# 'Clinical finding', 'Qualifier value', 'Body structure'
 	# Output a data.table table text,p with {p ...} surrounding the
 	# acronym, which can be converted to MedCAT training data
 	
 	# TO BE WRITTEN
+	
+	
 }
 
-# Internal function: for a standardised form of words
+# Internal function: for a standardised form of words for use in CDB
 std_term <- function(x, stopwords = c('the', 'of', 'by', 'with', 'to',
 	'into', 'and', 'or', 'both', 'at', 'as', 'and/or', 'in')){
 	# lowercase except if single word concepts with second, third

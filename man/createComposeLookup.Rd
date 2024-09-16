@@ -4,16 +4,16 @@
 \alias{createComposeLookup}
 \title{Creates a set of lookups for SNOMED composition}
 \usage{
-createComposeLookup(decompositions, CDB)
+createComposeLookup(decompositions, CDB, ...)
 }
 \arguments{
-\item{decompositions}{filename of batchDecompose output or
-data.frame containing decomposition outputs}
+\item{decompositions}{filename of decompose output (read by fread) or
+data.frame containing outputs of decompose function}
 
 \item{CDB}{concept database environment, containing a table called
 FINDINGS}
 
-\item{SNOMED}{environment containing a SNOMED dictionary}
+\item{...}{other arguments to pass to fread}
 }
 \value{
 data.table

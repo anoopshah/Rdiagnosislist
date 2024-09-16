@@ -1,4 +1,4 @@
-synonym,snomed,birectional
+synonym,snomed,bidirectional
 ischemic stroke,cerebral ischemic stroke,TRUE
 aortic stenosis,aortic valve stenosis,TRUE
 inactive,non active,TRUE
@@ -80,3 +80,8 @@ HFmEF,heart failure with mid range ejection fraction,FALSE
 NFA,no fixed abode,FALSE
 hypersensitivity,hypersensitivity disposition,FALSE
 intolerance,intolerance to substance,FALSE
+toenail,structure of nail unit of toe,TRUE
+fingernail,structure of nail unit of finger,TRUE
+fingertip,tip of finger,TRUE
+thumbnail,structure of nail unit of thumb,TRUE
+

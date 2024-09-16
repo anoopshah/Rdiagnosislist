@@ -4,7 +4,7 @@
 \alias{addWordNet}
 \title{Use WordNet to assist concept database creation}
 \usage{
-addWordNet(CDB_TABLE, wn_categories, WN)
+addWordNet(CDB_TABLE, wn_categories, WN, CHECK_TABLE = NULL)
 }
 \arguments{
 \item{CDB_TABLE}{data.frame or data.table with columns
@@ -14,6 +14,11 @@ and after) containing existing descriptions in the CDB}
 \item{wn_categories}{WordNet categories to use}
 
 \item{WN}{WordNet data.table as returned by downloadWordnet}
+
+\item{CHECK_TABLE}{other table in the same format as CDB_TABLE
+to check for WordNet synonyms that link to another unrelated
+concept, where this synonym will be excluded because of the risk
+of errors}
 }
 \value{
 CDB_TABLE with extra rows for Wordnet synonyms

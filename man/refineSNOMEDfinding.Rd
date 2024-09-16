@@ -2,34 +2,40 @@
 % Please edit documentation in R/compose.R
 \name{refineSNOMEDfinding}
 \alias{refineSNOMEDfinding}
-\title{WORK IN PROGRESS}
+\title{Select more specific SNOMED CT concepts based on attributes}
 \usage{
 refineSNOMEDfinding(
-  finding,
+  conceptId,
   CDB,
-  TRANSITIVE,
-  SNOMED,
   composeLookup,
-  single_output = TRUE
+  attributes_conceptIds = bit64::as.integer64(0),
+  due_to_conceptIds = bit64::as.integer64(0),
+  without_conceptIds = bit64::as.integer64(0),
+  SNOMED = getSNOMED()
 )
 }
 \arguments{
-\item{finding}{SNOMEDfinding object}
+\item{conceptId}{SNOMED CT concept to refine}
 
 \item{CDB}{SNOMED CT concept database, as created by createCDB.
-An environment containing the following data tables: FINDINGS,
-QUAL, CAUSES, BODY, FINDINGS, OTHERSUB, OVERLAP}
+  An environment containing the following data tables: FINDINGS,
+  QUAL, CAUSES, BODY, FINDINGS, OTHERSUB, OVERLAP, TRANSITIVE
+composeLookup lookup table created by createComposeLookup
+attributes_conceptIds SNOMED concept Ids of attributes of concept
+  e.g. laterality, severity, acuteness
+due_to_conceptIds SNOMED concept Ids of cause
+without_conceptIds SNOMED concept Ids of conditions stated to be
+  absent}
 
-\item{TRANSITIVE}{transitive closure table}
+\item{SNOMED}{environment containing SNOMED CT tables}
 }
 \value{
-a SNOMEDfinding object with one or more refinements of
-  the SNOMED concept if possible
+a refined SNOMED concept Id
 }
 \description{
-Extracts SNOMED CT concepts from appropriate places in the 
-hierarchy to create a set of CDB files in an environment.
-Uses WordNet and manual synonyms if available.
+Finds the most specific SNOMED CT concepts that matches the
+combination of a root concept and attributes. Based on a
+composeLookup table
 }
 \examples{
 # Not run

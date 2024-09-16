@@ -5,16 +5,18 @@
 #' may have a number of possible decompositions. Requires a CDB
 #' environment created by createCDB.
 #'
-#' @param the_conceptId SNOMED CT concept to decompose
-#' @param diagnosis_text SNOMED CT term (or in theory any text that
-#'   has the same meaning as the SNOMED CT concept)
+#' @param conceptId vector of SNOMED CT concepts to decompose
+#' @param diagnosis_text vector of SNOMED CT terms (or in theory any
+#'   text that has the same meaning as the SNOMED CT concept). If NULL,
+#'   decompositions are created for all SNOMED CT synonyms of the
+#'   concepts.
 #' @param CDB an environment containing CDB files, as created by
 #'   createCDB
 #' @param SNOMED an environment containing the SNOMED CT dictionary
 #' @param noisy whether to output messages (for debugging)
 #' @param omit_unmatched whether to omit rows in which some attributes
 #'   could not be matched to SNOMED CT concepts
-#' @return a SNOMEDfinding object, which is a data.table with
+#' @return a SNOMEDfinding objects, which is a data.table with
 #' 
 #' @examples
 #' # Not run
@@ -30,11 +32,58 @@
 #' # - Other attributes: 
 #' # -  424124008 | Sudden onset AND/OR short duration (qualifier value)
 #' 
-decompose <- function(the_conceptId, diagnosis_text, CDB,
+decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 	SNOMED = getSNOMED(), noisy = FALSE, omit_unmatched = TRUE){
 	# decomposes the diagnosis_text (e.g. from a SNOMED CT description)
 	# conceptId <- SNOMEDconcept('Chronic systolic heart failure')
 	# diagnosis_text <- 'chronic systolic heart failure'
+	
+	conceptIds <- as.character(as.SNOMEDconcept(conceptIds, SNOMED = SNOMED))
+	
+	if (length(conceptIds) > 1){
+		if (is.null(diagnosis_text)){
+			C <- rbindlist(lapply(conceptIds, function(x){
+				decompose(x, diagnosis_text = NULL, CDB,
+					SNOMED = getSNOMED(), noisy = noisy,
+					omit_unmatched = omit_unmatched)
+			}))
+			setattr(C, 'class', c('SNOMEDfindings', 'data.table', 'data.frame'))
+			return(C)
+		} else if (length(diagnosis_text) == length(conceptIds)){
+			C <- rbindlist(mapply(function(x, y){
+				decompose(x, diagnosis_text = y, CDB,
+					SNOMED = getSNOMED(), noisy = noisy,
+					omit_unmatched = omit_unmatched)
+			}, x = conceptIds, y = diagnosis_text))
+			setattr(C, 'class', c('SNOMEDfindings', 'data.table', 'data.frame'))
+			return(C)
+		} else {
+			stop('diagnosis_text must be NULL or the same length as conceptIds')
+		}
+	}
+	
+	if (length(conceptIds) > 1){
+		stop('This part of the function can only analyse a single conceptId')
+	} else {
+		the_conceptId <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
+	}
+	
+	if (is.null(diagnosis_text)){
+		diagnosis_text <- description(the_conceptId, SNOMED = SNOMED,
+			include_synonyms = TRUE)[type == 'Synonym']$term
+		C <- rbindlist(lapply(diagnosis_text, function(y){
+			decompose(the_conceptId, diagnosis_text = y, CDB,
+				SNOMED = getSNOMED(), noisy = noisy,
+				omit_unmatched = omit_unmatched)
+		}))
+		setattr(C, 'class', c('SNOMEDfindings', 'data.table', 'data.frame'))
+		return(C)
+	}
+
+	if (length(diagnosis_text) > 1){
+		stop('This part of the function can only analyse a single diagnosis_text')
+	}
+	
 	text <- std_term(diagnosis_text)
 	
 	#### LOCAL FUNCTIONS ####
@@ -66,7 +115,7 @@ decompose <- function(the_conceptId, diagnosis_text, CDB,
 
 	#### INITIALISE OUTPUT ####
 	if (noisy){
-		message(paste0('\nDecomposing:', text))
+		message(paste0('\nDecomposing ', the_conceptId, ': ', text))
 	}
 	
 	BLANK_OUTPUT <- function() {
@@ -219,11 +268,11 @@ decompose <- function(the_conceptId, diagnosis_text, CDB,
 		OUT <- splitpart(OUT, x, 'due_to', 'causing|resulting in|complicated by',
 			CDB$SCT_cause, SOURCE = CDB$CAUSES, reverse = TRUE)
 		OUT <- splitpart(OUT, x, 'due_to', 'by',
-			CDB$SCT_cause, SOURCE = CDB$ORGSUB)
+			CDB$SCT_cause, SOURCE = CDB$OTHERCAUSE)
 		OUT <- splitpart(OUT, x, 'due_to', 'causing|resulting in',
 			reverse = TRUE)
 		OUT <- splitpart(OUT, x, 'due_to', 'induced',
-			CDB$SCT_cause, SOURCE = CDB$ORGSUB, reverse = TRUE)
+			CDB$SCT_cause, SOURCE = CDB$OTHERCAUSE, reverse = TRUE)
 		OUT <- splitpart(OUT, x, 'due_to', 'due to|caused by')
 
 		# WITH
@@ -569,7 +618,7 @@ decompose <- function(the_conceptId, diagnosis_text, CDB,
 					c('QUAL', 'FINDINGS', 'CAUSES', 'BODY'),
 					function(x){
 						get(x, envir = CDB)[conceptId %in%
-						relevant_conceptId]
+						relevant_conceptId, .(conceptId, term)]
 					}))
 				if (nrow(OTHERSEARCH) > 0){
 					if (to_match %in% OTHERSEARCH$term){
@@ -640,8 +689,11 @@ decompose <- function(the_conceptId, diagnosis_text, CDB,
 		C <- C[!duplicated(C)]
 	}
 	C[, other_conceptId := gsub('^ +| +$', '', other_conceptId)]
+	#C[, attributes := lapply(strsplit(other_conceptId, '\\|'), function(x){
+	#	bit64::as.integer64(x)
+	#})]
 	
-	setattr(C, 'class', c('SNOMEDfinding', 'data.table', 'data.frame'))
+	setattr(C, 'class', c('SNOMEDfindings', 'data.table', 'data.frame'))
 	C
 }
 
@@ -699,7 +751,7 @@ test_decompose <- function(the_conceptId, CDB = NULL,
 #' Print method for output of 'decompose' function
 #' 
 #' @export
-print.SNOMEDfinding <- function(x, ...){
+print.SNOMEDfindings <- function(x, ...){
 	SNOMED <- NULL
 	try(SNOMED <- getSNOMED(), silent = TRUE)
 	D <- x
@@ -727,11 +779,11 @@ print.SNOMEDfinding <- function(x, ...){
 		cat(paste(c('\n', rep('-', getOption('width'))), collapse = ''))
 		cat(paste0('\n', show_concept(D[i]$origId, 0)))
 		cat(paste(c('\n', rep('-', getOption('width'))), collapse = ''))
-		cat('\nRoot: ', show_concept(D[i]$rootId, 6))
+		cat('\nRoot :', show_concept(D[i]$rootId, 6))
 		if (all(c('onset_range_start', 'onset_range_end') %in% names(D))){
 			if (!is.na(D[i]$onset_range_start) &
 				!is.na(D[i]$onset_range_end)){
-				cat('\n- Onset date: ', simplify_date_range(
+				cat('\n- Onset date:', simplify_date_range(
 					D[i]$onset_range_start, D[i]$onset_range_end))
 			}
 		}
@@ -741,7 +793,7 @@ print.SNOMEDfinding <- function(x, ...){
 					attr_displayname <- paste0(
 						toupper(substr(attr_name, 1, 1)),
 						substr(gsub('_', ' ', attr_name), 2, 100))
-					cat('\n- ', attr_displayname, ': ',
+					cat('\n-', attr_displayname, ':',
 						show_concept(D[i][[attr_name]],
 						nchar(attr_name) + 3))
 				}
@@ -756,17 +808,27 @@ print.SNOMEDfinding <- function(x, ...){
 		show('severity')
 		show('stage')
 		show('laterality')
-		if (!(D[i]$other_conceptId == '' | is.na(D[i]$other_conceptId))){
-			cat('\n- Other attributes: ')
-			for (theconcept in strsplit(D[i]$other_conceptId, ' ')[[1]]){
-				if (theconcept %like% '^[[:digit:]]+$'){
-					cat('\n  - ', show_concept(theconcept, 4))
-				} else {
-					cat('\n  - ', theconcept)
+		if ('other_conceptId' %in% names(D)){
+			# other conceptIds as a character vector 
+			# (used for CSV file import / export)
+			if (D[i]$other_conceptId != ''){
+				cat('\n- Other attributes :')
+				attributes <- strsplit(D[i]$other_conceptId, ' ')[[1]]
+				for (j in 1:length(attributes)){
+					cat('\n  -', show_concept(attributes[j], 4))
+				}
+			}
+		} else if ('attributes' %in% names(D)){
+			# other attributes as a ist
+			# MAY NOT USE THIS FUNCTIONALITY - TO REVIEW
+			if (length(D[i]$attributes[[1]]) > 0){
+				cat('\n- Other attributes :')
+				for (j in 1:length(D[i]$attributes[[1]])){
+					cat('\n  -', show_concept(D[i]$attributes[[1]][j], 4))
 				}
 			}
 		}
-		cat('\n\n')
+		cat('\n')
 	}
 	invisible(TRUE)
 }
