@@ -49,25 +49,27 @@ batchDecompose <- function(conceptIds, CDB, output_filename,
 #'
 #' mylookup <- createComposeLookup(D)
 createComposeLookup <- function(decompositions, CDB, ...){
+	sct_concept_colnames <- c('rootId', 'with', 'due_to',
+		'after', 'without', 'body_site', 'severity', 'stage',
+		'laterality', 'origId')
 	if (is.character(decompositions)){
-		D <- fread(decompositions, ...)
+		D <- fread(decompositions,
+			colClasses = list(character = c(sct_concept_colnames,
+				'other_conceptId')), ...)
 	} else {
 		D <- copy(as.data.table(D))
 	}
 	
-	D[, rootId := bit64::as.integer64(rootId)]
-	D[, with := bit64::as.integer64(with)]
-	D[, due_to := bit64::as.integer64(due_to)]
-	D[, after := bit64::as.integer64(after)]
-	D[, without := bit64::as.integer64(without)]
-	D[, body_site := bit64::as.integer64(body_site)]
-	D[, severity := bit64::as.integer64(severity)]
-	D[, stage := bit64::as.integer64(stage)]
-	D[, laterality := bit64::as.integer64(laterality)]
-	D[, origId := bit64::as.integer64(origId)]
+	for (i in sct_concept_colnames){
+		D[, .temp := as.SNOMEDconcept(bit64::as.integer64(D[[i]]),
+			SNOMED = SNOMED)]
+		D[.temp == 0, .temp := NA]
+		# explicit conversion using bit64::as.integer64 is to ensure
+		# that missing values and '' are handled correctly
+		D[, (i) := NULL]
+		setnames(D, '.temp', i)
+	}
 	
-	# D is the decompose table created by concatenating rows of the 
-	# output of decompose
 	# Remove rows with outstanding text
 	D <- D[!(other_conceptId %like% '[[:alpha:]]')]
 	D[, other_conceptId := gsub('^ +| +$', '', other_conceptId)]
@@ -90,29 +92,47 @@ createComposeLookup <- function(decompositions, CDB, ...){
 	D[!is.na(severity), other_conceptId := paste(severity, other_conceptId)]
 	D[!is.na(stage), other_conceptId := paste(stage, other_conceptId)]
 	D[!is.na(laterality), other_conceptId := paste(laterality, other_conceptId)]
+	
+	# Prepend root conceptId so that it is accessible when sorting
+	# attributes by frequency 
 	D[, other_conceptId := paste(rootId, other_conceptId)]
 	D[, other_conceptId := strsplit(other_conceptId, ' ')]
 	
-	# Frequency of other_attr per rootId
-	FREQ <- D[, .(attrId = unlist(other_conceptId)), by = rootId]
+	# Create a frequency table of other_attr per rootId
+	FREQ <- D[, .(.temp = unlist(other_conceptId)), by = rootId]
+	FREQ[, attrId := as.SNOMEDconcept(.temp, SNOMED = SNOMED)]
 	FREQ <- FREQ[, .(freq = .N), by = .(attrId, rootId)][order(rootId, freq)]
+	FREQ <- FREQ[!attrId == rootId]
 	
 	# Sort by ascending order of frequency
 	D[, attrId := lapply(other_conceptId, function(x){
-			FREQ[rootId == x[1]][(data.table(attrId = x[2:length(x)])),
-				on = 'attrId'][order(freq)]$attrId
+			if (length(x) <= 1){
+				as.SNOMEDconcept(bit64::integer64(0), SNOMED = SNOMED)
+			} else {
+				x <- unique(as.SNOMEDconcept(x, SNOMED = SNOMED))
+				FREQ[rootId == x[1]][(data.table(attrId = x[2:length(x)])),
+					on = 'attrId'][order(freq)]$attrId
+			}
 		})]
 	
 	# Split into separate columns for fast matching
 	maxcol <- max(sapply(D$attrId, length))
 	for (i in 1:maxcol){
-		D[, .temp := sapply(attrId, function(x) x[i])]
-		D[, .temp := bit64::as.integer64(.temp)]
-		setnames(D, '.temp', paste0('attr_', i))
+		# extract attribute Ids via as.character to avoid incorrect
+		# conversion to numeric
+		D[, .temp := sapply(attrId, function(x){
+			ifelse(i > length(x), NA_character_, as.character(x[i]))
+		})]
+		D[, .temp2 := as.SNOMEDconcept(bit64::as.integer64(.temp),
+			SNOMED = SNOMED)]
+		setnames(D, '.temp2', paste0('attr_', i))
+		D[, .temp := NULL]
 	}
-	colnames <- c('rootId', 'with', 'due_to', 'without',
+	cols_to_keep <- c('rootId', 'with', 'due_to', 'without',
 		paste0('attr_', 1:maxcol), 'origId')
-	D <- D[, ..colnames]
-	setorderv(D, colnames)
+	D <- D[, ..cols_to_keep]
+	setorderv(D, cols_to_keep)
+	setkeyv(D, cols_to_keep)
+	for (i in cols_to_keep) setindex(D, i)
 	D
 }

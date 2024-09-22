@@ -20,29 +20,17 @@
 #' @examples
 #' # Not run
 #' # refineSNOMEDfinding
-refineSNOMEDfinding <- function(conceptId, CDB, composeLookup,
-	attributes_conceptIds = bit64::as.integer64(0),
-	due_to_conceptIds = bit64::as.integer64(0),
-	without_conceptIds = bit64::as.integer64(0),
-	with_conceptIds = bit64::as.integer64(0),
+compose <- function(conceptId, CDB, composeLookup,
+	attributes_conceptIds = bit64::integer64(0),
+	due_to_conceptIds = bit64::integer64(0),
+	without_conceptIds = bit64::integer64(0),
+	with_conceptIds = bit64::integer64(0),
 	SNOMED = getSNOMED()){
-	# Input: a SNOMEDfindings
-	# Output: a SNOMEDfindings 
-	# Also consider including 'causing'
-	# causing_conceptIds = bit64::as.integer64(0) - not using currently
-	
-	# use decomposition of self to find ancestor and try different
-	# decompositions
-	# return either a single best match or multiple matches as per
-	# requirements (e.g. multiple may be more useful for research)
-	
-	# must have columns: conceptId, attributes
-	# optional columns: severity, body site, due_to, causing
 	conceptId <- as.SNOMEDconcept(conceptId, SNOMED = SNOMED)
 	
 	expand <- function(conceptIds){
 		if (length(conceptIds) == 0){
-			return(bit64::as.integer64(0))
+			return(bit64::integer64(0))
 		}
 		conceptIds <- unique(c(conceptIds,
 			CDB$OVERLAP[findingId %in% conceptIds]$otherId,
@@ -55,20 +43,6 @@ refineSNOMEDfinding <- function(conceptId, CDB, composeLookup,
 		intersect(conceptIds, CDB$FINDINGS$conceptId)
 	}
 	
-	# For 'causing': use due_to in reverse - not currently doing
-#~ 	if (length(causing_conceptIds) > 0){
-#~ 		# Reverse search on 'due to'
-#~ 		# Attributes do not apply
-#~ 		origconceptId <- conceptId
-#~ 		return(rbindlist(lapply(1:length(causing_conceptIds), function(x){
-#~ 			refineSNOMEDfinding(conceptId = causing_conceptIds[x],
-#~ 				CDB = CDB, attributes_conceptIds := bit64::as.integer64(0),
-#~ 				due_to_conceptIds = origconceptId,
-#~ 				causing_conceptIds = bit64::as.integer64(0)
-#~ 				without_conceptIds = without_conceptIds, SNOMED = SNOMED)
-#~ 		})))
-#~ 	}
-	
 	# Find highest number of attribute fields in this composeLookup
 	max_attr <- max(as.numeric(sub('^attr_', '', 
 		names(composeLookup)[names(composeLookup) %like% '^attr_'])))
@@ -79,16 +53,22 @@ refineSNOMEDfinding <- function(conceptId, CDB, composeLookup,
 	if (length(without_conceptIds) > 0){
 		composeLookup[, valid := valid & (is.na(without) |
 			without %in% limitToFindings(expand(without_conceptIds)))]
+	} else {
+		composeLookup[, valid := valid & is.na(without)]
 	}
 
 	if (length(with_conceptIds) > 0){
 		composeLookup[, valid := valid & (is.na(with) |
 			with %in% limitToFindings(expand(with_conceptIds)))]
+	} else {
+		composeLookup[, valid := valid & is.na(with)]
 	}
 	
 	if (length(due_to_conceptIds) > 0){
 		composeLookup[, valid := valid & (is.na(due_to) |
 			due_to %in% limitToFindings(expand(due_to_conceptIds)))]
+	} else {
+		composeLookup[, valid := valid & is.na(due_to)]
 	}
 
 	if (length(attributes_conceptIds) > 0){
@@ -112,7 +92,7 @@ refineSNOMEDfinding <- function(conceptId, CDB, composeLookup,
 	while (i <= length(matchIds)){
 		ancIds <- ancestors(matchIds[i], SNOMED = SNOMED,
 			TRANSITIVE = CDB$TRANSITIVE, include_self = FALSE)
-		if (any(matchIds %in% ancIds)){
+		if (length(intersect(matchIds, ancIds)) > 0){
 			matchIds <- setdiff(matchIds, ancIds)
 			i <- 1
 		} else {

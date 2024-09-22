@@ -319,19 +319,59 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		CDB$SEVERITY[, .(conceptId, semType = 'severity')])
 	setkey(D$SEMTYPE, conceptId)
 	D$SEMTYPE[!duplicated(D$SEMTYPE)]
-	# D$DISAMBIG <- createDisambiguationTrainer(CDB, SNOMED)
+	D$DISAMBIG <- createDisambiguationTrainer(CDB, SNOMED)
 	return(D)
 }
 
 createDisambiguationTrainer <- function(CDB, SNOMED){
-	# Create disambiguation trainer by using SNOMED concepts containing
-	# 'Clinical finding', 'Qualifier value', 'Body structure'
+	# Create disambiguation trainer for unigrams among SNOMED concepts
+	# of semantic type 'Clinical finding' and 'Body structure'
 	# Output a data.table table text,p with {p ...} surrounding the
 	# acronym, which can be converted to MedCAT training data
 	
-	# TO BE WRITTEN
+	findings_to_disambiguate <- unique(CDB$FINDINGS[,
+		.(has_unigram = any(term %like% '^ [[:alpha:]]+ $')),
+		by = conceptId][has_unigram == TRUE]$conceptId)
+
+	body_to_disambiguate <- unique(CDB$BODY[,
+		.(has_unigram = any(term %like% '^ [[:alpha:]]+ $')),
+		by = conceptId][has_unigram == TRUE]$conceptId)
 	
-	
+	disambiguate_concept <- function(the_conceptId, prefix){
+		terms <- union(CDB$FINDINGS[conceptId == the_conceptId]$term,
+			CDB$BODY[conceptId == the_conceptId]$term)
+		descendant_concepts <- descendants(the_conceptId,
+			SNOMED = SNOMED, TRANSITIVE = CDB$TRANSITIVE,
+			include_self = FALSE)
+		descendant_terms <- union(
+			CDB$FINDINGS[conceptId %in% descendant_concepts]$term,
+			CDB$BODY[conceptId %in% descendant_concepts]$term)
+		if (length(terms) > 0 & length(descendant_terms) > 0){
+			rbindlist(lapply(terms, function(term){
+				if (any(descendant_terms %like% term)){
+					data.table(conceptId = the_conceptId,
+						text = sub(term, paste0(' {', prefix,
+						sub(' $', '', term), '} '),
+						descendant_terms[descendant_terms %like% term]))
+				} else {
+					data.table(conceptId = bit64::integer64(0),
+						text = character(0))
+				}
+			}))
+		} else {
+			data.table(conceptId = bit64::integer64(0),
+					text = character(0))
+		}
+	}
+
+	rbind(
+		rbindlist(lapply(1:length(findings_to_disambiguate), function(x){
+			disambiguate_concept(findings_to_disambiguate[x], prefix = 'p')
+		})),
+		rbindlist(lapply(1:length(body_to_disambiguate), function(x){
+			disambiguate_concept(body_to_disambiguate[x], prefix = 'p')
+		}))
+	)
 }
 
 # Internal function: for a standardised form of words for use in CDB
