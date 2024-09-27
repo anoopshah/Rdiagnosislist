@@ -267,6 +267,7 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 			c(CDB$SCT_cause, CDB$SCT_dueto), SOURCE = CDB$CAUSES)
 		OUT <- splitpart(OUT, x, 'due_to', 'causing|resulting in|complicated by',
 			CDB$SCT_cause, SOURCE = CDB$CAUSES, reverse = TRUE)
+		# Caused by a non-finding (e.g. an organism or substance)
 		OUT <- splitpart(OUT, x, 'due_to', 'by',
 			CDB$SCT_cause, SOURCE = CDB$OTHERCAUSE)
 		OUT <- splitpart(OUT, x, 'due_to', 'causing|resulting in',
@@ -777,9 +778,17 @@ print.SNOMEDfindings <- function(x, ...){
 	}
 	for (i in 1:nrow(D)){
 		cat(paste(c('\n', rep('-', getOption('width'))), collapse = ''))
-		cat(paste0('\n', show_concept(D[i]$origId, 0)))
-		cat(paste(c('\n', rep('-', getOption('width'))), collapse = ''))
-		cat('\nRoot :', show_concept(D[i]$rootId, 6))
+		
+		if ('origId' %in% names(D)){
+			cat(paste0('\n', show_concept(D[i]$origId, 0)))
+			cat(paste(c('\n', rep('-', getOption('width'))), collapse = ''))
+		}
+		if ('rootId' %in% names(D)){
+			cat('\nRoot :', show_concept(D[i]$rootId, 6))
+		}
+		if ('conceptId' %in% names(D)){
+			cat('\nConcept :', show_concept(D[i]$conceptId, 6))
+		}
 		if (all(c('onset_range_start', 'onset_range_end') %in% names(D))){
 			if (!is.na(D[i]$onset_range_start) &
 				!is.na(D[i]$onset_range_end)){
@@ -793,9 +802,19 @@ print.SNOMEDfindings <- function(x, ...){
 					attr_displayname <- paste0(
 						toupper(substr(attr_name, 1, 1)),
 						substr(gsub('_', ' ', attr_name), 2, 100))
-					cat('\n-', attr_displayname, ':',
-						show_concept(D[i][[attr_name]],
-						nchar(attr_name) + 3))
+					if (bit64::is.integer64(D[i][[attr_name]])){
+						cat('\n-', attr_displayname, ':',
+							show_concept(D[i][[attr_name]],
+							nchar(attr_name) + 3))
+					} else if (is.list(D[i][[attr_name]])){
+						if (length(D[i][[attr_name]][[1]]) > 0){
+							cat('\n-', attr_displayname, ':')
+							for (j in 1:length(D[i][[attr_name]][[1]])){
+								cat('\n  -',
+									show_concept(D[i][[attr_name]][[1]][j], 4))
+							}
+						}
+					}
 				}
 			}
 		}
@@ -808,6 +827,7 @@ print.SNOMEDfindings <- function(x, ...){
 		show('severity')
 		show('stage')
 		show('laterality')
+		show('attributes')
 		if ('other_conceptId' %in% names(D)){
 			# other conceptIds as a character vector 
 			# (used for CSV file import / export)
@@ -816,15 +836,6 @@ print.SNOMEDfindings <- function(x, ...){
 				attributes <- strsplit(D[i]$other_conceptId, ' ')[[1]]
 				for (j in 1:length(attributes)){
 					cat('\n  -', show_concept(attributes[j], 4))
-				}
-			}
-		} else if ('attributes' %in% names(D)){
-			# other attributes as a ist
-			# MAY NOT USE THIS FUNCTIONALITY - TO REVIEW
-			if (length(D[i]$attributes[[1]]) > 0){
-				cat('\n- Other attributes :')
-				for (j in 1:length(D[i]$attributes[[1]])){
-					cat('\n  -', show_concept(D[i]$attributes[[1]][j], 4))
 				}
 			}
 		}

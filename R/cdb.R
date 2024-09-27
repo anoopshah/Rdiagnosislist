@@ -26,7 +26,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	WN = NULL, MANUAL_SYNONYMS = NULL, noisy = TRUE){
 	# Returns an environment containing data.tables used for
 	# generating decompositions 
-	D <- new.env()
+	CDB <- new.env()
 
 	#### USEFUL FUNCTIONS ####
 	stopwords <- c('the', 'of', 'by', 'with', 'to', 'into', 'and', 'or',
@@ -226,6 +226,17 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	BODY_LATERALITY[conceptId %in% bilateral_structures,
 		laterality := 'Bilateral']
 
+	# Find the lateralised version of each concept
+	LAT <- SNOMED$RELATIONSHIP[sourceId %in% c(left_structures,
+		right_structures, bilateral_structures) & typeId == s('Is a') &
+		!(destinationId %in% c(left_structures, right_structures,
+		bilateral_structures)),
+		.(conceptId = sourceId, nonlat_parentId = destinationId)]
+	LAT <- LAT[!duplicated(LAT)]
+	BODY_LATERALITY <- merge(BODY_LATERALITY, LAT, by = 'conceptId',
+		all.x = TRUE)
+	BODY_LATERALITY <- BODY_LATERALITY[!duplicated(CDB$BODY_LATERALITY)]
+	
 	# Severity codes as per FHIR valueset plus a few extra
 	if (noisy) message('Creating severity and stage lists.')
 	SEVERITY <- QUAL[conceptId %in% desc(c(
@@ -241,12 +252,25 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	QUAL <- QUAL[!(conceptId %in% STAGE$conceptId)]
 	
 	# Laterality concepts
-	D$latConcepts <- s(c('Left', 'Right', 'Bilateral'))
-	setattr(D$latConcepts, 'names', c('Left', 'Right', 'Bilateral'))
-	LATERALITY <- QUAL[conceptId %in% D$latConcepts]
+	CDB$latConcepts <- s(c('Left', 'Right', 'Bilateral'))
+	setattr(CDB$latConcepts, 'names', c('Left', 'Right', 'Bilateral'))
+	LATERALITY <- QUAL[conceptId %in% CDB$latConcepts]
 	LATERALITY <- rbind(LATERALITY,
-		data.table(conceptId = bit64::as.integer64('51440002'),
-		term = ' left and right '))
+		data.table(conceptId = s(c('Left', 'Right', 'Bilateral')),
+		term = c(' L ', ' R ', ' bilat ')))
+	LATERALITY <- rbind(LATERALITY,
+		data.table(conceptId = s(c('Left', 'Right', 'Bilateral')),
+		term = c(' lt ', ' rt ', ' left and right ')))
+	
+	CDB$BODY_LATERALITY_LOOKUP <- BODY_LATERALITY[
+		laterality %in% c('Left', 'Right', 'Bilateral'),
+		.(conceptId, laterality, nonlat_parentId)]
+	# Remove ambiguous parent concepts 
+	CDB$BODY_LATERALITY_LOOKUP[, .N, by = .(laterality, nonlat_parentId)][
+		N > 1]$nonlat_parentId -> toremove
+	CDB$BODY_LATERALITY_LOOKUP <- CDB$BODY_LATERALITY_LOOKUP[
+		!(nonlat_parentId %in% toremove) & !is.na(nonlat_parentId)]
+
 	QUAL <- QUAL[!(conceptId %in% LATERALITY$conceptId)]
 	QUAL <- QUAL[!(term %in% paste0(' ', stopwords, ' '))]
 
@@ -271,22 +295,32 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 			return(X[!duplicated(X)])
 		}
 	}
-	D$FINDINGS <- addmw(FINDINGS, c('noun.state',
+	CDB$FINDINGS <- addmw(FINDINGS, c('noun.state',
 		'noun.process', 'noun.phenomenon'))
-	D$QUAL <- addmw(QUAL, c('noun.state',
+	CDB$QUAL <- addmw(QUAL, c('noun.state',
 		'noun.process', 'noun.phenomenon'))
-	D$CAUSES <- addmw(CAUSES, c('noun.state',
+	CDB$CAUSES <- addmw(CAUSES, c('noun.state',
 		'noun.process', 'noun.phenomenon', 'noun.animal', 'noun.plant'))
-	D$BODY <- addmw(BODY, c('noun.body'))
+	CDB$BODY <- addmw(BODY, c('noun.body'))
+	CDB$BODY <- CDB$BODY[!term %in% LATERALITY$term]
+	# CDB$BODY <- CDB$BODY[!term %in% CDB$LATERALITY$term]
+	# Remove morphologic abnormalities from BODY
+	MORPH <- CDB$BODY[semanticType(conceptId) == 'morphologic abnormality']
+	CDB$BODY <- CDB$BODY[!(conceptId %in% MORPH$conceptId)]
+	# MORPH <- CDB$BODY[semanticType(conceptId) == 'morphologic abnormality']
+	# CDB$BODY <- CDB$BODY[!(conceptId %in% MORPH$conceptId)]
 	
-	D$SEVERITY <- SEVERITY
-	D$LATERALITY <- LATERALITY
-	D$STAGE <- STAGE
-	D$BODY_LATERALITY <- BODY_LATERALITY
+	CDB$SEVERITY <- SEVERITY
+	CDB$LATERALITY <- LATERALITY
+	CDB$STAGE <- STAGE
+	CDB$BODY_LATERALITY <- BODY_LATERALITY
+	
 	# Causes which are not other findings (may be events,
-	#	substances or organisms) 
-	D$OTHERCAUSE <- CAUSES[!(conceptId %in% FINDINGS$conceptId)]
-
+	#	substances or organisms)
+	CDB$CAUSES <- CAUSES
+	CDB$OTHERCAUSE <- CAUSES[!(conceptId %in% FINDINGS$conceptId)]
+	CDB$OTHERCAUSE[, semType := semanticType(conceptId, SNOMED = SNOMED)]
+	
 	# OVERLAP = concepts that are in findings as well as another
 	# (qual etc.)
 	FindingsFSN <- description(FINDINGS$conceptId, SNOMED = SNOMED)[,
@@ -294,33 +328,40 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	OtherFSN <- description(c(QUAL$conceptId, BODY$conceptId),
 		SNOMED = SNOMED)[,
 		.(otherId = conceptId, term = sub(' \\([^\\(]+\\)$', '', term))]
-	D$OVERLAP <- merge(FindingsFSN, OtherFSN)[, .(findingId, otherId)]
-	D$OVERLAP <- D$OVERLAP[!duplicated(D$OVERLAP)]
+	CDB$OVERLAP <- merge(FindingsFSN, OtherFSN)[, .(findingId, otherId)]
+	CDB$OVERLAP <- CDB$OVERLAP[!duplicated(CDB$OVERLAP)]
 
-	D$TRANSITIVE <- TRANSITIVE
-	D$metadata <- SNOMED$metadata
+	CDB$TRANSITIVE <- TRANSITIVE
+	CDB$metadata <- SNOMECDB$metadata
 	
-	D$SCT_assoc <- s('Associated with')
-	D$SCT_cause <- s('Causative agent')
-	D$SCT_after <- s('After')
-	D$SCT_dueto <- s('Due to')
-	D$SCT_findingsite <- s('Finding site')
-	D$SCT_disorder <- s('Disorder')
-	D$SCT_finding <- s('Clinical finding')
-	D$allergyConcepts <- s(c('Allergic disposition',
+	CDB$SCT_assoc <- s('Associated with')
+	CDB$SCT_cause <- s('Causative agent')
+	CDB$SCT_after <- s('After')
+	CDB$SCT_dueto <- s('Due to')
+	CDB$SCT_findingsite <- s('Finding site')
+	CDB$SCT_disorder <- s('Disorder')
+	CDB$SCT_finding <- s('Clinical finding')
+	CDB$allergyConcepts <- s(c('Allergic disposition', 'Adverse reaction',
 		'Intolerance to substance', 'Hypersensitivity disposition'))
-	D$stopwords <- c('the', 'of', 'by', 'with', 'to', 'into', 'and', 'or',
+	# remove allergy as synonym of 'allergic reaction'
+		
+	CDB$stopwords <- c('the', 'of', 'by', 'with', 'to', 'into', 'and', 'or',
 		'both', 'at', 'as', 'and/or')
-	D$SEMTYPE <- rbind(
-		CDB$FINDINGS[, .(conceptId, semType = 'finding')],
-		CDB$BODY[, .(conceptId, semType = 'body')],
-		CDB$QUAL[, .(conceptId, semType = 'qualifier')],
+	CDB$SEMTYPE <- rbind(
+		CDB$FINDINGS[, .(conceptId, semType = semanticType(conceptId,
+			SNOMED = SNOMED))],
+		CDB$BODY[, .(conceptId, semType = 'body structure')],
+		CDB$QUAL[, .(conceptId, semType = 'qualifier value')],
 		CDB$LATERALITY[, .(conceptId, semType = 'laterality')],
-		CDB$SEVERITY[, .(conceptId, semType = 'severity')])
-	setkey(D$SEMTYPE, conceptId)
-	D$SEMTYPE[!duplicated(D$SEMTYPE)]
-	D$DISAMBIG <- createDisambiguationTrainer(CDB, SNOMED)
-	return(D)
+		CDB$SEVERITY[, .(conceptId, semType = 'severity')],
+		CDB$OTHERCAUSE[!(conceptId %in% c(CDB$FINDINGS$conceptId,
+			CDB$BODY$conceptId, CDB$QUAL$conceptId,
+			CDB$LATERALITY$conceptId, CDB$SEVERITY$conceptId)),
+			.(conceptId, semType)])
+		# contents of stage are mostly findings so don't need to include
+	CDB$SEMTYPE[!duplicated(CDB$SEMTYPE)]
+	setkey(CDB$SEMTYPE, conceptId)
+	return(CDB)
 }
 
 createDisambiguationTrainer <- function(CDB, SNOMED){
@@ -336,7 +377,7 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 	body_to_disambiguate <- unique(CDB$BODY[,
 		.(has_unigram = any(term %like% '^ [[:alpha:]]+ $')),
 		by = conceptId][has_unigram == TRUE]$conceptId)
-	
+
 	disambiguate_concept <- function(the_conceptId, prefix){
 		terms <- union(CDB$FINDINGS[conceptId == the_conceptId]$term,
 			CDB$BODY[conceptId == the_conceptId]$term)
@@ -364,7 +405,7 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 		}
 	}
 
-	rbind(
+	OUT <- rbind(
 		rbindlist(lapply(1:length(findings_to_disambiguate), function(x){
 			disambiguate_concept(findings_to_disambiguate[x], prefix = 'p')
 		})),
@@ -372,6 +413,347 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 			disambiguate_concept(body_to_disambiguate[x], prefix = 'p')
 		}))
 	)
+	# Exclude entires with no context
+	OUT <- OUT[!(text %like% '^ \\{.*\\} $')]
+}
+
+#' Exports CDB files for MedCAT / MiADE
+#'
+#' Uses CDB files to  format into the  SNOMED CT concepts from appropriate places in the 
+#' hierarchy to create a set of CDB files in an environment.
+#' Uses WordNet and manual synonyms if available.
+#'
+#' @param CDB concept database environment created by creatCDB
+#' @param SNOMED environment containing a SNOMED dictionary
+#' @param lang_refset_files character vector of file paths to
+#'   language refset files
+#' @param export_folderpath folder path to export to
+#' @return TRUE if successful
+#' @export
+#' @examples
+#' #Not run
+#' #data(MANUAL_SYNONYMS)
+#' #WN <- downloadWordNet()
+#' #D <- createCDB(WN = WN, MANUAL_SYNONYMS = MANUAL_SYNONYMS)
+exportMiADECDB <- function(CDB, SNOMED, lang_refset_files,
+	export_folderpath){
+	
+	# Load up language Refset
+	LANG <- data.table(id = character(0), effectiveTime = integer(0),
+		active = integer(0), moduleId = bit64::integer64(0),
+		refsetId = bit64::integer64(0),
+		referencedComponentId = bit64::integer64(0),
+		acceptabilityId = bit64::integer64(0))
+	for (i in lang_refset_files) LANG <- rbind(LANG, fread(i), fill = TRUE)
+	# Keep only the most recent value for active concepts
+	LANG[, keep := active == 1 & effectiveTime == max(effectiveTime),
+		by = referencedComponentId]
+	LANG <- LANG[keep == TRUE]
+	LANG <- LANG[!duplicated(LANG)]
+
+	# Mark the UK preferred terms
+	sct_pref <- bit64::as.integer64(SNOMEDconcept('Preferred'))
+	SNOMED$DESCRIPTION[, UKpref := 
+		LANG[, .(UKpref = any(acceptabilityId == sct_pref)),
+		by = .(id = referencedComponentId)][
+		SNOMED$DESCRIPTION, on = 'id']$UKpref]
+	synonym_type <- SNOMEDconcept('Synonym')
+	SNOMED$DESCRIPTION[, Synonym := typeId == synonym_type]
+
+	# Select a single UK preferred concept
+	setkey(SNOMED$DESCRIPTION, conceptId, UKpref, Synonym)
+	SNOMED$DESCRIPTION[, choose := c(rep(FALSE, .N - 1), TRUE), by = conceptId]
+
+	#### SUSPECTED, HISTORIC, NEGATED, BLACKLIST ####
+
+	# Suspected, Historic, Negated version of concepts (where available)
+	relation_source <- function(destination){
+		sort(unique(as.SNOMEDconcept(SNOMED$RELATIONSHIP[
+			destinationId == SNOMEDconcept(destination)]$sourceId)))
+	}
+
+	# Procedures can be used for historic concepts for problem list
+	# but not for current procedures (yet)
+	disorders <- descendants('Disorder')
+	acute_diseases <- descendants('Acute disease')
+	procedures <- descendants('Procedure')
+	suspected <- relation_source('Suspected')
+	known_absent <- relation_source('Known absent')
+	known_present <- relation_source('Known present')
+	subject_of_record <- relation_source('Subject of record')
+	family_person <- relation_source('Person in family of subject')
+	in_the_past <- relation_source('In the past')
+	done <- relation_source('Done')
+	current_or_specified_time <- relation_source('Current or specified time')
+
+	allergy <- descendants('Propensity to adverse reactions to substance')
+	ignore_findings <- SNOMEDconcept(c('Disease', 'Clinical finding', 'Problem',
+		'Impairment', 'Chief complaint', 'Sign', 'Complaint', 'Sequela',
+		'Early complication', 'Co-morbid conditions', 'Pre-existing condition',
+		'Acute disease', 'Subacute disease', 'Chronic disease',
+		'General problem AND/OR complaint', 'Evaluation finding',
+		'Administrative statuses', 'Finding by site', 'Finding by method',
+		'Clinical history and observation findings', 'Behaviour',
+		'Adverse incident outcome categories', 'Prognosis/outlook finding',
+		'General clinical state finding', 'Disorder by body site',
+		'Failure', 'Acute failure', 'Subacute failure', 'Chronic failure',
+		'Decompensation', 'Discrepancy', 'Idiosyncrasy', 'Inefficiency',
+		'General body state finding', 'General clinical state finding',
+		'Pressure', 'Disease related state', 'Absence of pressure',
+		'Decreased pressure', 'Increased pressure', 'Swelling',
+		'Disease condition finding', 'Allergic disposition', 'Pain',
+		'Values (community)', 'Fit and well', 'No sensitivity to pain'))
+
+	ASSOC_FINDPROC <- SNOMED$RELATIONSHIP[
+		typeId %in% SNOMEDconcept(c('Associated finding', 'Associated procedure')),
+		.(situationId = sourceId, sitTerm = description(sourceId)$term,
+		findingId = destinationId, finTerm = description(destinationId)$term)]
+
+	HISTORIC <- ASSOC_FINDPROC[situationId %in% intersect(c(known_present, done),
+		intersect(subject_of_record, in_the_past)) &
+		findingId %in% c(procedures)][order(findingId)]
+
+	# Currently only mapping to procedures - 27 Oct 2023
+	#	findingId %in% c(acute_diseases, procedures)][order(findingId)]
+
+	# Keep if only one situation per finding/procedure, to avoid errors
+	# e.g. 'Implantation procedure' --> 'History of heart valve recipient'
+	# For diseases we are only interested in acute diseases
+	# not 'history of hypothyrodism etc.'
+	HISTORIC[, Nsit := .N, by = findingId]
+	HISTORIC <- HISTORIC[Nsit == 1 & findingId != SNOMEDconcept('Aftercare')]
+
+	NEGATED <- ASSOC_FINDPROC[situationId %in% intersect(known_absent,
+		intersect(subject_of_record, current_or_specified_time))][order(findingId)]
+	# Keep if only one situation per finding, to avoid errors
+	NEGATED[, Nsit := .N, by = findingId]
+	NEGATED <- NEGATED[Nsit == 1]
+
+	SUSPECTED <- ASSOC_FINDPROC[situationId %in% intersect(suspected,
+		intersect(subject_of_record, current_or_specified_time))][order(findingId)]
+	# Keep if only one situation per finding, to avoid errors
+	SUSPECTED[, Nsit := .N, by = findingId]
+	SUSPECTED <- SUSPECTED[Nsit == 1]
+
+	# List of suspected, negated, historic, allergy, family history and
+	# procedures that do not have an associated historic concepts,
+	# to exclude from MedCAT annotation training
+	exclude_conceptId <- sort(unique(c(suspected, in_the_past, known_absent,
+		family_person, allergy, ignore_findings,
+		setdiff(procedures, ASSOC_FINDPROC$findingId))))
+
+	#### PROCESS SNOMED CONCEPTS - ADD SYNONYMS ####
+
+	# Initial set of concepts of interest for problems using UK preferred synonyms
+	concepts_to_use <- setdiff(c(descendants('Clinical finding'),
+		descendants('Event'), procedures,
+		descendants('Situation with explicit context')), exclude_conceptId)
+
+	SCT <- SNOMED$DESCRIPTION[conceptId %in% concepts_to_use &
+		typeId == SNOMEDconcept('Synonym'),
+		list(conceptId, origterm = term, name_status =
+		ifelse(choose, 'P', 'A'))]
+	SCT[, term := sub('^\\[X\\]', '', tolower(origterm))]
+	# Note that procedures are included at this stage but not included
+	# in final output unless they are historic and have been converted
+	# into a 'history' concept
+	 
+	SCTPREF <- SCT[name_status == 'P']
+
+	message('SCT has ', nrow(SCT), ' rows (', uniqueN(SCT$conceptId),
+		' concepts).')
+
+	# Verify only one preferred per concept Id
+	stopifnot(nrow(SCTPREF) == SCTPREF[, uniqueN(conceptId)])
+
+
+	# Verify only one preferred per concept Id
+	stopifnot(nrow(SCTPREF) == SCTPREF[, uniqueN(conceptId)])
+
+	# Add versions of concepts with hyphens removed
+	SCT <- add_rows(SCT, SCT[, .(conceptId, term = remove_hyphens(term))])
+
+	# Add versions of concepts with stopwords removed
+	SCT <- add_rows(SCT, SCT[, .(conceptId, term = remove_stopwords2(term))])
+
+	# Add unambiguous acronyms specified in SNOMED CT 
+	SCT <- add_rows(SCT, acronym_rows(SCT))
+
+	# Add manual synonyms
+	SCT <- add_rows(SCT, MAN[, .(term = sub('^ +| +$', '',
+		unlist(strsplit(manual_synonyms, ',')))), by = conceptId])
+
+	# Add extra synonyms for most frequent concepts
+	SCT <- add_rows(SCT, EXTRA_SYNONYMS[, .(conceptId, term = synonym)])
+
+	# Mark which terms are preferred and restore original form
+	# (sentence case) for preferred terms
+	SCT2 <- merge(SCT[conceptId %in% SCTPREF$conceptId,
+		.(conceptId, term)], SCTPREF, by = c('conceptId', 'term'), all = TRUE)
+	SCT2[is.na(name_status), name_status := 'A']
+	SCT2[name_status == 'P', term := origterm] 
+	SCT2[, origterm := NULL]
+	SCT2 <- SCT2[!duplicated(SCT2)]
+
+	# Check that each concept has exactly one preferred term
+	stopifnot(all(SCT2[, .(numP = sum(name_status == 'P')), by = conceptId]$numP) == 1)
+
+	# Remove:
+	# - all one character terms
+	# - 2 character terms which are not in the list of specified acronyms
+	# - 3 character terms which are common English words
+	BRIF <- fread('https://raw.githubusercontent.com/anoopshah/freetext-matching-algorithm-lookups/master/2of4brif.txt',
+		header = FALSE, col.names = 'word')
+
+	SHORT <- SCT2[name_status == 'A' & nchar(term) <= 3, .(conceptId, term)]
+	SHORT <- SHORT[nchar(term) == 1 |
+		(nchar(term) == 2 & !(term %in% ACRONYMS$acronym)) |
+		(nchar(term) == 3 & (term %in% BRIF[[1]]))]
+	SHORT[, full := description(conceptId)$term[1], by = conceptId]
+
+	# Estimate words frequencies in SNOMED CT
+	allwords <- unlist(strsplit(tolower(SNOMED$DESCRIPTION$term), ' '))
+	WORDFREQ <- as.data.table(table(allwords))
+	SHORT[, wordfreq := WORDFREQ[, .(term = allwords, freq = N)][
+		SHORT, on = 'term']$freq]
+	SHORT[is.na(wordfreq), wordfreq := 0]
+	SHORT[, freq:= FREQ[, .(conceptId = SNOMED_Concept_ID,
+		freq = as.numeric(Usage))][SHORT, on = 'conceptId']$freq]
+	SHORT[is.na(freq), freq := 0]
+	SHORT <- SHORT[order(-wordfreq, term)]
+
+	fwrite(SHORT, file = paste0(WORKING, 'short_terms_to_exclude.csv'))
+
+	# Remove short terms not in the acronym list with 3 characters and more than 10
+	# frequency among SNOMED term descriptions, or 1-2 characters regardless of
+	# frequency. - NOW REMOVE ALL SHORT TERMS ACCORDING TO CRITERIA ABOVE
+	#SCT2 <- SCT2[!(term %in% SHORT[wordfreq > 10 | nchar(term) <= 2]$term &
+	#	name_status == 'A')]
+
+	# Remove short terms
+	SCT2 <- SCT2[!(term %in% SHORT$term & name_status == 'A')]
+
+	# Remove 'situation' concepts not in UCLH problem list subset
+	SUBSET <- fread(paste0(REF, 'kawsar_snomed_subset.csv'))
+	SUBSET[, semanticType := semanticType(cui)]
+	SCT2[, semanticType := semanticType(conceptId)]
+
+	SCT2[, exclude := FALSE]
+	SCT2[semanticType == 'situation' & !(conceptId %in% SUBSET$cui),
+		exclude := TRUE]
+	SCT2 <- SCT2[exclude == FALSE]
+	SCT2[, semanticType := NULL]
+	SCT2[, exclude := NULL]
+
+	# Remove generic body system findings
+	BODY_DESC <- description(descendants('Body structure'),
+		include_synonyms = T)
+
+	body_desc_o <- c(paste(BODY_DESC$term, 'finding'),
+		paste('Finding of', tolower(BODY_DESC$term)),
+		paste(BODY_DESC$term, 'system finding'),
+		paste('Finding of', tolower(BODY_DESC$term), 'system'),
+		paste(BODY_DESC$term, 'observation'),
+		paste('Observation of', tolower(BODY_DESC$term)),
+		paste(BODY_DESC$term, 'system observation'),
+		paste('Observation of', tolower(BODY_DESC$term), 'system'))
+
+	BODY_DESC_O <- SNOMED$DESCRIPTION[term %in% body_desc_o]
+	SCT2 <- SCT2[!(conceptId %in% BODY_DESC_O$conceptId)]
+	rm(BODY_DESC_O)
+	rm(body_desc_o)
+
+	# Remove social history (except housing problems and care needs),
+	# administrative statuses (except registered disabled) and normal findings
+	social_history <- descendants('Social and personal history finding',
+		include_self = TRUE)
+	housing_and_care <- descendants(c('Homeless', 'No fixed abode',
+		'Lives alone',
+		'Lives in supported home', 'Unsatisfactory living conditions',
+		'Finding related to care and support circumstances and networks'),
+		include_self = TRUE)
+	admin <- descendants('Administrative statuses',
+		include_self = TRUE)
+	regstatus <- SNOMEDconcept(c('On adult protection register',
+		'On learning disability register',
+		'On social services disability register',
+		'Registered blind',
+		'Registered partially sighted',
+		'Registered deaf',
+		'Registered hearing impaired',
+		'Registered sight impaired'))
+
+	# Remove general and normal findings
+	general_findings <- setdiff(union(descendants(c('Evaluation finding',
+		'Colour finding', 'Patient condition finding'), include_self = TRUE),
+		SNOMEDconcept(c('General symptom', 'Complaining of a general symptom',
+		'Urine finding', 'Finding related to pregnancy', 'Delivery finding',
+		'Safety finding', 'Feeding finding', 'Finding of movement',
+		'Stool finding'))), disorders)
+	normal <- SNOMEDconcept('^Normal| normal', exact = FALSE)
+	normal <- normal[semanticType(normal) == 'finding']
+	normal <- union(normal, descendants('No abnormality detected',
+		include_self = TRUE))
+
+	SCT2 <- SCT2[!(conceptId %in% c(setdiff(admin, regstatus),
+		setdiff(social_history, housing_and_care), normal, general_findings))]
+	rm(admin)
+	rm(housing_and_care)
+	rm(social_history)
+	rm(normal)
+
+	#### EXPORT DATASETS ####
+
+	# Export full vocab for MiADE 
+	setkey(SCT2, conceptId)
+	fwrite(SCT2, file = paste0(WORKING, 'full_condition_list.csv'))
+
+	# Format of output file for MedCAT:
+	# cui, name, ontologies, name_status
+	fwrite(SCT2[, .(cui = conceptId, name = term,
+		ontologies = 'SNO', name_status)], file = paste0(OUTPUT, 'cdb_problems.csv'))
+
+	# Remove any synonyms that are already in SNOMED CT
+	# (whether in original or lower case form)
+	OUT <- merge(SCT2[, .(conceptId, term)],
+		rbind(SNOMED$DESCRIPTION[, .(conceptId, term = term,
+		already = TRUE)], SNOMED$DESCRIPTION[, .(conceptId, term = tolower(term),
+		already = TRUE)]), by = c('conceptId', 'term'), all.x = TRUE)
+	OUT <- OUT[is.na(already)]
+	OUT[, already := NULL]
+
+	# Export list of additional concepts
+	fwrite(OUT, file = paste0(WORKING, 'extra_condition_synonyms.csv'))
+
+	# Negated
+
+	fwrite(NEGATED[, .(findingId, situationId)][order(findingId)],
+		file = paste0(OUTPUT, 'negated.csv')) 
+	fwrite(NEGATED, file = paste0(WORKING, 'negated_check.csv'))
+
+	# Historic (Oct 2023 - currently procedures only)
+
+	fwrite(HISTORIC[, .(findingId, situationId)][order(findingId)],
+		file = paste0(OUTPUT, 'historic.csv')) 
+	fwrite(HISTORIC, file = paste0(WORKING, 'historic_check.csv'))
+
+	# Suspected
+
+	fwrite(SUSPECTED[, .(findingId, situationId)][order(findingId)],
+		file = paste0(OUTPUT, 'suspected.csv')) 
+	fwrite(SUSPECTED, file = paste0(WORKING, 'suspected_check.csv'))
+
+	# Exclusions - concepts not to use in MedCAT training
+	write(as.character(exclude_conceptId),
+		file = paste0(WORKING, 'exclude_concepts.txt'), ncolumns = 1)
+
+	blacklist <- intersect(c(ignore_findings, procedures), SCT2$conceptId)
+
+	# Blacklist of ignorable concepts not to present as final output 
+	write(as.character(sort(unique(blacklist))),
+		file = paste0(OUTPUT, 'problem_blacklist.csv'), ncolumns = 1)
+
+
 }
 
 # Internal function: for a standardised form of words for use in CDB

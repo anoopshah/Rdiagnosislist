@@ -39,7 +39,12 @@ batchDecompose <- function(conceptIds, CDB, output_filename,
 #' @param decompositions filename of decompose output (read by fread) or
 #'   data.frame containing outputs of decompose function
 #' @param CDB concept database environment, containing a table called
-#'   FINDINGS 
+#'   FINDINGS
+#' @param maxcol maximum number of attributes columns. If NULL it is
+#'   determined from the data. It might be helpful to specify it so that
+#'   downstream databases and programs know exactly how many columns to
+#'   expect. We suggest setting it to 10 which should handle all 
+#'   possible SNOMED CT concept decompositions.
 #' @param ... other arguments to pass to fread
 #' @return data.table 
 #' @export
@@ -48,7 +53,7 @@ batchDecompose <- function(conceptIds, CDB, output_filename,
 #' # Not run
 #'
 #' mylookup <- createComposeLookup(D)
-createComposeLookup <- function(decompositions, CDB, ...){
+createComposeLookup <- function(decompositions, CDB, maxcol = 10, ...){
 	sct_concept_colnames <- c('rootId', 'with', 'due_to',
 		'after', 'without', 'body_site', 'severity', 'stage',
 		'laterality', 'origId')
@@ -116,7 +121,9 @@ createComposeLookup <- function(decompositions, CDB, ...){
 		})]
 	
 	# Split into separate columns for fast matching
-	maxcol <- max(sapply(D$attrId, length))
+	if (is.null(maxcol)){
+		maxcol <- max(sapply(D$attrId, length))
+	}
 	for (i in 1:maxcol){
 		# extract attribute Ids via as.character to avoid incorrect
 		# conversion to numeric
@@ -131,8 +138,9 @@ createComposeLookup <- function(decompositions, CDB, ...){
 	cols_to_keep <- c('rootId', 'with', 'due_to', 'without',
 		paste0('attr_', 1:maxcol), 'origId')
 	D <- D[, ..cols_to_keep]
+	D <- D[!duplicated(D)]
 	setorderv(D, cols_to_keep)
 	setkeyv(D, cols_to_keep)
-	for (i in cols_to_keep) setindex(D, i)
+	for (i in cols_to_keep) setindexv(D, i)
 	D
 }
