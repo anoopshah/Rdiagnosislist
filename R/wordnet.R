@@ -124,7 +124,10 @@ downloadWordNet <- function(
 #' Adds terms from a WordNet thesaurus to a concept database, matching
 #' on term. It is recommended to restrict the wordnet categories to
 #' ensure that words with multiple meanings are not linked to the wrong
-#' synonym.
+#' synonym. This function also corrects some known errors in WordNet to
+#' avoid them being passed on to the CDB; currently this applies to 
+#' 'allergy = allergic reaction' and 'cuneiform bone = triquetral'
+#' but more corrections can be done if needed.
 #'
 #' @param CDB_TABLE data.frame or data.table with columns
 #'   conceptId (integer64) and term (character, with space before
@@ -135,6 +138,10 @@ downloadWordNet <- function(
 #'   to check for WordNet synonyms that link to another unrelated
 #'   concept, where this synonym will be excluded because of the risk
 #'   of errors
+#' @param errors_to_remove list of character vectors of length two
+#'   containing synonym pairs to be removed. The first entry of the
+#'   pair will be removed from the WordNet file before it is used for
+#'   adding to CDB
 #' @return CDB_TABLE with extra rows for Wordnet synonyms
 #' @export
 #' @seealso [downloadWordNet()]
@@ -154,13 +161,37 @@ downloadWordNet <- function(
 #'   .(conceptId, term = paste0(' ', tolower(term), ' '))]
 #' addWordNet(CDB_TABLE, 'noun.state', WORDNET)
 addWordNet <- function(CDB_TABLE, wn_categories, WN,
-	CHECK_TABLE = NULL){
+	CHECK_TABLE = NULL, errors_to_remove = list(
+	c('allergy', 'allergic reaction'),
+	c('allergic', 'allergic reaction'),
+	c('cuneiform bone', 'triquetral bone'),
+	c('upset', 'disorder'),
+	c('disorderliness', 'disorder'))){
 	term <- synonyms <- cat <- conceptId <- wordnetId <- NULL
 	D <- as.data.table(CDB_TABLE)
 	WNLONG <- WN[cat %in% wn_categories, .(term = synonyms[1][[1]]),
 		by = wordnetId]
 	WNLONG[, term := sub('[1-9]$', '', term)]
 	WNLONG[, term := paste0(' ', gsub('_', ' ', term), ' ')]
+	
+	# Correct known errors in Wordnet
+	remove <- function(word_to_remove, base_word){
+		word_to_remove <- paste0(' ', gsub('^ +| $', '', word_to_remove), ' ')
+		base_word <- paste0(' ', gsub('^ +| $', '', base_word), ' ')
+		TOREMOVE <- WNLONG[wordnetId %in%
+			WNLONG[term %in% base_word]$wordnetId][
+			term %in% word_to_remove]
+		if (nrow(TOREMOVE) > 0){
+			WNLONG[!(wordnetId %in% TOREMOVE$wordnetId &
+				term %in% word_to_remove)]
+		} else {
+			WNLONG
+		}
+	}
+	for (i in length(errors_to_remove)){
+		WNLONG <- remove(errors_to_remove[[i]][1],
+			errors_to_remove[[i]][2])
+	}
 	
 	# Match up WNLONG with SNOMED CT concepts by term
 	MERGED <- merge(WNLONG, D[!duplicated(D)], by = 'term')
