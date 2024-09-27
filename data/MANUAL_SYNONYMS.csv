@@ -1,87 +1,316 @@
 synonym,snomed,bidirectional
-ischemic stroke,cerebral ischemic stroke,TRUE
-aortic stenosis,aortic valve stenosis,TRUE
-inactive,non active,TRUE
-non organic,functional,TRUE
-osteoporotic,osteoporosis,TRUE
-humerus,humeral,TRUE
-mandibular,mandible,TRUE
-muscle atrophy,atrophy of muscle,TRUE
-muscle strain,strain of muscle,TRUE
-ligament injury,injury of ligament,TRUE
-ligament strain,ligamentous strain,TRUE
-strain of ligament,ligamentous strain,TRUE
-ligament,ligamentous,TRUE
+AAA,abdominal aortic aneurysm,FALSE
+acc,accident,FALSE
+accid,accident,FALSE
+AIDS,acquired immune deficiency syndrome,TRUE
+AKI,acute kidney injury,FALSE
 acute-on-chronic,acute on chronic,TRUE
-acute,sudden onset and/or short duration,FALSE
-exacerbation,worsening,TRUE
-pulmonary,lung,TRUE
-cardiac,heart,TRUE
+AOM,acute otitis media,FALSE
+ARF,acute renal failure,FALSE
+ARDS,acute respiratory distress syndrome,TRUE
+allergy,allergic,TRUE
+allergic,allergy,TRUE
+alzheimer,alzheimer disease,FALSE
+ACA,anterior cerebral artery,FALSE
+anxious,anxiety,TRUE
+anxiety,anxious,TRUE
+aortic stenosis,aortic valve stenosis,TRUE
+arrhyth,arrhythmia,FALSE
+asthmatic,asthma,FALSE
+AF,atrial fibrillation,FALSE
+a fib,atrial fibrillation,FALSE
+ASD,atrial septal defect,TRUE
+muscle atrophy,atrophy of muscle,TRUE
+attacks,attack,TRUE
+BCC,basal cell carcinoma,FALSE
+basal cell carcinoma,basal cell carcinoma of skin,FALSE
+behav,behaviour,FALSE
+BPH,benign prostatic hypertrophy,FALSE
+BOO,bladder outflow obstruction,FALSE
+bleed,bleeding,TRUE
+haemorrhage,bleeding,FALSE
+pediculus corporis,body lice,FALSE
+breathlessness,breathless,FALSE
+dyspnoea,breathless,TRUE
+SOB,breathless,FALSE
+breathless,breathlessness,FALSE
+dyspnoea,breathlessness,TRUE
+SOB,breathlessness,FALSE
+bronchiecta,bronchiectasis,FALSE
+BBB,bundle branch block,FALSE
+LSCS,caesarean delivery,FALSE
+Ca,cancer,FALSE
+malignancy,cancer,TRUE
+carcin,carcinoma,FALSE
+cardiac fail,cardiac failure,FALSE
+CVD,cardiovascular disease,FALSE
+cats,cat dander,FALSE
+ischemic stroke,cerebral ischemic stroke,TRUE
+CVA,cerebrovascular accident,FALSE
+chickenpox,chicken pox,TRUE
+CFS,chronic fatigue syndrome,FALSE
+COAD,chronic obstructive pulmonary disease,TRUE
+COPD,chronic obstructive pulmonary disease,TRUE
+CRF,chronic renal failure,FALSE
+cocaine,cocaine misuse,FALSE
+CVID,common variable immunodeficiency,FALSE
+athlete,competitive athlete,FALSE
+comp,complication,FALSE
+CDH,congenital dislocation of hip,FALSE
+CCF,congestive cardiac failure,FALSE
+consc,consciousness,FALSE
+CAD,coronary artery disease,FALSE
+CHD,coronary heart disease,FALSE
+DVT,deep vein thrombosis,FALSE
+arthritis,degenerative joint disease,FALSE
+depressn,depression,FALSE
+dermographism,dermographia,TRUE
+dermographia,dermographism,TRUE
+DM,diabetes mellitus,FALSE
+diabetes,diabetes mellitus,FALSE
+T2DM,diabetes mellitus type 2,FALSE
+diarrh,diarrhoea,TRUE
+diarrhoea,diarrhoea symptom,FALSE
+DNA,did not attend,TRUE
 gastrointestinal,digestive system,FALSE
 gastrointestinal system,digestive system,TRUE
-basal cell carcinoma,basal cell carcinoma of skin,FALSE
-AF,atrial fibrillation,FALSE
-AAA,abdominal aortic aneurysm,FALSE
-CAD,coronary artery disease,FALSE
-CCF,congestive cardiac failure,FALSE
-CHD,coronary heart disease,FALSE
-DM,diabetes mellitus,FALSE
-flu,influenza,FALSE
-PAH,pulmonary artery hypertension,FALSE
-MI,myocardial infarction,FALSE
-MS,multiple sclerosis,FALSE
-PID,pelvic inflammatory disease,FALSE
-RAPD,relative afferent pupillary defect,FALSE
-NFA,no fixed abode,FALSE
-TB,tuberculosis,FALSE
-AOM,acute otitis media,FALSE
-ITP,immune thrombocytopenia,FALSE
-NOF,fracture of neck of femur,FALSE
-SVT,supraventricular tachycardia,FALSE
-IBS,irritable bowel syndrome,FALSE
-AKI,acute renal failure syndrome,FALSE
-SAH,subarachnoid intracranial hemorrhage,FALSE
-HF,heart failure,FALSE
-PSP,progressive supranuclear palsy,FALSE
-VF,ventricular fibrillation,FALSE
-HTN,hypertension,FALSE
-CVA,cerebrovascular accident,FALSE
-CVD,cardiovascular disease,FALSE
-MCA,middle cerebral artery,FALSE
-ACA,anterior cerebral artery,FALSE
-PCA,posterior cerebral artery,FALSE
-LAD,left anterior descending,FALSE
-RCA,right coronary artery,FALSE
-NOF,neck of femur,FALSE
-OA,osteoarthrosis,FALSE
-OA,osteoarthritis,FALSE
-HOH,hard of hearing,FALSE
-HOH,hard hearing,FALSE
+disch,discharge,TRUE
+discha,discharge,FALSE
+discharged,discharge,FALSE
+dis,disease,FALSE
+diseas,disease,FALSE
+diseases,disease,TRUE
+disease,diseases,TRUE
+DIC,disseminated intravascular coagulation,TRUE
+div disease,diverticular disease,FALSE
+dogs,dog dander,FALSE
+2 diseased vessels,double coronary vessel disease,FALSE
+2 vessel disease,double coronary vessel disease,FALSE
+two vessel disease,double coronary vessel disease,FALSE
+drinker,drinks,FALSE
+DU,duodenal ulcer,FALSE
+breathless,dyspnoea,TRUE
+breathlessness,dyspnoea,TRUE
+embolus,embolism,FALSE
+epistaxes,epistaxis,FALSE
+FTT,failure to thrive,FALSE
+pyrexia,fever,TRUE
+fever,fever symptoms,FALSE
+fibroadenosis,fibroadenosis of breast,FALSE
+influenza,flu,TRUE
+flushed,flushes,FALSE
+frac,fracture,FALSE
+fract,fracture,FALSE
+fractured,fracture,TRUE
+fractures,fracture,FALSE
+non organic,functional,TRUE
 GORD,gastroesophageal reflux disease,FALSE
-Ca,cancer,FALSE
-PMR,polymyalgia rheumatica,FALSE
+GI,gastrointestinal,FALSE
+GIH,gastrointestinal haemorrhage,FALSE
 GIST,gastrointestinal stromal tumor,FALSE
 GIST,gastrointestinal stromal tumour,FALSE
-GI,gastrointestinal,FALSE
 GIT,gastrointestinal tract,FALSE
-GIH,gastrointestinal haemorrhage,FALSE
-HCC,hepatocellular carcinoma,FALSE
-STEMI,st segment elevation myocardial infarction,FALSE
-nSTEMI,non-st segment elevation mi,FALSE
-nonSTEMI,non-st segment elevation mi,FALSE
-NSTEMI,non-st segment elevation mi,FALSE
-T2DM,diabetes mellitus type 2,FALSE
-HFREF,heart failure with reduced ejection fraction,FALSE
-HFrEF,heart failure with reduced ejection fraction,FALSE
-HFPEF,heart failure with preserved ejection fraction,FALSE
-HFpEF,heart failure with preserved ejection fraction,FALSE
+gestational diabetes,gestational diabetes mellitus,FALSE
+bleed,haemorrhage,FALSE
+bleeding,haemorrhage,FALSE
+haemorhage,haemorrhage,TRUE
+haemorrh,haemorrhage,TRUE
+haemarroids,haemorrhoids,FALSE
+HOH,hard hearing,FALSE
+HOH,hard of hearing,FALSE
+nits,head lice,FALSE
+pediculus capitis,head lice,FALSE
+cardiac,heart,TRUE
+HF,heart failure,FALSE
 HFMEF,heart failure with mid range ejection fraction,FALSE
 HFmEF,heart failure with mid range ejection fraction,FALSE
-NFA,no fixed abode,FALSE
+HFPEF,heart failure with preserved ejection fraction,FALSE
+HFpEF,heart failure with preserved ejection fraction,FALSE
+HFREF,heart failure with reduced ejection fraction,FALSE
+HFrEF,heart failure with reduced ejection fraction,FALSE
+hep,hepatitis,FALSE
+HCC,hepatocellular carcinoma,FALSE
+recent hospitalisation,hospital inpatient,FALSE
+recently hospitalised,hospital inpatient,FALSE
+hiv infection,human immunodeficiency virus infection,TRUE
+human immunodeficiency virus,human immunodeficiency virus infection,FALSE
+humerus,humeral,TRUE
 hypersensitivity,hypersensitivity disposition,FALSE
+HTN,hypertension,FALSE
+hypert,hypertension,FALSE
+hyperten,hypertension,FALSE
+hypertens,hypertension,FALSE
+hypertensi,hypertension,FALSE
+hypertensio,hypertension,FALSE
+thyrotoxicosis,hyperthyroidism,TRUE
+hypotensive,hypotension,FALSE
+hypoxaemic,hypoxic,TRUE
+hypoxemic,hypoxic,TRUE
+ITP,immune thrombocytopenia,FALSE
+impaired left ventricle,impaired left ventricular function,TRUE
+left ventricular impairment,impaired left ventricular function,TRUE
+lv impaired,impaired left ventricular function,FALSE
+lv impairment,impaired left ventricular function,FALSE
+LVD,impaired left ventricular function,FALSE
+poor ef,impaired left ventricular function,FALSE
+poor ejection fraction,impaired left ventricular function,FALSE
+poor lv,impaired left ventricular function,FALSE
+poor lv function,impaired left ventricular function,FALSE
+dysfunction,impairment,FALSE
+impair,impairment,FALSE
+impaired,impairment,FALSE
+infec,infection,FALSE
+infected,infection,FALSE
+IBD,inflammatory bowel disease,FALSE
+flu,influenza,TRUE
+injured,injury,FALSE
+injuries,injury,TRUE
+ligament injury,injury of ligament,TRUE
 intolerance,intolerance to substance,FALSE
-toenail,structure of nail unit of toe,TRUE
+IBS,irritable bowel syndrome,FALSE
+IHD,ischaemic heart disease,FALSE
+keratoakanthoma,keratoacanthoma,TRUE
+LAD,left anterior descending,FALSE
+LAFB,left anterior fascicular block,FALSE
+LBBB,left bundle branch block,FALSE
+left anterior hemi block,left bundle branch hemiblock,FALSE
+LPFB,left posterior fascicular block,FALSE
+ventricular cardiac aneurysm,left ventricular aneurysm,FALSE
+left ventricular failure,left ventricular failure,TRUE
+lv failure,left ventricular failure,FALSE
+LVF,left ventricular failure,FALSE
+ligament,ligamentous,TRUE
+ligament strain,ligamentous strain,TRUE
+strain of ligament,ligamentous strain,TRUE
+LOC,loss of consciousness,FALSE
+LRTI,lower respiratory tract infection,FALSE
+pulmonary,lung,TRUE
+Ca,malignant neoplasm,FALSE
+cancer,malignant neoplasm,FALSE
+carcinoma,malignant neoplasm,FALSE
+malig neop,malignant neoplasm,TRUE
+malignancy,malignant neoplasm,FALSE
+neoplasm malignant,malignant neoplasm,FALSE
+cervical cancer,malignant neoplasm of cervix uteri,TRUE
+mandibular,mandible,TRUE
+malaena,melaena,FALSE
+metastasis,metastases,TRUE
+MCA,middle cerebral artery,FALSE
+milk exclusion,milk free diet,FALSE
+MS,multiple sclerosis,FALSE
+MI,myocardial infarction,FALSE
+myo infarc,myocardial infarction,FALSE
+NOF,neck of femur,FALSE
+neck rigidity,neck stiffness,FALSE
+neop,neoplasm,FALSE
+NFA,no fixed abode,FALSE
+inactive,non active,TRUE
+not drink,non drinker,TRUE
+NPDR,non proliferative diabetic retinopathy,FALSE
+NSTEMI,non-st segment elevation mi,FALSE
+nSTEMI,non-st segment elevation mi,FALSE
+nonSTEMI,non-st segment elevation mi,FALSE
+OCD,obsessive compulsive disorder,FALSE
+oedematous,oedema,FALSE
+OA,osteoarthritis,FALSE
+OA,osteoarthrosis,FALSE
+osteoporotic,osteoporosis,TRUE
+osteoporosis,osteoporotic,TRUE
+painful,pain,TRUE
+pains,pain,TRUE
+pain,painful,TRUE
+palpitations,palpitation,FALSE
+palpitation,palpitations,FALSE
+parity,para,TRUE
+para,parity,TRUE
+parkinsons,parkinson disease,FALSE
+died,patient died,FALSE
+PID,pelvic inflammatory disease,FALSE
+poliomyelitis,polio,TRUE
+polio,poliomyelitis,TRUE
+PMR,polymyalgia rheumatica,FALSE
+PCA,posterior cerebral artery,FALSE
+preg,pregnant,FALSE
+prob,problem,FALSE
+PSP,progressive supranuclear palsy,FALSE
+crabs,pubic lice,FALSE
+pediculus pubis,pubic lice,FALSE
+phthirus pubis,pubic lice,FALSE
+PAH,pulmonary artery hypertension,FALSE
+fever,pyrexia,TRUE
+RAPD,relative afferent pupillary defect,FALSE
+resid inst,residential institution,TRUE
+resp fail,respiratory failure,FALSE
+RBBB,right bundle branch block,FALSE
+RCA,right coronary artery,FALSE
+rigor,rigor symptom,FALSE
+self harm,self inflicted injury,TRUE
+AMD,senile macular degeneration,FALSE
+ARMD,senile macular degeneration,FALSE
+SCID,severe combined immunodeficiency,FALSE
+short of breath,shortness of breath,TRUE
+one diseased vessel,single coronary vessel disease,FALSE
+one vessel disease,single coronary vessel disease,FALSE
+single vessel disease,single coronary vessel disease,FALSE
+SR,sinus rhythm,FALSE
+smokes,smoker,TRUE
+spasms,spasm,TRUE
+SCC,squamous cell carcinoma,FALSE
+STEMI,st segment elevation myocardial infarction,FALSE
+stiff,stiffness,FALSE
+muscle strain,strain of muscle,TRUE
+stidor,stridor,FALSE
+CVA,stroke,FALSE
+MSK,structure of musculoskeletal system,FALSE
 fingernail,structure of nail unit of finger,TRUE
-fingertip,tip of finger,TRUE
 thumbnail,structure of nail unit of thumb,TRUE
-
+toenail,structure of nail unit of toe,TRUE
+SBE,subacute bacterial endocarditis,FALSE
+SAH,subarachnoid haemorrhage,FALSE
+SAH,subarachnoid intracranial hemorrhage,FALSE
+SIDS,sudden infant death syndrome,FALSE
+acute,sudden onset and/or short duration,FALSE
+SVT,supraventricular tachycardia,FALSE
+swollen,swelling,FALSE
+SLE,systemic lupus erythematosus,TRUE
+tender,tenderness,TRUE
+thyrotoxicosis,thyroid dysfunction,FALSE
+hyperthyroidism,thyrotoxicosis,TRUE
+tic bite,tick bite,FALSE
+fingertip,tip of finger,TRUE
+TATT,tired all the time,TRUE
+TIA,transient ischaemic attack,FALSE
+traum,trauma,FALSE
+traumatic,trauma,FALSE
+traum,traumatic,FALSE
+trauma,traumatic,FALSE
+3 vessel coronary disease,triple vessel disease of the heart,TRUE
+coronary artery disease three vessel,triple vessel disease of the heart,TRUE
+three vessel coronary disease,triple vessel disease of the heart,TRUE
+triple vessel coronary disease,triple vessel disease of the heart,TRUE
+TB,tuberculosis,FALSE
+type 1 diabetes,type 1 diabetes mellitus,FALSE
+type i diabetes,type 1 diabetes mellitus,FALSE
+type ii diabetes,type 2 diabetes mellitus,FALSE
+URTI,upper respiratory tract infection,FALSE
+UTI,urinary tract infection,TRUE
+urticarial,urticaria,TRUE
+left ventricular aneurysm,ventricular cardiac aneurysm,FALSE
+VF,ventricular fibrillation,FALSE
+VPB,ventricular premature beats,FALSE
+VSD,ventricular septal defect,TRUE
+vomit,vomiting,FALSE
+vomited,vomiting,FALSE
+vomitting,vomiting,FALSE
+vommiting,vomiting,FALSE
+vomiting,vomiting symptom,FALSE
+wt loss,weight loss,FALSE
+not dehydrated,well hydrated,TRUE
+wheezing,wheeze,TRUE
+wheezy,wheeze,TRUE
+wheeze,wheezing,TRUE
+wheezy,wheezing,TRUE
+wheeze,wheezy,TRUE
+wheezing,wheezy,TRUE
+exacerbation,worsening,TRUE
+wnd,wound,FALSE
