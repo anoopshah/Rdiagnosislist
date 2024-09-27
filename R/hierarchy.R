@@ -391,6 +391,10 @@ attrConcept <- function(conceptIds,
 
 #' Retrieves semantic types using the text 'tag' in the description
 #'
+#' Uses the fully specified name in the DESCRIPTION table. If there are
+#' multiple fully specified names, the name with the most recent
+#' effectiveTime will be used.
+#'
 #' @param conceptIds character or integer64 vector of SNOMED concept IDs
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @return a character vector of semantic tags corresponding to the conceptIDs 
@@ -400,12 +404,16 @@ attrConcept <- function(conceptIds,
 #' SNOMED <- sampleSNOMED()
 #'
 #' semanticType(as.SNOMEDconcept(c('Heart failure', 'Is a')))
-semanticType <- function(conceptIds,
-	SNOMED = getSNOMED()){
+semanticType <- function(conceptIds, SNOMED = getSNOMED()){
 	tag <- term <- NULL
 	
 	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
-	DESC <- description(conceptIds, SNOMED = SNOMED)
+	DESC <- SNOMED$DESCRIPTION[conceptId %in% conceptIds & typeId %in%
+		bit64::as.integer64('900000000000003001') & active %in% TRUE,
+		.(conceptId, effectiveTime, term)][
+		order(conceptId, -effectiveTime)][
+		, .(term = term[1]), by = conceptId]
+	DESC <- DESC[data.table(conceptId = conceptIds), on = 'conceptId']
 	DESC[, tag := ifelse(term %like% '^.*\\(([[:alnum:]\\/\\+ ]+)\\)$',
 		sub('^.*\\(([[:alnum:]\\/\\+ ]+)\\)$', '\\1', term), '')]
 	return(DESC$tag)
