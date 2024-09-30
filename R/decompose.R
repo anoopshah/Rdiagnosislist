@@ -324,7 +324,8 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 		# Returns a data.table containing the original DATALINE and
 		# optionally additional data lines with decompositions by
 		# searching for different ancestors
-		ANC <- A[sapply(A$term, function(x){DATALINE$text %like% x})]
+		ANC <- A[, .(use = DATALINE$text %like% term, conceptId, term),
+			by = .I][use == TRUE, .(conceptId, term)]
 		if (nrow(ANC) > 0){
 			return(rbindlist(lapply(1:nrow(ANC), function(x){
 				new_text <- sub(ANC[x]$term, repl_(ANC[x]$term), DATALINE$text)
@@ -375,9 +376,9 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 		# as part of concept or as an additional attribute
 		if (nrow(B) > 0){
 			# Subset of body sites that match with this term
-			BOD <- B[sapply(B$term, function(x){
-				DATALINE$other_attr %like% x
-			})]
+			BOD <- B[, .(use = DATALINE$other_attr %like% term,
+				conceptId, term, required_laterality), by = .I][
+				use == TRUE, .(conceptId, term, required_laterality)]
 			if (nrow(BOD) > 0){
 				return(rbindlist(lapply(1:nrow(BOD), function(x){
 					# Is laterality included in the concept or
@@ -394,9 +395,12 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 						# LATERALITY lookup
 						LATSELECT <- CDB$LATERALITY[conceptId ==
 							CDB$latConcepts[BOD[x]$required_laterality]]
-						LATSELECT <- LATSELECT[sapply(term, function(x){
-							DATALINE$other_attr %like% x
-							})]
+						if (nrow(LATSELECT) > 0){
+							LATSELECT <- LATSELECT[, .(use = 
+								DATALINE$other_attr %like% term,
+								conceptId, term), by = .I][
+								use == TRUE, .(conceptId, term)]
+						}
 						if (nrow(LATSELECT) > 0){
 							# Only permit one row for simplicity
 							new_text <- sub(LATSELECT[1]$term,
@@ -446,20 +450,17 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 	# multiple body sites, so allow multiple
 	
 	if (length(body_siteIds) > 0){
-		the_laterality <- CDB$BODY_LATERALITY[
+		the_laterality <- CDB$BODY[
 			conceptId %in% body_siteIds]$laterality[1]
 		# keep only the first the_laterality so that it has cardinality 1
 		B <- CDB$BODY[conceptId %in% c(anc(body_siteIds),
 			desc(body_siteIds, include_self = TRUE))]
-		B[, concept_laterality := CDB$BODY_LATERALITY[B,
-			on = 'conceptId']$laterality]
 		B[, required_laterality := ifelse(
-			concept_laterality == the_laterality,
-			'Included', the_laterality)]
+			laterality == the_laterality, 'Included', the_laterality)]
 		# Remove concepts with inconsistent laterality
 		B <- B[required_laterality == 'Included' |
 			(required_laterality == the_laterality &
-			concept_laterality == 'Lateralisable')]
+			laterality == 'Lateralisable')]
 		B[, exact := conceptId %in% body_siteIds]
 		# Add pluralised single-word concepts (e.g. rib --> ribs)
 		B <- addPlural(B)
@@ -491,28 +492,29 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 		# Returns a data.table containing the original DATALINE and
 		# optionally additional data lines with decompositions by
 		# searching for causes.
-		the_causeId <- relatedConcepts(DATALINE$partId,
+		the_causeIds <- relatedConcepts(DATALINE$partId,
 			typeId = CDB$SCT_cause, SNOMED = SNOMED)
-		if (length(the_causeId) > 0){
-			CAU <- CDB$CAUSES[conceptId %in% the_causeId]
-			CAU <- CAU[sapply(CAU$term, function(x){
-				DATALINE$other_attr %like% x
-			})]
-			if (nrow(CAU) > 0){
-				return(rbindlist(lapply(1:nrow(CAU), function(x){
-					new_text <- sub(CAU[x]$term, repl_(CAU[x]$term),
-						DATALINE$other_attr)
-					OUTPUT <- copy(DATALINE)
-					OUTPUT[, other_attr := new_text]
-					OUTPUT[, due_to := the_causeId]
-				})))
-			} else {
-				# no valid cause - no decomposition performed
-				return(DATALINE)
+		if (length(the_causeIds) > 0){
+			for (i in seq_along(the_causeIds)){
+				CAU <- CDB$CAUSES[conceptId %in% the_causeIds[i]]
+				if (nrow(CAU) > 0){
+					CAU <- CAU[, .(use = DATALINE$other_attr %like% term,
+						conceptId, term), by = .I][use == TRUE,
+						.(conceptId, term)]
+				}
+				if (nrow(CAU) > 0){
+					DATALINE <- rbindlist(lapply(1:nrow(CAU), function(x){
+						new_text <- sub(CAU[x]$term, repl_(CAU[x]$term),
+							DATALINE$other_attr)
+						OUTPUT <- copy(DATALINE)
+						OUTPUT[, other_attr := new_text]
+						OUTPUT[, due_to := the_causeIds[i]]
+						OUTPUT
+					}))
+				}
 			}
-		} else {
-			return(DATALINE)
 		}
+		DATALINE
 	}
 	
 	TEMP <- rbindlist(lapply(1:nrow(C), function(x) e_cause(C[x])))
@@ -528,9 +530,9 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 	e_severity <- function(DATALINE){
 		# Returns a data.table containing the original DATALINE and
 		# with severity information extracted. 
-		SEV <- CDB$SEVERITY[sapply(CDB$SEVERITY$term, function(x){
-			DATALINE$other_attr %like% x
-		})]
+		SEV <- CDB$SEVERITY[,
+			.(use = DATALINE$other_attr %like% term, conceptId, term),
+			by = .I][use == TRUE, .(conceptId, term)]
 		if (nrow(SEV) > 0){
 			return(rbindlist(lapply(1:nrow(SEV), function(x){
 				new_text <- sub(SEV[x]$term, repl_(SEV[x]$term),
@@ -558,9 +560,9 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 	e_stage <- function(DATALINE){
 		# Returns a data.table containing the original DATALINE and
 		# with stage information extracted.
-		STA <- CDB$STAGE[sapply(CDB$STAGE$term, function(x){
-			DATALINE$other_attr %like% x
-		})]
+		STA <- CDB$STAGE[,
+			.(use = DATALINE$other_attr %like% term, conceptId, term),
+			by = .I][use == TRUE, .(conceptId, term)]
 		if (nrow(STA) > 0){
 			return(rbindlist(lapply(1:nrow(STA), function(x){
 				new_text <- sub(STA[x]$term, repl_(STA[x]$term),

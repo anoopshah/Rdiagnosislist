@@ -15,7 +15,9 @@ semanticType(conceptIds, SNOMED = getSNOMED())
 a character vector of semantic tags corresponding to the conceptIDs
 }
 \description{
-Retrieves semantic types using the text 'tag' in the description
+Uses the fully specified name in the DESCRIPTION table. If there are
+multiple fully specified names, the name with the most recent
+effectiveTime will be used.
 }
 \examples{
 SNOMED <- sampleSNOMED()

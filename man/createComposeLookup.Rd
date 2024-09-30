@@ -4,7 +4,7 @@
 \alias{createComposeLookup}
 \title{Creates a set of lookups for SNOMED composition}
 \usage{
-createComposeLookup(decompositions, CDB, ...)
+createComposeLookup(decompositions, CDB, maxcol = 10, ...)
 }
 \arguments{
 \item{decompositions}{filename of decompose output (read by fread) or
@@ -12,6 +12,12 @@ data.frame containing outputs of decompose function}
 
 \item{CDB}{concept database environment, containing a table called
 FINDINGS}
+
+\item{maxcol}{maximum number of attributes columns. If NULL it is
+determined from the data. It might be helpful to specify it so that
+downstream databases and programs know exactly how many columns to
+expect. We suggest setting it to 10 which should handle all 
+possible SNOMED CT concept decompositions.}
 
 \item{...}{other arguments to pass to fread}
 }

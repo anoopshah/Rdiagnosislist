@@ -4,7 +4,15 @@
 \alias{addWordNet}
 \title{Use WordNet to assist concept database creation}
 \usage{
-addWordNet(CDB_TABLE, wn_categories, WN, CHECK_TABLE = NULL)
+addWordNet(
+  CDB_TABLE,
+  wn_categories,
+  WN,
+  CHECK_TABLE = NULL,
+  errors_to_remove = list(c("allergy", "allergic reaction"), c("allergic",
+    "allergic reaction"), c("cuneiform bone", "triquetral bone"), c("upset", "disorder"),
+    c("disorderliness", "disorder"))
+)
 }
 \arguments{
 \item{CDB_TABLE}{data.frame or data.table with columns
@@ -19,6 +27,11 @@ and after) containing existing descriptions in the CDB}
 to check for WordNet synonyms that link to another unrelated
 concept, where this synonym will be excluded because of the risk
 of errors}
+
+\item{errors_to_remove}{list of character vectors of length two
+containing synonym pairs to be removed. The first entry of the
+pair will be removed from the WordNet file before it is used for
+adding to CDB}
 }
 \value{
 CDB_TABLE with extra rows for Wordnet synonyms
@@ -27,7 +40,10 @@ CDB_TABLE with extra rows for Wordnet synonyms
 Adds terms from a WordNet thesaurus to a concept database, matching
 on term. It is recommended to restrict the wordnet categories to
 ensure that words with multiple meanings are not linked to the wrong
-synonym.
+synonym. This function also corrects some known errors in WordNet to
+avoid them being passed on to the CDB; currently this applies to 
+'allergy = allergic reaction' and 'cuneiform bone = triquetral'
+but more corrections can be done if needed.
 }
 \examples{
 WORDNET <- data.table::data.table(cat = c('noun.body', 'noun.state'),
