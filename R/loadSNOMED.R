@@ -451,21 +451,21 @@ getSNOMED <- function(SNOMEDname = 'SNOMED'){
 	if (is.null(SNOMED$DESCRIPTION)){
 		stop('No table named DESCRIPTION in SNOMED environment')
 	}
-	if (is.null(SNOMED$REFSET)){
-		warning('No table named REFSET in SNOMED environment')
-	}
-	if (is.null(SNOMED$SIMPLEMAP)){
-		warning('No table named SIMPLEMAP in SNOMED environment')
-	}
-	if (is.null(SNOMED$EXTENDEDMAP)){
-		warning('No table named EXTENDEDMAP in SNOMED environment')
-	}
-	if (is.null(SNOMED$HISTORY)){
-		warning('No table named HISTORY in SNOMED environment')
-	}
-	if (is.null(SNOMED$QUERY)){
-		warning('No table named QUERY in SNOMED environment')
-	}
+	#if (is.null(SNOMED$REFSET)){
+	#	warning('No table named REFSET in SNOMED environment')
+	#}
+	#if (is.null(SNOMED$SIMPLEMAP)){
+	#	warning('No table named SIMPLEMAP in SNOMED environment')
+	#}
+	#if (is.null(SNOMED$EXTENDEDMAP)){
+	#	warning('No table named EXTENDEDMAP in SNOMED environment')
+	#}
+	#if (is.null(SNOMED$HISTORY)){
+	#	warning('No table named HISTORY in SNOMED environment')
+	#}
+	#if (is.null(SNOMED$QUERY)){
+	#	warning('No table named QUERY in SNOMED environment')
+	#}
 	# Return the retrieved environment
 	SNOMED
 }
