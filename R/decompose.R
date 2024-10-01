@@ -765,10 +765,15 @@ print.SNOMEDfindings <- function(x, ...){
 	# Prints a SNOMED CT finding object
 	show_concept <- function(x, offset = 16){
 		x <- as.SNOMEDconcept(x, SNOMED = SNOMED)
-		if (x %in% SNOMED$DESCRIPTION$conceptId){
-			output <- paste0(x, " | ", description(x, SNOMED = SNOMED)$term)
+		if (length(x) == 1){
+			if (x %in% SNOMED$DESCRIPTION$conceptId){
+				output <- paste0(x, " | ", description(x,
+					SNOMED = SNOMED)$term)
+			} else {
+				output <- as.character(x)
+			}
 		} else {
-			output <- as.character(x)
+			output <- ''
 		}
 		truncateChar <- function(x, maxchar) {
 			convert <- nchar(x) > maxchar

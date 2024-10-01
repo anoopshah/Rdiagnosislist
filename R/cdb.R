@@ -311,7 +311,6 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	CDB$SEVERITY <- SEVERITY
 	CDB$LATERALITY <- LATERALITY
 	CDB$STAGE <- STAGE
-	CDB$BODY_LATERALITY <- BODY_LATERALITY
 	
 	# Causes which are not other findings (may be events,
 	#	substances or organisms)
@@ -330,7 +329,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	CDB$OVERLAP <- CDB$OVERLAP[!duplicated(CDB$OVERLAP)]
 
 	CDB$TRANSITIVE <- TRANSITIVE
-	CDB$metadata <- SNOMECDB$metadata
+	CDB$metadata <- SNOMED$metadata
 	
 	CDB$SCT_assoc <- s('Associated with')
 	CDB$SCT_cause <- s('Causative agent')

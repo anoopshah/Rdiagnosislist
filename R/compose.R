@@ -61,8 +61,10 @@ compose <- function(conceptId, CDB, composeLookup,
 	
 	# Ensure correct data types
 	due_to_search <- harmonise(due_to_conceptIds, TRUE)
-	attributes_exact <- union(union(as.SNOMEDconcept(due_to_conceptIds),
-		as.SNOMEDconcept(attributes_conceptIds)), NA_concept)
+	attributes_exact <- union(union(as.SNOMEDconcept(
+		bit64::as.integer64(due_to_conceptIds)),
+		as.SNOMEDconcept(bit64::as.integer64(attributes_conceptIds))),
+		NA_concept)
 	attributes_search <- harmonise(attributes_exact)
 	without_search <- harmonise(without_conceptIds, TRUE)
 	with_search <- harmonise(with_conceptIds, TRUE)
@@ -85,9 +87,15 @@ compose <- function(conceptId, CDB, composeLookup,
 	if (max_attr > 1){
 		for (j in 2:max_attr){
 			attr_x_name <- paste0('attr_', j)
-			SUBSET <- SUBSET[get(attr_x_name) %in% attributes_search]
-			SUBSET_EXACT <- SUBSET_EXACT[get(attr_x_name) %in%
-				attributes_exact]
+			if (nrow(SUBSET) > 0){
+				SUBSET <- SUBSET[get(attr_x_name) %in% attributes_search]
+			}
+			# get() will create a warning if SUBSET_EXACT is an empty
+			# data.table
+			if (nrow(SUBSET_EXACT) > 0){
+				SUBSET_EXACT <- SUBSET_EXACT[get(attr_x_name) %in%
+					attributes_exact]
+			}
 		}
 	}
 	

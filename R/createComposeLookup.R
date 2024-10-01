@@ -24,6 +24,11 @@ batchDecompose <- function(conceptIds, CDB, output_filename,
 		if (is.null(D)){
 			message('Error in analysing concept ', conceptIds[i], '(',
 				description(conceptIds[i])$term[1], ')')
+		} else if (nrow(D) == 0){
+			D <- D[1]
+			D[, origId := conceptIds[i]]
+			fwrite(D[1], output_filename, append = started)
+			started <- TRUE
 		} else {
 			fwrite(D, output_filename, append = started)
 			started <- TRUE
@@ -36,8 +41,8 @@ batchDecompose <- function(conceptIds, CDB, output_filename,
 #'
 #' Creates composition lookup table for a set of SNOMED CT concepts
 
-#' @param decompositions filename of decompose output (read by fread) or
-#'   data.frame containing outputs of decompose function
+#' @param decompositions vector of filenames of decompose output (read
+#'   by fread) or data.frame containing outputs of decompose function
 #' @param CDB concept database environment, containing a table called
 #'   FINDINGS
 #' @param maxcol maximum number of attributes columns. If NULL it is
@@ -53,17 +58,21 @@ batchDecompose <- function(conceptIds, CDB, output_filename,
 #' # Not run
 #'
 #' mylookup <- createComposeLookup(D)
-createComposeLookup <- function(decompositions, CDB, maxcol = 10, ...){
+createComposeLookup <- function(decompositions, CDB, maxcol = 10,
+	SNOMED = getSNOMED(), ...){
 	sct_concept_colnames <- c('rootId', 'with', 'due_to',
 		'after', 'without', 'body_site', 'severity', 'stage',
 		'laterality', 'origId')
 	if (is.character(decompositions)){
-		D <- fread(decompositions,
-			colClasses = list(character = c(sct_concept_colnames,
-				'other_conceptId')), ...)
+		D <- rbindlist(lapply(decompositions, function(x){
+			fread(x, colClasses = list(character =
+				c(sct_concept_colnames, 'other_conceptId')), ...)
+		}), fill = TRUE)
 	} else {
 		D <- copy(as.data.table(D))
 	}
+	
+	D <- D[!duplicated(D)]
 	
 	for (i in sct_concept_colnames){
 		D[, .temp := as.SNOMEDconcept(bit64::as.integer64(D[[i]]),
@@ -74,6 +83,9 @@ createComposeLookup <- function(decompositions, CDB, maxcol = 10, ...){
 		D[, (i) := NULL]
 		setnames(D, '.temp', i)
 	}
+	
+	# Remove rows without rootId (i.e. without a valid decomposition)
+	D <- D[!is.na(rootId)]
 	
 	# Remove rows with outstanding text
 	D <- D[!(other_conceptId %like% '[[:alpha:]]')]
@@ -105,7 +117,8 @@ createComposeLookup <- function(decompositions, CDB, maxcol = 10, ...){
 	
 	# Create a frequency table of other_attr per rootId
 	FREQ <- D[, .(.temp = unlist(other_conceptId)), by = rootId]
-	FREQ[, attrId := as.SNOMEDconcept(.temp, SNOMED = SNOMED)]
+	FREQ[, attrId := bit64::as.integer64(.temp)]
+	setattr(FREQ$attrId, 'class', c('SNOMEDconcept', 'integer64'))
 	FREQ <- FREQ[, .(freq = .N), by = .(attrId, rootId)][order(rootId, freq)]
 	FREQ <- FREQ[!attrId == rootId]
 	
