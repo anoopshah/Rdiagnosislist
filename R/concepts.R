@@ -214,8 +214,8 @@ print.SNOMEDconcept <- function(x, ...){
 #' a SNOMED dictionary
 #'
 #' @param conceptIds character or integer64 vector
-#' @param include_synonyms whether to return only the Fully Specified
-#'    Name (default) or all synonyms
+#' @param include_synonyms whether to return all synonyms, or just the
+#'    Fully Specified Name, ensuring just one row per concept (default)
 #' @param active_only whether to include only active descriptions
 #' @param SNOMED environment containing SNOMED dictionary. Defaults
 #'   to an object named 'SNOMED' in the global environment
@@ -252,12 +252,14 @@ description <- function(conceptIds,
 	TOMATCH <- data.table(conceptId = unique(CONCEPTS$conceptId))
 	if (include_synonyms == FALSE){
 		OUT <- SNOMED$DESCRIPTION[TOMATCH, on = 'conceptId'][
-			typeId == bit64::as.integer64('900000000000003001')][,
-			list(id, conceptId, term, active)]
+			typeId %in% bit64::as.integer64('900000000000003001')][,
+			list(id = id[1], term = term[1]),
+			by = list(conceptId, active)]
+		setcolorder(OUT, c('id', 'conceptId', 'term', 'active'))
 	} else {
 		OUT <- SNOMED$DESCRIPTION[TOMATCH, on = 'conceptId'][,
 			list(id, conceptId, type = ifelse(
-			typeId == bit64::as.integer64('900000000000003001'),
+			typeId %in% bit64::as.integer64('900000000000003001'),
 			'Fully specified name', 'Synonym'), term, active)]
 	}
 	# Remove inactive terms if necessary
