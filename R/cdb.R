@@ -20,7 +20,7 @@
 #' @examples
 #' #Not run
 #' #data(MANUAL_SYNONYMS)
-#' #WN <- downloadWordNet()
+#' #WN <- downloadWordnet()
 #' #D <- createCDB(WN = WN, MANUAL_SYNONYMS = MANUAL_SYNONYMS)
 createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	WN = NULL, MANUAL_SYNONYMS = NULL, noisy = TRUE){
@@ -40,11 +40,18 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	}
 	init <- function(x){
 		x <- desc(x)
-		rbind(description(x, SNOMED = SNOMED, include_synonyms = TRUE)[
-			type == 'Synonym', .(conceptId,
-			term = std_term(term))],
+		# Add acronyms e.g. 'AF - atrial fibrillation' --> AF
+		# Add concepts with phrases in parentheses removed, e.g.
+		# ERCP (Endoscopic retrograde cholangiopancreatography) normal
+		# --> ERCP normal
+		DESC <- description(x, SNOMED = SNOMED,
+			include_synonyms = TRUE)[type == 'Synonym']
+		INIT <- rbind(DESC[, .(conceptId, term = std_term(term))],
+			DESC[, .(conceptId, term = std_term(sub('(.) \\([^\\)]+\\)',
+				'\\1', term)))],
 			acronyms(x, SNOMED = SNOMED)[, .(conceptId,
-			term = paste0(' ', term, ' '))])
+				term = paste0(' ', term, ' '))])
+		INIT[!duplicated(INIT)]
 	}
 
 	#### CAUSES (NOT USING TRANSITIVE TABLE) ####
@@ -71,6 +78,14 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	if (noisy) message('Initialising findings and qualifiers.')
 	FINDINGS <- init('Clinical finding')
 
+	# Add findings with phrases in parentheses removed, e.g.
+	# ERCP (Endoscopic retrograde cholangiopancreatography) normal
+	# --> ERCP normal
+	#FINDINGS <- rbind(FINDINGS, FINDINGS[, .(conceptId,
+	#	term = sub('(.)  \\([^\\)]+\\)', '\\1', term))])
+	#FINDINGS <- FINDINGS[!duplicated(FINDINGS)]
+	
+	#### QUALIFIERS ####
 	QUAL <- init(c('Grades (qualifier value)',
 		'Groups (qualifier value)', 'Levels (qualifier value)',
 		'Scores (qualifier value)', 'Types (qualifier value)',
@@ -157,7 +172,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		ADJ[, adj := sub('[1-9]$', '', adj)]
 		SYN <- WN[, .(syn = synonyms[1][[1]]), by = wordnetId]
 		SYN[, syn := sub('[1-9]$', '', syn)]
-		ADJ <- merge(ADJ, SYN, on = 'wordnetId',
+		ADJ <- merge(ADJ, SYN, by = 'wordnetId',
 			allow.cartesian = TRUE)[adj != syn, .(adj, syn, cat)]
 		ADJ <- ADJ[!duplicated(ADJ)]
 
@@ -204,26 +219,6 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		TEMP <- NULL
 	}
 
-	#### LATERALITY ####
-	# Create a list of lateralised body structures
-	if (noisy) message('Creating lists of lateralised structures.')
-	left_structures <- relatedConcepts('Left', typeId = 'Laterality',
-		reverse = TRUE, SNOMED = SNOMED)
-	right_structures <- relatedConcepts('Right', typeId = 'Laterality',
-		reverse = TRUE, SNOMED = SNOMED)
-	lateralisable_structures <- relatedConcepts('Side', typeId = 'Laterality',
-		reverse = TRUE, SNOMED = SNOMED)
-	bilateral_structures <- intersect(left_structures, right_structures)
-
-	# Create a laterality flag
-	BODY[, laterality := "No laterality"]
-	BODY[conceptId %in% lateralisable_structures,
-		laterality := "Lateralisable"]
-	BODY[conceptId %in% left_structures, laterality := 'Left']
-	BODY[conceptId %in% right_structures, laterality := 'Right']
-	BODY[conceptId %in% bilateral_structures,
-		laterality := 'Bilateral']
-
 	# Severity codes as per FHIR valueset plus a few extra
 	if (noisy) message('Creating severity and stage lists.')
 	SEVERITY <- QUAL[conceptId %in% desc(c(
@@ -237,6 +232,17 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	STAGE <- rbind(FINDINGS[conceptId %in% STAGE],
 		QUAL[conceptId %in% STAGE])
 	QUAL <- QUAL[!(conceptId %in% STAGE$conceptId)]
+
+	#### LATERALITY ####
+	# Create a list of lateralised body structures
+	if (noisy) message('Creating lists of lateralised structures.')
+	left_structures <- relatedConcepts('Left', typeId = 'Laterality',
+		reverse = TRUE, SNOMED = SNOMED)
+	right_structures <- relatedConcepts('Right', typeId = 'Laterality',
+		reverse = TRUE, SNOMED = SNOMED)
+	lateralisable_structures <- relatedConcepts('Side', typeId = 'Laterality',
+		reverse = TRUE, SNOMED = SNOMED)
+	bilateral_structures <- intersect(left_structures, right_structures)
 	
 	# Laterality concepts
 	CDB$latConcepts <- s(c('Left', 'Right', 'Bilateral'))
@@ -248,27 +254,6 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	LATERALITY <- rbind(LATERALITY,
 		data.table(conceptId = s(c('Left', 'Right', 'Bilateral')),
 		term = c(' lt ', ' rt ', ' left and right ')))
-
-	# Find the lateralised version of each concept
-	LAT <- SNOMED$RELATIONSHIP[sourceId %in% c(left_structures,
-		right_structures, bilateral_structures) & typeId == s('Is a') &
-		!(destinationId %in% c(left_structures, right_structures,
-		bilateral_structures)),
-		.(conceptId = sourceId, nonlat_parentId = destinationId)]
-	LAT <- LAT[!duplicated(LAT)]
-	CDB$BODY_LATERALITY <- merge(BODY, LAT, by = 'conceptId')
-	CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
-		laterality %in% c('Left', 'Right', 'Bilateral'),
-		.(conceptId, laterality, nonlat_parentId)]
-	CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
-		!duplicated(CDB$BODY_LATERALITY)]
-
-	# Remove ambiguous parent concepts 
-	CDB$BODY_LATERALITY[, .N, by = .(laterality, nonlat_parentId)][
-		N > 1]$nonlat_parentId -> toremove
-	CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
-		!(nonlat_parentId %in% toremove) & !is.na(nonlat_parentId)]
-
 	QUAL <- QUAL[!(conceptId %in% LATERALITY$conceptId)]
 	QUAL <- QUAL[!(term %in% paste0(' ', stopwords, ' '))]
 
@@ -286,9 +271,10 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 				.(conceptId, term = extra)], fill = TRUE)
 		}
 		if (!is.null(WN)){
-			return(addWordNet(X, wn_categories = wn_categories, WN = WN,
-				CHECK_TABLE <- rbind(QUAL, LATERALITY, FINDINGS,
-				BODY, STAGE, CAUSES, SEVERITY)))
+			return(addWordnet(X, wn_categories = wn_categories,
+				WN = WN, CHECK_TABLE <- rbind(QUAL, LATERALITY,
+				FINDINGS, BODY, STAGE, CAUSES, SEVERITY,
+				fill = TRUE)))
 		} else {
 			return(X[!duplicated(X)])
 		}
@@ -299,15 +285,48 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		'noun.process', 'noun.phenomenon'))
 	CDB$CAUSES <- addmw(CAUSES, c('noun.state',
 		'noun.process', 'noun.phenomenon', 'noun.animal', 'noun.plant'))
-	CDB$BODY <- addmw(BODY, c('noun.body'))
-	CDB$BODY <- CDB$BODY[!term %in% LATERALITY$term]
-	# CDB$BODY <- CDB$BODY[!term %in% CDB$LATERALITY$term]
+	BODY <- addmw(BODY, c('noun.body'))
+	BODY <- BODY[!term %in% LATERALITY$term]
+	
+	#### PROCESS LATERALITY
+	
+	# Find the lateralised version of each concept
+	LAT <- SNOMED$RELATIONSHIP[sourceId %in% c(left_structures,
+		right_structures, bilateral_structures) & typeId == s('Is a') &
+		!(destinationId %in% c(left_structures, right_structures,
+		bilateral_structures)),
+		.(conceptId = sourceId, nonlat_parentId = destinationId)]
+	LAT <- LAT[!duplicated(LAT)]
+	
+	# Create a laterality flag
+	BODY[, laterality := "No laterality"]
+	BODY[conceptId %in% lateralisable_structures,
+		laterality := "Lateralisable"]
+	BODY[conceptId %in% left_structures, laterality := 'Left']
+	BODY[conceptId %in% right_structures, laterality := 'Right']
+	BODY[conceptId %in% bilateral_structures,
+		laterality := 'Bilateral']
 	# Remove morphologic abnormalities from BODY
-	MORPH <- CDB$BODY[semanticType(conceptId) == 'morphologic abnormality']
-	CDB$BODY <- CDB$BODY[!(conceptId %in% MORPH$conceptId)]
+	MORPH <- BODY[semanticType(conceptId) == 'morphologic abnormality']
+	BODY <- BODY[!(conceptId %in% MORPH$conceptId)]
 	# MORPH <- CDB$BODY[semanticType(conceptId) == 'morphologic abnormality']
 	# CDB$BODY <- CDB$BODY[!(conceptId %in% MORPH$conceptId)]
 	
+	CDB$BODY <- BODY
+
+	CDB$BODY_LATERALITY <- merge(BODY, LAT, by = 'conceptId')
+	CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
+		laterality %in% c('Left', 'Right', 'Bilateral'),
+		.(conceptId, laterality, nonlat_parentId)]
+	CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
+		!duplicated(CDB$BODY_LATERALITY)]
+
+	# Remove ambiguous parent concepts 
+	CDB$BODY_LATERALITY[, .N, by = .(laterality, nonlat_parentId)][
+		N > 1]$nonlat_parentId -> toremove
+	CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
+		!(nonlat_parentId %in% toremove) & !is.na(nonlat_parentId)]
+
 	CDB$SEVERITY <- SEVERITY
 	CDB$LATERALITY <- LATERALITY
 	CDB$STAGE <- STAGE
@@ -430,7 +449,7 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 #' @examples
 #' #Not run
 #' #data(MANUAL_SYNONYMS)
-#' #WN <- downloadWordNet()
+#' #WN <- downloadWordnet()
 #' #D <- createCDB(WN = WN, MANUAL_SYNONYMS = MANUAL_SYNONYMS)
 exportMiADECDB <- function(CDB, SNOMED, lang_refset_files,
 	export_folderpath){

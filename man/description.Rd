@@ -14,8 +14,8 @@ description(
 \arguments{
 \item{conceptIds}{character or integer64 vector}
 
-\item{include_synonyms}{whether to return only the Fully Specified
-Name (default) or all synonyms}
+\item{include_synonyms}{whether to return all synonyms, or just the
+Fully Specified Name, ensuring just one row per concept (default)}
 
 \item{active_only}{whether to include only active descriptions}
 

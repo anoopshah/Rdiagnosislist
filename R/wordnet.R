@@ -13,8 +13,8 @@
 #' @references \url{https://wordnet.princeton.edu/}
 #' @examples
 #' # Not run
-#' # WORDNET <- downloadWordNet()
-downloadWordNet <- function(
+#' # WORDNET <- downloadWordnet()
+downloadWordnet <- function(
 	wordnet_url = 'https://wordnetcode.princeton.edu/wn3.1.dict.tar.gz',
 	wn_categories = c('noun.body', 'noun.state', 'noun.process',
 		'noun.animal', 'noun.plant', 'noun.phenomenon')){
@@ -144,7 +144,7 @@ downloadWordNet <- function(
 #'   adding to CDB
 #' @return CDB_TABLE with extra rows for Wordnet synonyms
 #' @export
-#' @seealso [downloadWordNet()]
+#' @seealso [downloadWordnet()]
 #' @references \url{https://wordnet.princeton.edu/}
 #' @examples
 #' WORDNET <- data.table::data.table(cat = c('noun.body', 'noun.state'),
@@ -159,8 +159,8 @@ downloadWordNet <- function(
 #' CDB_TABLE <- description(c('Heart', 'Infection'),
 #'   include_synonyms = TRUE)[type == 'Synonym',
 #'   .(conceptId, term = paste0(' ', tolower(term), ' '))]
-#' addWordNet(CDB_TABLE, 'noun.state', WORDNET)
-addWordNet <- function(CDB_TABLE, wn_categories, WN,
+#' addWordnet(CDB_TABLE, 'noun.state', WORDNET)
+addWordnet <- function(CDB_TABLE, wn_categories, WN,
 	CHECK_TABLE = NULL, errors_to_remove = list(
 	c('allergy', 'allergic reaction'),
 	c('allergic', 'allergic reaction'),
@@ -199,7 +199,12 @@ addWordNet <- function(CDB_TABLE, wn_categories, WN,
 	
 	# Filter to WordNet ID groups that contain at least one member not
 	# linked to an existing SNOMED CT description
-	if (is.null(CHECK_TABLE)) CHECK_TABLE <- D[0]
+	if (is.null(CHECK_TABLE)){
+		CHECK_TABLE <- D[0]
+	} else {
+		CHECK_TABLE <- as.data.table(CHECK_TABLE)[,
+			.(conceptId, term)]
+	}
 	CHECK <- merge(WNLONG, rbind(D[!duplicated(D)],
 		CHECK_TABLE[!duplicated(CHECK_TABLE)]), by = 'term',
 		all.x = TRUE, allow.cartesian = TRUE)

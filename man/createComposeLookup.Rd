@@ -4,11 +4,17 @@
 \alias{createComposeLookup}
 \title{Creates a set of lookups for SNOMED composition}
 \usage{
-createComposeLookup(decompositions, CDB, maxcol = 10, ...)
+createComposeLookup(
+  decompositions,
+  CDB,
+  maxcol = 10,
+  SNOMED = getSNOMED(),
+  ...
+)
 }
 \arguments{
-\item{decompositions}{filename of decompose output (read by fread) or
-data.frame containing outputs of decompose function}
+\item{decompositions}{vector of filenames of decompose output (read
+by fread) or data.frame containing outputs of decompose function}
 
 \item{CDB}{concept database environment, containing a table called
 FINDINGS}

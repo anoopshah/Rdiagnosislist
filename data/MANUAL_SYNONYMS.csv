@@ -128,6 +128,7 @@ HFPEF,heart failure with preserved ejection fraction,FALSE
 HFpEF,heart failure with preserved ejection fraction,FALSE
 HFREF,heart failure with reduced ejection fraction,FALSE
 HFrEF,heart failure with reduced ejection fraction,FALSE
+HLH,hemophagocytic lymphohistiocytosis,FALSE
 hep,hepatitis,FALSE
 HCC,hepatocellular carcinoma,FALSE
 recent hospitalisation,hospital inpatient,FALSE

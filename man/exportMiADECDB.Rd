@@ -27,6 +27,6 @@ Uses WordNet and manual synonyms if available.
 \examples{
 #Not run
 #data(MANUAL_SYNONYMS)
-#WN <- downloadWordNet()
+#WN <- downloadWordnet()
 #D <- createCDB(WN = WN, MANUAL_SYNONYMS = MANUAL_SYNONYMS)
 }
