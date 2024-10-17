@@ -583,9 +583,15 @@ exportMiADECDB <- function(CDB, export_folderpath,
 	lang_refset_files = NULL, exclude = NULL, include = NULL,
 	exclude_historic = descendants('Disorder', SNOMED = getSNOMED()),
 	blacklist = NULL, SNOMED = getSNOMED()){
+<<<<<<< HEAD
 	
 	export_folderpath <- sub('([^/\\])$', '\\1/', export_folderpath)
 	
+=======
+	
+	export_folderpath <- sub('([^/\\])$', '\\1/', export_folderpath)
+	
+>>>>>>> fb1126fe9bc25aeb8fe3d715c7743864056e75f1
 	if (!is.null(lang_refset_files)){
 		message(paste0('Loading language refset from ',
 			lang_refset_files))

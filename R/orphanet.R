@@ -20,7 +20,11 @@
 #' # ORPHANET <- downloadOrphanet()
 downloadOrphanet <- function(
 	orphanet_url = 'https://www.orphadata.com/data/nomenclature/packs/Orphanet_Nomenclature_Pack_EN.zip',
+<<<<<<< HEAD
 	masterfile_name = NULL, SNOMED = getSNOMED()){
+=======
+	masterfile_name = NULL){
+>>>>>>> fb1126fe9bc25aeb8fe3d715c7743864056e75f1
 	# Download Orphanet files and returns a data.table
 	orphanet_filename <- paste0(tempdir(), '/orphanet.zip')
 	download.file(orphanet_url, orphanet_filename)
