@@ -17,6 +17,7 @@ Description: Functions and methods for manipulating 'SNOMED CT' concepts.
     visit <https://www.snomed.org/>.
 License: GPL-3
 Imports: data.table, bit64, methods
+Depends: readxl
 Suggests: knitr, rmarkdown, testthat
 Encoding: UTF-8
 LazyData: true

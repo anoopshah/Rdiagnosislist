@@ -136,7 +136,7 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 		} else {
 			out <- merge(M[, list(read2_code = unlist(read2_code),
 				read2_term = unlist(read2_term)), by = conceptId], out,
-				on = 'conceptId')
+				by = 'conceptId')
 		}
 	}
 	if ('ctv3' %in% to){
@@ -148,7 +148,7 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 		} else {
 			out <- merge(M[, list(ctv3_concept = unlist(ctv3_concept),
 				ctv3_termid = unlist(ctv3_termid)), by = conceptId], out,
-				on = 'conceptId')
+				by = 'conceptId')
 		}
 	}
 	if ('ctv3simple' %in% to){
@@ -163,7 +163,7 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 			out[, ctv3_simple := clean(TEMP[out, on = 'conceptId']$ctv3_simple)]
 		} else {
 			out <- merge(TEMP[, list(ctv3_simple = unlist(ctv3_simple)),
-				by = conceptId], out, on = 'conceptId')
+				by = conceptId], out, by = 'conceptId')
 		}
 	}
 	if ('icd10' %in% to){
@@ -184,7 +184,7 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 			out[, icd10_code := clean(TEMP[out, on = 'conceptId']$icd10_code)]
 		} else {
 			out <- merge(TEMP[, list(icd10_code = unlist(icd10_code)),
-				by = conceptId], out, on = 'conceptId')
+				by = conceptId], out, by = 'conceptId')
 		}
 	}
 	if ('opcs4' %in% to){
@@ -200,7 +200,7 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 		} else {
 			out <- merge(TEMP[,
 				list(opcs4_code = unlist(opcs4_code)),
-				by = conceptId], out, on = 'conceptId')
+				by = conceptId], out, by = 'conceptId')
 		}
 	}
 	out

@@ -9,7 +9,9 @@ createCDB(
   TRANSITIVE = NULL,
   WN = NULL,
   MANUAL_SYNONYMS = NULL,
-  noisy = TRUE
+  noisy = TRUE,
+  stopwords = c("the", "of", "by", "with", "to", "into", "and", "or", "both", "at", "as",
+    "and/or", "in")
 )
 }
 \arguments{
@@ -27,6 +29,8 @@ synonyms (list), parents (list), adj (list)}
 containing additional exact synonyms or abbreviations}
 
 \item{noisy}{whether to output status messages}
+
+\item{stopwords}{vector of stopwords}
 }
 \value{
 environment containing the following data tables: FINDINGS,
@@ -38,8 +42,9 @@ hierarchy to create a set of CDB files in an environment.
 Uses WordNet and manual synonyms if available.
 }
 \examples{
-#Not run
-#data(MANUAL_SYNONYMS)
-#WN <- downloadWordnet()
-#D <- createCDB(WN = WN, MANUAL_SYNONYMS = MANUAL_SYNONYMS)
+# Not run
+# data(MANUAL_SYNONYMS)
+# WN <- downloadWordnet()
+# MANUAL_SYNONYMS <- rbind(MANUAL_SYNONYMS, downloadOrphanet())
+# CDBNEW <- createCDB(WN = WN, MANUAL_SYNONYMS = MANUAL_SYNONYMS)
 }
