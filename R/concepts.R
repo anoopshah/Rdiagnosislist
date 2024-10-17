@@ -222,6 +222,8 @@ print.SNOMEDconcept <- function(x, ...){
 #' @return a data.table with the following columns: id, conceptId, type
 #'   (only if include_synonyms = TRUE), term,
 #'   active (only if active_only = FALSE)
+#'
+#' @seealso htmlCodelistHierarchy
 #' @export
 #' @examples
 #' hf <- SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED())

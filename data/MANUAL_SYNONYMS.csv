@@ -45,6 +45,7 @@ carcin,carcinoma,FALSE
 cardiac fail,cardiac failure,FALSE
 CVD,cardiovascular disease,FALSE
 cats,cat dander,FALSE
+CES,cauda equina syndrome,FALSE
 ischemic stroke,cerebral ischemic stroke,TRUE
 CVA,cerebrovascular accident,FALSE
 chickenpox,chicken pox,TRUE

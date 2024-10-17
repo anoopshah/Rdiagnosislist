@@ -22,8 +22,9 @@
 #' my_concepts <- SNOMEDconcept('Acute heart failure')
 #' my_codelist <- SNOMEDcodelist(data.frame(conceptId = my_concepts,
 #'   include_desc = TRUE))
+#' my_codelist <- getMaps(my_codelist, to = 'icd10')
 #' htmlCodelistHierarchy(my_codelist, file = paste0(tempdir(),
-#'   'codelist.html'))
+#'   'codelist.html'), extracols = 'icd10_code')
 #' # The codelist.html file can now be viewed in a web browser
 #'
 #' # Clean up temporary file
@@ -48,7 +49,14 @@ htmlCodelistHierarchy <- function(x, file = NULL, title = NULL,
 
 	x[, checked := as.logical(NA)]
 	x[, comment := '...']
-# TODO
+	
+	for (i in extracols){
+		if (is.list(x[i])){
+			x[, .(i) := sapply(x[i],
+				function(z) paste(z, collapse = ','))]
+		}
+	}
+
 # Columns:
 # 1. 'Expand/Contract' button (toggle) with pressed / unpressed style
 # 2. Term (red if deselected, bold if has children)

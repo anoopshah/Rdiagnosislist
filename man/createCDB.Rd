@@ -9,7 +9,9 @@ createCDB(
   TRANSITIVE = NULL,
   WN = NULL,
   MANUAL_SYNONYMS = NULL,
-  noisy = TRUE
+  noisy = TRUE,
+  stopwords = c("the", "of", "by", "with", "to", "into", "and", "or", "both", "at", "as",
+    "and/or", "in")
 )
 }
 \arguments{
@@ -27,6 +29,8 @@ synonyms (list), parents (list), adj (list)}
 containing additional exact synonyms or abbreviations}
 
 \item{noisy}{whether to output status messages}
+
+\item{stopwords}{vector of stopwords}
 }
 \value{
 environment containing the following data tables: FINDINGS,

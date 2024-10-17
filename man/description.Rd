@@ -35,3 +35,6 @@ a SNOMED dictionary
 hf <- SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED())
 description(hf, include_synonyms = FALSE, SNOMED = sampleSNOMED())
 }
+\seealso{
+htmlCodelistHierarchy
+}

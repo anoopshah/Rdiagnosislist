@@ -411,6 +411,45 @@ sampleSNOMED <- function(){
 	return(SNOMED)
 }
 
+# Internal function to add a concept to the sample database
+addConceptsToSampleSNOMED <- function(new_conceptIds, SNOMED,
+	folderpath){
+	# new_conceptIds = vector of SNOMED concepts to add to sample
+	# SNOMED = comprehensive SNOMED environment
+	# folderpath = path to data folder of package 
+	
+	new_conceptIds <- as.SNOMEDconcept(new_conceptIds,
+		SNOMED = SNOMED)
+	SAMPLE <- sampleSNOMED()
+	
+	SAMPLE$CONCEPT <- rbind(SAMPLE$CONCEPT,
+		SNOMED$CONCEPT[id %in% new_conceptIds,
+		names(SAMPLE$CONCEPT), with = FALSE])
+	SAMPLE$CONCEPT <- SAMPLE$CONCEPT[!duplicated(SAMPLE$CONCEPT)]
+	
+	SAMPLE$DESCRIPTION <- rbind(SAMPLE$DESCRIPTION,
+		SNOMED$DESCRIPTION[conceptId %in% new_conceptIds,
+		names(SAMPLE$DESCRIPTION), with = FALSE])
+	SAMPLE$DESCRIPTION <- SAMPLE$DESCRIPTION[
+		!duplicated(SAMPLE$DESCRIPTION)]
+	
+	SAMPLE$RELATIONSHIP <- rbind(SAMPLE$RELATIONSHIP,
+		SNOMED$RELATIONSHIP[sourceId %in% SAMPLE$CONCEPT$id &
+		destinationId %in% SAMPLE$CONCEPT$id,
+		names(SAMPLE$RELATIONSHIP), with = FALSE])
+	SAMPLE$RELATIONSHIP <- SAMPLE$RELATIONSHIP[
+		!duplicated(SAMPLE$RELATIONSHIP)]
+		
+	save(CONCEPT, file = paste0(folderpath,
+		'CONCEPT.RData'), envir = SAMPLE)
+	save(DESCRIPTION, file = paste0(folderpath,
+		'DESCRIPTION.RData'), envir = SAMPLE)
+	save(RELATIONSHIP, file = paste0(folderpath,
+		'RELATIONSHIP.RData'), envir = SAMPLE)
+
+	return(SAMPLE)
+}
+
 #' Retrieves SNOMED CT dictionary from the global environment
 #'
 #' Returns an object named 'SNOMED' from the global

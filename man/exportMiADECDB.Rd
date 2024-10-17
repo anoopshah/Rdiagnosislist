@@ -4,29 +4,114 @@
 \alias{exportMiADECDB}
 \title{Exports CDB files for MedCAT / MiADE}
 \usage{
-exportMiADECDB(CDB, SNOMED, lang_refset_files, export_folderpath)
+exportMiADECDB(
+  CDB,
+  export_folderpath,
+  lang_refset_files = NULL,
+  exclude = NULL,
+  include = NULL,
+  exclude_historic = descendants("Disorder", SNOMED = getSNOMED()),
+  blacklist = NULL,
+  SNOMED = getSNOMED()
+)
 }
 \arguments{
-\item{CDB}{concept database environment created by creatCDB}
-
-\item{SNOMED}{environment containing a SNOMED dictionary}
-
-\item{lang_refset_files}{character vector of file paths to
-language refset files}
+\item{CDB}{concept database environment created by createCDB}
 
 \item{export_folderpath}{folder path to export to}
+
+\item{lang_refset_files}{character vector of file paths to
+SNOMED CT language refset files, in order to identify the
+preferred term for each concept. If NULL, the Fully Specified Name
+minus the semantic type suffix is used as the preferred term
+(e.g. if the Fully Specified Name is 'Cancer (disorder)', the
+default preferred term is 'Cancer'.}
+
+\item{exclude}{a SNOMEDconcept or SNOMEDcodelist object specifying
+concepts to exclude from the concept database. By
+default, all concepts in the FINDINGS, CAUSES, BODY, LATERALITY,
+MORPH, SEVERITY, STAGE and QUAL tables will be included.}
+
+\item{include}{a SNOMEDconcept or SNOMEDcodelist object specifying
+additional concepts to include in the concept database. By
+default, all findings are included for potential export, but
+there may additional concepts of other semantic types
+(e.g. situation concepts) that need to be included. Inclusion
+takes place after exclusion, i.e. a concept in both the include
+and exclude lists will be included.}
+
+\item{exclude_historic}{a SNOMEDconcept or SNOMEDcodelist object
+specifying concepts to be excluded from the 'historic' lookup,
+i.e. those that should not be converted into historic forms.
+The default is to not do this conversion for disorders, only for
+procedures.}
+
+\item{blacklist}{a SNOMEDconcept or SNOMEDcodelist object specifying
+concepts to filter out of the final output. By default, concepts
+in the CDB of any semantic type other than 'finding' or 'disorder'
+are excluded. The blacklist can be used to exclude a subset of
+findings or disorders that are not useful for the particular
+application.}
+
+\item{SNOMED}{environment containing a SNOMED dictionary}
 }
 \value{
 TRUE if successful
 }
 \description{
-Uses CDB files to  format into the  SNOMED CT concepts from appropriate places in the 
-hierarchy to create a set of CDB files in an environment.
-Uses WordNet and manual synonyms if available.
+Produces a set of files for the findings / problems algorithm of
+MedCAT and MiADE. Uses the CDB environment created using createCDB
+which can incorporate additional manual synonyms or synonyms from
+WordNet.
+}
+\details{
+The following files are exported:
+
+For MedCAT (named entity recognition and linking):
+
+\itemize{
+  \item{problems_cdb.csv}{ - CSV file in MedCAT concept database
+     format
+     containing cui (SNOMED CT concept ID), name, name_status ('P'
+     for preferred term, 'N' for terms that must be disambiguated
+     (e.g. acronyms or short terms), 'A' for synonym),
+     ontologies = SNO (for SNOMED CT)} 
+}
+
+For MiADE postprocessing:
+
+\itemize{
+  \item{negated.csv}{ - CSV file with columns findingId (SNOMED CT
+     concept ID of the underlying finding / disorder) and
+     situationId (SNOMED CT concept ID of the pre-coordinated
+     situation concept for negation of the finding / disorder).
+     Sorted by findingId.}
+  \item{historic.csv}{ - CSV file with columns findingId (SNOMED CT
+     concept ID of the underlying finding / disorder) and
+     situationId (SNOMED CT concept ID of the pre-coordinated
+     situation concept for 'history of' the finding / disorder).
+     Sorted by findingId.}
+  \item{suspected.csv}{ - CSV file with columns findingId (SNOMED CT
+     concept ID of the underlying finding / disorder) and
+     situationId (SNOMED CT concept ID of the pre-coordinated
+     situation concept for 'suspected' finding / disorder).
+     Sorted by findingId.}
+  \item{overlap.csv}{ - CSV file with columns findingId (SNOMED CT
+     concept ID of the underlying finding / disorder) and
+     otherId (SNOMED CT concept ID of a concept with the same
+     description but a different semantic type, typically a
+     morphologic abnormality). Sorted by otherId.}
+  \item{problem_blacklist.csv}{ - CSV file without header with one
+     column containing SNOMED CT concept IDs for concepts that
+     may be identified by MedCAT as part of text analysis but 
+     should not be included in final MiADE output, Examples include
+     procedure codes which may be used to link to precoordinated
+     'history of...' concepts. This file can also be used to
+     force MiADE to ignore any specific SNOMED CT concepts in the
+     output. Sorted in ascending order.}
+}
 }
 \examples{
-#Not run
-#data(MANUAL_SYNONYMS)
-#WN <- downloadWordnet()
-#D <- createCDB(WN = WN, MANUAL_SYNONYMS = MANUAL_SYNONYMS)
+# Not run
+# exportMiADECDB(CDB, export_folderpath = tempdir())
 }

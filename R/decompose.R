@@ -103,7 +103,8 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 		ancestors(x, SNOMED = SNOMED, TRANSITIVE = CDB$TRANSITIVE, ...)
 	}
 	addPlural <- function(X){
-		X_PLURAL <- X[nchar(gsub('[^ ]', '', term)) == 2]
+		X_PLURAL <- copy(X)
+		#X_PLURAL <- X[nchar(gsub('[^ ]', '', term)) == 2]
 		if (nrow(X_PLURAL) > 0){
 			X_PLURAL[, term := sub('([a-rt-z]) $', '\\1s ', term)]
 			X <- rbind(X, X_PLURAL)
@@ -336,20 +337,42 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 			})))
 		} else {
 			# no valid ancestors - no decomposition performed
-			return(DATALINE)
+			if (noisy){
+				message('\nNo valid ancestors, trying morphologies')
+			}
+			if (nrow(CDB$MORPH) > 0){
+				ANC <- CDB$MORPH[, .(use = DATALINE$text %like% term,
+					conceptId, term), by = .I][use == TRUE,
+					.(conceptId, term)]
+			}
+			if (nrow(ANC) > 0){
+				return(rbindlist(lapply(1:nrow(ANC), function(x){
+					new_text <- sub(ANC[x]$term, repl_(ANC[x]$term),
+						DATALINE$text)
+					OUTPUT <- rbind(DATALINE, DATALINE)
+					OUTPUT[1, other_attr := new_text]
+					OUTPUT[1, text := ANC[x]$term]
+					OUTPUT[1, rootId := ANC[x]$conceptId]
+				})))
+			} else {
+				if (noisy){
+					message('\nNo valid morphologies')
+				}
+				return(DATALINE)
+			}
 		}
 	}
 	
 	if (nrow(A) > 0){
 		TEMP <- rbindlist(lapply(1:nrow(C), function(x) e_ancestors(C[x]))) 
-		C <- TEMP	
+		C <- TEMP
 		if (noisy){
-			message('\nFinding ancestors')
+			message('\nFinding ancestors or morphologies')
 			print(C)
 		}
 	} else {
 		if (noisy){
-			message('\nNo ancestors found')
+			message('\nNo ancestors or morphologies found')
 		}
 	}
 	
@@ -394,19 +417,23 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 						# Get SNOMED laterality concepts from
 						# LATERALITY lookup
 						LATSELECT <- CDB$LATERALITY[conceptId ==
-							CDB$latConcepts[BOD[x]$required_laterality]]
+							CDB$latConcepts[
+							BOD[x]$required_laterality]]
 						if (nrow(LATSELECT) > 0){
-							LATSELECT <- LATSELECT[, .(use = 
+							LATSELECT <- LATSELECT[, list(use = 
 								DATALINE$other_attr %like% term,
 								conceptId, term), by = .I][
-								use == TRUE, .(conceptId, term)]
+								use == TRUE, list(conceptId, term)]
 						}
 						if (nrow(LATSELECT) > 0){
 							# Only permit one row for simplicity
+							# Remove laterality word from other_attr
 							new_text <- sub(LATSELECT[1]$term,
 								repl_(LATSELECT[1]$term),
 								sub(BOD[x]$term, repl_(BOD[x]$term),
 								DATALINE$other_attr))
+							#DATALINE[, laterality :=
+							#	LATSELECT[1]$conceptId]
 						} else {
 							# invalid laterality - no decomposition performed
 							return(DATALINE)
@@ -422,6 +449,7 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 						OUTPUT[, body_site := c(the_body_siteId,
 							BOD[x]$conceptId)]
 					} else {
+						# Otherwise just add the body site as found
 						OUTPUT <- copy(DATALINE)
 						OUTPUT[, body_site := BOD[x]$conceptId]
 					}
@@ -448,10 +476,20 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 		typeId = CDB$SCT_findingsite, SNOMED = SNOMED)
 	# the_body_siteId should only be one but a few concepts have
 	# multiple body sites, so allow multiple
-	
+	body_siteTerms <- paste0(' ',
+		tolower(description(body_siteIds, SNOMED = SNOMED)$term))
+
 	if (length(body_siteIds) > 0){
-		the_laterality <- CDB$BODY[
-			conceptId %in% body_siteIds]$laterality[1]
+		if (length(body_siteIds) == 2 &
+			(sub(' left ', '', body_siteTerms[1]) ==
+			sub(' right ', '', body_siteTerms[2]) | 
+			sub(' left ', '', body_siteTerms[2]) ==
+			sub(' right ', '', body_siteTerms[1]))){
+			the_laterality <- 'Bilateral'
+		} else {
+			the_laterality <- CDB$BODY[
+				conceptId %in% body_siteIds]$laterality[1]
+		}
 		# keep only the first the_laterality so that it has cardinality 1
 		B <- CDB$BODY[conceptId %in% c(anc(body_siteIds),
 			desc(body_siteIds, include_self = TRUE))]
@@ -460,25 +498,31 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 		# Remove concepts with inconsistent laterality
 		B <- B[required_laterality == 'Included' |
 			(required_laterality == the_laterality &
-			laterality == 'Lateralisable')]
-		B[, exact := conceptId %in% body_siteIds]
-		# Add pluralised single-word concepts (e.g. rib --> ribs)
-		B <- addPlural(B)
+			laterality %in% c('Lateralisable', 'No laterality'))]
+		if (nrow(B) > 0){
+			B[, exact := conceptId %in% body_siteIds]
+			# Add pluralised single-word concepts (e.g. rib --> ribs)
+			B <- addPlural(B)
 
-		TEMP <- rbindlist(lapply(1:nrow(C), function(x){
-			if (length(body_siteIds) == 1){
-				e_body(C[x], B, body_siteIds, inc_modelled = TRUE)
-			} else {
-				rbindlist(lapply(body_siteIds, function(body_siteId){
-					e_body(C[x], B, body_siteId, inc_modelled = FALSE)
-				}))
+			TEMP <- rbindlist(lapply(1:nrow(C), function(x){
+				if (length(body_siteIds) == 1){
+					e_body(C[x], B, body_siteIds, inc_modelled = TRUE)
+				} else {
+					rbindlist(lapply(body_siteIds, function(body_siteId){
+						e_body(C[x], B, body_siteId, inc_modelled = FALSE)
+					}))
+				}
+			}))
+			C <- TEMP
+			
+			if (noisy){
+				message('\nFinding body sites')
+				print(C)
 			}
-		}))
-		C <- TEMP
-		
-		if (noisy){
-			message('\nFinding body sites')
-			print(C)
+		} else {
+			if (noisy){
+				message('\nUnable to extract body site for this disorder')
+			}
 		}
 	} else {
 		if (noisy){
@@ -547,12 +591,13 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 		}
 	}
 
-	TEMP <- rbindlist(lapply(1:nrow(C), function(x) e_severity(C[x])))
-	C <- TEMP
-	
-	if (noisy){
-		message('\nFinding severity')
-		print(C)
+	if (nrow(CDB$SEVERITY) > 0){
+		TEMP <- rbindlist(lapply(1:nrow(C), function(x) e_severity(C[x])))
+		C <- TEMP
+		if (noisy){
+			message('\nFinding severity')
+			print(C)
+		}
 	}
 
 	#### STAGE
@@ -577,14 +622,15 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 		}
 	}
 
-	TEMP <- rbindlist(lapply(1:nrow(C), function(x) e_stage(C[x])))
-	C <- TEMP
-	
-	if (noisy){
-		message('\nFinding stage')
-		print(C)
+	if (nrow(CDB$STAGE) > 0){
+		TEMP <- rbindlist(lapply(1:nrow(C), function(x) e_stage(C[x])))
+		C <- TEMP
+		if (noisy){
+			message('\nFinding stage')
+			print(C)
+		}
 	}
-	
+
 	# Now decompose other_attr
 	# Assume that all remaining elements are descriptors
 	# Search for digrams that are SNOMED concepts, then other digrams
