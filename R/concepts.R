@@ -299,6 +299,9 @@ description <- function(conceptIds,
 acronyms <- function(conceptIds, SNOMED = getSNOMED()){
 	D <- description(conceptIds, SNOMED = SNOMED, include_synonyms = TRUE)
 	terms <- D$term
+	
+	# Symbols to declare to avoid R check errors
+	id <- conceptId <- NULL
 
 	acronym <- rep(NA_character_, length(terms))
 	words <- strsplit(terms, split = ' ')
@@ -342,7 +345,7 @@ acronyms <- function(conceptIds, SNOMED = getSNOMED()){
 			}
 		}
 	}
-	D[!is.na(acronym), .(id, conceptId, type = 'Acronym',
+	D[!is.na(acronym), list(id, conceptId, type = 'Acronym',
 		term = acronym[!is.na(acronym)])]
 }
 

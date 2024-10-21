@@ -3,23 +3,28 @@ Version 1.3 - IN DEVELOPMENT
 =====================================================================
 
 BUG FIXES:
-- Ensure that description returns a 'type' column if there are 0 rows
+- Ensure that 'description' returns a 'type' column if there are 0 rows
   and include_synonyms = TRUE
+- Ensure that 'description' returns only one Fully Specified Name per
+  concept, and 'semanticType' returns only a single result per concept.
 
 NEW FEATURES:
-- New function createTransitive to generate a transitive closure
+- New function 'createTransitive' to generate a transitive closure
   table containing all ancestor-descendant pairs. This makes
   subsequent ancestor / descendant searches quicker
 - Revised ancestor and descendant functions to be able to use a
   transitive closure table
-- New function addInactiveConcepts to add inactive concepts to
+- New function 'addInactiveConcepts' to add inactive concepts to
   codelists, using the history and query tables
-  
-PROPOSED:
-- New functions to generate a concept database for named entity
-  recognition
-- New functions to decompose and compose (precoordinate) SNOMED CT
-  concepts
+- New functions 'createCDB' and 'createMiADECDB' to generate a
+  concept database and lookups for named entity recognition
+- New function 'createDisambiguationTrainer' to use longer SNOMED CT
+  terms to create texts to help train disambiguation of short terms.
+- New functions 'decompose', 'batchDecompose' and 'createComposeLookup'
+  to create a lookup table for composition of SNOMED CT concepts
+- New function 'compose' to select a detailed SNOMED CT concept
+  based on a general concept and separate concepts for attributes such
+  as body site  
 
 =====================================================================
 Version 1.2 - Third release on CRAN

@@ -7,15 +7,25 @@
 #'   FINDINGS 
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param output_filename filename of output file 
+#' @param ... out
 #' @return TRUE if successful 
 #' @export
 #' @seealso [decompose()]
 #' @examples
-#' # Not run
-#'
-#' mylookup <- createComposeLookup(D)
+#' # Load the SNOMED dictionary (for this example we are using the
+#' # sample included with the package)
+#' SNOMED <- sampleSNOMED()
+#' # Create a concept database environment
+#' miniCDB <- createCDB(SNOMED = SNOMED)
+#' # Create a decomposition
+#' D <- decompose('Cor pulmonale', CDB = miniCDB, noisy = TRUE)
+#' print(D)
 batchDecompose <- function(conceptIds, CDB, output_filename,
 	SNOMED = getSNOMED(), ...){
+		
+	# Decare symls for R check
+	origId <- NULL
+	
 	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
 	started <- FALSE
 	for (i in seq_along(conceptIds)){
@@ -50,6 +60,7 @@ batchDecompose <- function(conceptIds, CDB, output_filename,
 #'   downstream databases and programs know exactly how many columns to
 #'   expect. We suggest setting it to 10 which should handle all 
 #'   possible SNOMED CT concept decompositions.
+#' @param SNOMED environment containing a SNOMED CT dictionary
 #' @param ... other arguments to pass to fread
 #' @return data.table 
 #' @export
@@ -57,9 +68,15 @@ batchDecompose <- function(conceptIds, CDB, output_filename,
 #' @examples
 #' # Not run
 #'
-#' mylookup <- createComposeLookup(D)
+#' # mylookup <- createComposeLookup(D)
 createComposeLookup <- function(decompositions, CDB, maxcol = 10,
 	SNOMED = getSNOMED(), ...){
+		
+	# Declare symbols to avoid R check error
+	.temp <- rootId <- other_conceptId <- due_to <- after <- NULL
+	body_site <- severity <- stage <- laterality <- NULL
+	attrId <- freq <- rootId <- freq <- .temp2 <- NULL
+	
 	sct_concept_colnames <- c('rootId', 'with', 'due_to',
 		'after', 'without', 'body_site', 'severity', 'stage',
 		'laterality', 'origId')
@@ -69,7 +86,7 @@ createComposeLookup <- function(decompositions, CDB, maxcol = 10,
 				c(sct_concept_colnames, 'other_conceptId')), ...)
 		}), fill = TRUE)
 	} else {
-		D <- copy(as.data.table(D))
+		D <- copy(as.data.table(decompositions))
 	}
 	
 	D <- D[!duplicated(D)]
@@ -105,10 +122,13 @@ createComposeLookup <- function(decompositions, CDB, maxcol = 10,
 	D[is.na(due_to) & !is.na(after), due_to := after]
 	
 	# Add body site, severity, stage to other_conceptId
-	D[!is.na(body_site), other_conceptId := paste(body_site, other_conceptId)]
-	D[!is.na(severity), other_conceptId := paste(severity, other_conceptId)]
+	D[!is.na(body_site), other_conceptId := paste(body_site, 
+		other_conceptId)]
+	D[!is.na(severity), other_conceptId := paste(severity,
+		other_conceptId)]
 	D[!is.na(stage), other_conceptId := paste(stage, other_conceptId)]
-	D[!is.na(laterality), other_conceptId := paste(laterality, other_conceptId)]
+	D[!is.na(laterality), other_conceptId := paste(laterality,
+		other_conceptId)]
 	
 	# Prepend root conceptId so that it is accessible when sorting
 	# attributes by frequency 
@@ -116,10 +136,11 @@ createComposeLookup <- function(decompositions, CDB, maxcol = 10,
 	D[, other_conceptId := strsplit(other_conceptId, ' ')]
 	
 	# Create a frequency table of other_attr per rootId
-	FREQ <- D[, .(.temp = unlist(other_conceptId)), by = rootId]
+	FREQ <- D[, list(.temp = unlist(other_conceptId)), by = rootId]
 	FREQ[, attrId := bit64::as.integer64(.temp)]
 	setattr(FREQ$attrId, 'class', c('SNOMEDconcept', 'integer64'))
-	FREQ <- FREQ[, .(freq = .N), by = .(attrId, rootId)][order(rootId, freq)]
+	FREQ <- FREQ[, list(freq = .N), by = list(attrId, rootId)][
+		order(rootId, freq)]
 	FREQ <- FREQ[!attrId == rootId]
 	
 	# Sort by ascending order of frequency
@@ -150,7 +171,7 @@ createComposeLookup <- function(decompositions, CDB, maxcol = 10,
 	}
 	cols_to_keep <- c('rootId', 'with', 'due_to', 'without',
 		paste0('attr_', 1:maxcol), 'origId')
-	D <- D[, ..cols_to_keep]
+	D <- subset(D, select = cols_to_keep)
 	D <- D[!duplicated(D)]
 	setorderv(D, cols_to_keep)
 	setkeyv(D, cols_to_keep)

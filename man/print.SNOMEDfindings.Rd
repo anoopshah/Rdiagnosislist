@@ -6,6 +6,14 @@
 \usage{
 \method{print}{SNOMEDfindings}(x, ...)
 }
+\arguments{
+\item{x}{SNOMEDfindings object to display}
+
+\item{...}{not used}
+}
+\value{
+TRUE
+}
 \description{
 Print method for output of 'decompose' function
 }

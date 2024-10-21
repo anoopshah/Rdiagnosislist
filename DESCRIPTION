@@ -1,6 +1,6 @@
 Package: Rdiagnosislist
 Title: Manipulate SNOMED CT Diagnosis Lists
-Version: 1.2
+Version: 1.3
 Authors@R: 
     person(given = "Anoop",
            family = "Shah",
@@ -17,7 +17,7 @@ Description: Functions and methods for manipulating 'SNOMED CT' concepts.
     visit <https://www.snomed.org/>.
 License: GPL-3
 Imports: data.table, bit64, methods
-Depends: readxl
+Depends: readxl, R (>= 3.5.0)
 Suggests: knitr, rmarkdown, testthat
 Encoding: UTF-8
 LazyData: true

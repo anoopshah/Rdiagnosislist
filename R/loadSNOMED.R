@@ -13,9 +13,6 @@
 #' Reference Update Distribution:
 #' \url{https://isd.digital.nhs.uk/trud/user/guest/group/0/home}
 #'
-#' (Note: May 2022 - This function needs to be updated to use the 
-#' latest SNOMED CT TRUD versions including the SNOMED CT definitions).
-#'
 #' @param folders Vector of folder paths containing SNOMED CT files
 #' @param active_only Whether to limit to current (active) SNOMED CT
 #'   concepts
@@ -25,6 +22,10 @@
 #'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, REFSET,
 #'   SIMPLEMAP, EXTENDEDMAP, HISTORY (optional), QUERY (optional)
 #' @export
+#' @importFrom graphics text
+#' @importFrom utils download.file
+#' @importFrom utils untar
+#' @importFrom utils unzip
 #' @seealso loadREADMAPS, CONCEPT, DESCRIPTION, RELATIONSHIP,
 #' STATEDRELATIONSHIP, REFSET, SIMPLEMAP, EXTENDEDMAP, QUERY, HISTORY
 #' sampleSNOMED, getSNOMED, exportSNOMEDenvir
@@ -416,7 +417,11 @@ addConceptsToSampleSNOMED <- function(new_conceptIds, SNOMED,
 	folderpath){
 	# new_conceptIds = vector of SNOMED concepts to add to sample
 	# SNOMED = comprehensive SNOMED environment
-	# folderpath = path to data folder of package 
+	# folderpath = path to data folder of package
+	
+	# Symbols to declare to avoid R check error
+	id <- conceptId <- sourceId <- destinationId <- NULL
+	CONCEPT <- DESCRIPTION <- RELATIONSHIP <- NULL
 	
 	new_conceptIds <- as.SNOMEDconcept(new_conceptIds,
 		SNOMED = SNOMED)

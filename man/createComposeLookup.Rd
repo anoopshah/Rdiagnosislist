@@ -25,6 +25,8 @@ downstream databases and programs know exactly how many columns to
 expect. We suggest setting it to 10 which should handle all 
 possible SNOMED CT concept decompositions.}
 
+\item{SNOMED}{environment containing a SNOMED CT dictionary}
+
 \item{...}{other arguments to pass to fread}
 }
 \value{
@@ -36,7 +38,7 @@ Creates composition lookup table for a set of SNOMED CT concepts
 \examples{
 # Not run
 
-mylookup <- createComposeLookup(D)
+# mylookup <- createComposeLookup(D)
 }
 \seealso{
 [decompose()]

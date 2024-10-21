@@ -15,6 +15,8 @@ FINDINGS}
 \item{output_filename}{filename of output file}
 
 \item{SNOMED}{environment containing a SNOMED dictionary}
+
+\item{...}{out}
 }
 \value{
 TRUE if successful
@@ -23,9 +25,14 @@ TRUE if successful
 Creates composition lookup table for a set of SNOMED CT concepts
 }
 \examples{
-# Not run
-
-mylookup <- createComposeLookup(D)
+# Load the SNOMED dictionary (for this example we are using the
+# sample included with the package)
+SNOMED <- sampleSNOMED()
+# Create a concept database environment
+miniCDB <- createCDB(SNOMED = SNOMED)
+# Create a decomposition
+D <- decompose('Cor pulmonale', CDB = miniCDB, noisy = TRUE)
+print(D)
 }
 \seealso{
 [decompose()]

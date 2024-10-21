@@ -51,7 +51,7 @@ htmlCodelistHierarchy(my_codelist, file = paste0(tempdir(),
 # The codelist.html file can now be viewed in a web browser
 
 # Clean up temporary file
-file.remove(paste0(tempdir(), 'codelist.html'))
+file.remove(paste0(tempdir(), '/codelist.html'))
 }
 \seealso{
 showCodelistHierarchy

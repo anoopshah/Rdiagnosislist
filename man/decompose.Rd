@@ -2,7 +2,6 @@
 % Please edit documentation in R/decompose.R
 \name{decompose}
 \alias{decompose}
-\alias{test_decompose}
 \title{Decomposition of meaning of a finding or disorder SNOMED CT concept}
 \usage{
 decompose(
@@ -13,16 +12,10 @@ decompose(
   noisy = FALSE,
   omit_unmatched = TRUE
 )
-
-test_decompose(
-  the_conceptId,
-  CDB = NULL,
-  diagnosis_text = NULL,
-  SNOMED = getSNOMED(),
-  noisy = FALSE
-)
 }
 \arguments{
+\item{conceptIds}{vector of SNOMED CT concepts to decompose}
+
 \item{diagnosis_text}{vector of SNOMED CT terms (or in theory any
 text that has the same meaning as the SNOMED CT concept). If NULL,
 decompositions are created for all SNOMED CT synonyms of the
@@ -37,8 +30,6 @@ createCDB}
 
 \item{omit_unmatched}{whether to omit rows in which some attributes
 could not be matched to SNOMED CT concepts}
-
-\item{conceptId}{vector of SNOMED CT concepts to decompose}
 }
 \value{
 a SNOMEDfinding objects, which is a data.table with
@@ -50,17 +41,13 @@ may have a number of possible decompositions. Requires a CDB
 environment created by createCDB.
 }
 \examples{
-# Not run
-# test_decompose('Acute heart failure', CDB = CDB)
-# Decomposition of 56675007 | Acute heart failure (disorder) :
-#
-# Acute heart failure 
-# 
-# --------------------------------------------------------------------------------
-# 56675007 | Acute heart failure (disorder)
-# --------------------------------------------------------------------------------
-# Root:  84114007 | Heart failure (disorder)
-# - Other attributes: 
-# -  424124008 | Sudden onset AND/OR short duration (qualifier value)
+miniCDB <- createCDB(SNOMED = sampleSNOMED())
+D <- decompose(as.SNOMEDconcept('Cor pulmonale',
+  SNOMED = sampleSNOMED()), CDB = miniCDB, SNOMED = sampleSNOMED())
 
+# -------------------------------------------------------
+# 83291003 | Cor pulmonale (disorder)
+# -------------------------------------------------------
+# Root : 367363000 | Right ventricular failure (disorder)
+# - Due to : 70995007 | Pulmonary hypertension (disorder)
 }

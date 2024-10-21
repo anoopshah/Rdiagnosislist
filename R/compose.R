@@ -20,17 +20,45 @@
 #'   or continue to search for all potential matches
 #' @return a refined SNOMED concept Id
 #' @examples
-#' # Not run
-#' # refineSNOMEDfinding
+#' SNOMED <- sampleSNOMED()
+#' miniCDB <- createCDB(SNOMED)
+#' 
+#' D <- decompose('Cor pulmonale', CDB = miniCDB)
+#' print(D)
+#' 
+#' # --------------------------------------------------------
+#' # 83291003 | Cor pulmonale (disorder)
+#' # --------------------------------------------------------
+#' # Root : 128404006 | Right heart failure (disorder)
+#' # - Due to : 19829001 | Disorder of lung (disorder)
+#' #
+#' # --------------------------------------------------------
+#' # 83291003 | Cor pulmonale (disorder)
+#' # --------------------------------------------------------
+#' # Root : 367363000 | Right ventricular failure (disorder)
+#' # - Due to : 19829001 | Disorder of lung (disorder)
+#'
+#' # Compile decompositions into a lookup table
+#' CL <- createComposeLookup(D, CDB = miniCDB)
+#' 
+#' compose(as.SNOMEDconcept('Right heart failure'),
+#'   due_to_conceptIds = as.SNOMEDconcept('Disorder of lung'),
+#'   CDB = miniCDB, composeLookup = CL)
+#' # [1] "83291003 | Cor pulmonale (disorder)"
+#' @export
 compose <- function(conceptId, CDB, composeLookup,
 	attributes_conceptIds = bit64::integer64(0),
 	due_to_conceptIds = bit64::integer64(0),
 	without_conceptIds = bit64::integer64(0),
 	with_conceptIds = bit64::integer64(0),
-	SNOMED = getSNOMED, show_all_matches = FALSE){
+	SNOMED = getSNOMED(), show_all_matches = FALSE){
 	
 	NA_concept <- bit64::as.integer64(NA)
 	setattr(NA_concept, 'class', c('SNOMEDconcept', 'integer64'))
+	
+	# Declare symbols to avoid R check error
+	findingId <- otherId <- rootId <- without <- NULL
+	due_to <- attr_1 <- NULL
 	
 	# Harmonise and append NA for each attribute
 	expand <- function(x){
@@ -126,119 +154,7 @@ compose <- function(conceptId, CDB, composeLookup,
 	}
 	
 	# Return the matches
-	as.SNOMEDconcept(matchIds)
-}
-
-
-OLDcompose <- function(conceptId, CDB, composeLookup,
-	attributes_conceptIds = bit64::integer64(0),
-	due_to_conceptIds = bit64::integer64(0),
-	without_conceptIds = bit64::integer64(0),
-	with_conceptIds = bit64::integer64(0),
-	SNOMED = getSNOMED){
-	
-	# Harmonise and append NA for each attribute
-	expand <- function(conceptIds){
-		if (length(conceptIds) == 0){
-			return(bit64::integer64(0))
-		} else {
-			conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
-		}
-		conceptIds <- unique(c(conceptIds,
-			CDB$OVERLAP[findingId %in% conceptIds]$otherId,
-			CDB$OVERLAP[otherId %in% conceptIds]$findingId))
-		ancestors(conceptIds, SNOMED = SNOMED,
-			TRANSITIVE = CDB$TRANSITIVE, include_self = TRUE)
-	}
-	
-	harmonise <- function(x, limitToFindings = FALSE){
-		if (limitToFindings){
-			unique(c(intersect(expand(
-				as.SNOMEDconcept(bit64::as.integer64(x),
-				SNOMED = SNOMED)), CDB$FINDINGS$conceptId), NA))
-		} else {	
-			unique(c(expand(as.SNOMEDconcept(bit64::as.integer64(x),
-				SNOMED = SNOMED)), NA))
-		}
-	}
-	
-	# Ensure correct data types
-	attributes_conceptIds <- harmonise(attributes_conceptIds)
-	due_to_conceptIds <- harmonise(due_to_conceptIds)
-	without_conceptIds <- harmonise(without_conceptIds)
-	with_conceptIds <- harmonise(with_conceptIds)
-	
-	conceptId <- as.SNOMEDconcept(conceptId, SNOMED = SNOMED)
-	root_search <- expand(conceptId)
-	
-	# Find highest number of attribute fields in this composeLookup
-	max_attr <- max(as.numeric(sub('^attr_', '', 
-		names(composeLookup)[names(composeLookup) %like% '^attr_'])))
-	
-	composeLookup[, valid := rootId %in% ancestors(conceptId,
-		SNOMED = SNOMED, TRANSITIVE = CDB$TRANSITIVE, include_self =TRUE)]
-	
-	if (length(without_conceptIds) > 0){
-		composeLookup[, valid := valid & (is.na(without) |
-			without %in% limitToFindings(expand(without_conceptIds)))]
-	} else {
-		composeLookup[, valid := valid & is.na(without)]
-	}
-
-	if (length(with_conceptIds) > 0){
-		composeLookup[, valid := valid & (is.na(with) |
-			with %in% limitToFindings(expand(with_conceptIds)))]
-	} else {
-		composeLookup[, valid := valid & is.na(with)]
-	}
-	
-	if (length(due_to_conceptIds) > 0){
-		composeLookup[, valid := valid & (is.na(due_to) |
-			due_to %in% limitToFindings(expand(due_to_conceptIds)))]
-		attributes_conceptIds <- union(due_to_conceptIds,
-			attributes_conceptIds)
-	} else {
-		composeLookup[, valid := valid & is.na(due_to)]
-	}
-
-	# due to may be included as an attribute
-	# (e.g. 'osteoporotic fracture')
-	if (length(attributes_conceptIds) > 0){
-		attributes_search <- expand(attributes_conceptIds)
-		for (j in 1:max_attr){
-			attr_x_name <- paste0('attr_', j)
-			composeLookup[, valid := valid &
-				(is.na(get(attr_x_name)) |
-				get(attr_x_name) %in% attributes_search)]
-		}
-	} else {
-		composeLookup[, valid := valid & is.na(attr_1)]
-	}
-	
-	if (sum(composeLookup$valid) == 0){
-		return(conceptId)
-	}
-	
-	# Remove all matches which are an ancestor of another match
-	matchIds <- unique(as.SNOMEDconcept(
-		composeLookup[valid == TRUE]$origId, SNOMED = SNOMED))
-
-	# To rewrite this lookup more simply - to search on NA
-
-	i <- 1
-	while (i <= length(matchIds)){
-		ancIds <- ancestors(matchIds[i], SNOMED = SNOMED,
-			TRANSITIVE = CDB$TRANSITIVE, include_self = FALSE)
-		if (length(intersect(matchIds, ancIds)) > 0){
-			matchIds <- setdiff(matchIds, ancIds)
-			i <- 1
-		} else {
-			i <- i + 1
-		}
-	}
-	
-	# Return the matches
-	as.SNOMEDconcept(matchIds)
+	as.SNOMEDconcept(matchIds, SNOMED = SNOMED)
 }
 
 

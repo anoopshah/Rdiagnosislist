@@ -7,33 +7,39 @@ context('CDB generation and decomposition using sample SNOMED')
 
 test_that('Testing createCDB and decomposition', {
 	data(MANUAL_SYNONYMS)
-	miniCDB <- createCDB(SNOMED = sampleSNOMED(),
+	miniSNOMED <- sampleSNOMED()
+	miniCDB <- createCDB(SNOMED = miniSNOMED,
 		MANUAL_SYNONYMS = MANUAL_SYNONYMS)
-	expect_true(SNOMEDconcept('80891009', SNOMED = sampleSNOMED()) %in%
+	expect_true(SNOMEDconcept('80891009', SNOMED = miniSNOMED) %in%
 		miniCDB$BODY$conceptId)
-	expect_true(SNOMEDconcept('84114007', SNOMED = sampleSNOMED()) %in%
+	expect_true(SNOMEDconcept('84114007', SNOMED = miniSNOMED) %in%
 		miniCDB$FINDINGS$conceptId)
 	expect_identical(sort(tables(env = miniCDB)$NAME),
 		c('BODY', 'BODY_LATERALITY', 'CAUSES', 'FINDINGS',
 		'LATERALITY', 'MORPH', 'OTHERCAUSE', 'OVERLAP',
 		'QUAL', 'SEMTYPE', 'SEVERITY', 'STAGE', 'TRANSITIVE'))
-	D <- decompose(SNOMEDconcept('83291003'), CDB = miniCDB,
-		SNOMED = sampleSNOMED())
-	expect_true(SNOMEDconcept('128404006', SNOMED = sampleSNOMED()) %in%
+	D <- decompose(SNOMEDconcept('83291003', SNOMED = miniSNOMED),
+		CDB = miniCDB, SNOMED = miniSNOMED)
+	expect_true(SNOMEDconcept('128404006', SNOMED = miniSNOMED) %in%
 		D$rootId)
-	expect_true(SNOMEDconcept('367363000', SNOMED = sampleSNOMED()) %in%
+	expect_true(SNOMEDconcept('367363000', SNOMED = miniSNOMED) %in%
 		D$rootId)
-	expect_true(SNOMEDconcept('70995007', SNOMED = sampleSNOMED()) %in%
+	expect_true(SNOMEDconcept('19829001', SNOMED = miniSNOMED) %in%
 		D$due_to)
 #~ 	--------------------------------------------------------------------------------
 #~ 83291003 | Cor pulmonale (disorder)
 #~ --------------------------------------------------------------------------------
 #~ Root : 128404006 | Right heart failure (disorder)
-#~ - Due to : 70995007 | Pulmonary hypertension (disorder)
+#~ - Due to : 19829001 | Disorder of lung (disorder)
 #
 #~ --------------------------------------------------------------------------------
 #~ 83291003 | Cor pulmonale (disorder)
 #~ --------------------------------------------------------------------------------
 #~ Root : 367363000 | Right ventricular failure (disorder)
-#~ - Due to : 70995007 | Pulmonary hypertension (disorder)
+#~ - Due to : 19829001 | Disorder of lung (disorder)
+	CL <- createComposeLookup(D, CDB = miniCDB, SNOMED = miniSNOMED)
+	expect_equal(compose(SNOMEDconcept('128404006', SNOMED = miniSNOMED),
+		due_to_conceptIds = SNOMEDconcept('19829001', SNOMED = miniSNOMED),
+		CDB = miniCDB, SNOMED = miniSNOMED, composeLookup = CL),
+		SNOMEDconcept('83291003', SNOMED = miniSNOMED))
 })

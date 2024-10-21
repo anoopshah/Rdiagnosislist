@@ -28,34 +28,34 @@
 #' # The codelist.html file can now be viewed in a web browser
 #'
 #' # Clean up temporary file
-#' file.remove(paste0(tempdir(), 'codelist.html'))
+#' file.remove(paste0(tempdir(), '/codelist.html'))
 htmlCodelistHierarchy <- function(x, file = NULL, title = NULL,
 	description = NULL, extracols = NULL, SNOMED = getSNOMED(), ...){
 
 	included <- out <- rowid <- conceptId <- NULL
 	roworder <- checked <- NULL
 	
-	if (!('codelistHierarchy' %in% class(x))){
-		x <- showCodelistHierarchy(as.SNOMEDcodelist(x, SNOMED = SNOMED,
-			...), SNOMED = SNOMED)
-	}
-	x <- data.table::copy(x)[order(roworder)]
+	x <- data.table::copy(x)
 	if (!is.null(extracols)){
 		extracols <- intersect(colnames(x), extracols)
 	}
 	if (length(extracols) == 0){
 		extracols <- NULL
-	}
-
-	x[, checked := as.logical(NA)]
-	x[, comment := '...']
-	
-	for (i in extracols){
-		if (is.list(x[i])){
-			x[, .(i) := sapply(x[i],
-				function(z) paste(z, collapse = ','))]
+	} else {
+		for (i in extracols){
+			if (is.list(x[[i]])){
+				x[, (i) := sapply(x[[i]],
+					function(z) paste(z, collapse = ','))]
+			}
 		}
 	}
+	if (!('codelistHierarchy' %in% class(x))){
+		x <- showCodelistHierarchy(as.SNOMEDcodelist(x, SNOMED = SNOMED,
+			...), SNOMED = SNOMED)
+	}
+	x <- x[order(roworder)]
+	x[, checked := as.logical(NA)]
+	x[, comment := '...']
 
 # Columns:
 # 1. 'Expand/Contract' button (toggle) with pressed / unpressed style

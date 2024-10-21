@@ -37,14 +37,14 @@ relatedConcepts <- function(conceptIds,
 
 	active <- sourceId <- destinationId <- conceptId <- NULL
 
-	conceptIds <- as.SNOMEDconcept(conceptIds)
+	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
 	
 	# If no concepts supplied, return an empty vector
 	if (length(conceptIds) == 0){
 		return(conceptIds)
 	}
 	
-	typeId <- as.SNOMEDconcept(typeId)
+	typeId <- as.SNOMEDconcept(typeId, SNOMED = SNOMED)
 	if (reverse){
 		TOLINK <- data.table(destinationId = conceptIds, typeId = typeId)
 	} else {
@@ -139,7 +139,7 @@ parents <- function(conceptIds, include_self = FALSE,
 		# Exclude originals
 		if (length(parentIds) > 0){
 			return(as.SNOMEDconcept(sort(parentIds[
-				!(parentIds %in% conceptIds)])))
+				!(parentIds %in% conceptIds)]), SNOMED = SNOMED))
 		} else {
 			return(parentIds) # zero length
 		}
@@ -158,7 +158,7 @@ ancestors <- function(conceptIds, include_self = FALSE,
 	} else {
 		ancestorIds <- as.SNOMEDconcept(TRANSITIVE[
 			data.table(descendantId = conceptIds),
-			on = 'descendantId']$ancestorId)
+			on = 'descendantId']$ancestorId, SNOMED = SNOMED)
 	}
 
 	if (include_self){
@@ -167,7 +167,7 @@ ancestors <- function(conceptIds, include_self = FALSE,
 		# Exclude originals
 		if (length(ancestorIds) > 0){
 			return(as.SNOMEDconcept(sort(ancestorIds[
-				!(ancestorIds %in% conceptIds)])))
+				!(ancestorIds %in% conceptIds)]), SNOMED = SNOMED))
 		} else {
 			return(ancestorIds) # zero length
 		}
@@ -189,7 +189,7 @@ children <- function(conceptIds, include_self = FALSE,
 		# Exclude originals
 		if (length(childIds) > 0){
 			return(as.SNOMEDconcept(sort(childIds[
-				!(childIds %in% conceptIds)])))
+				!(childIds %in% conceptIds)]), SNOMED = SNOMED))
 		} else {
 			return(childIds) # zero length
 		}
@@ -208,7 +208,7 @@ descendants <- function(conceptIds, include_self = FALSE,
 	} else {
 		descendantIds <- as.SNOMEDconcept(TRANSITIVE[
 			data.table(ancestorId = conceptIds),
-			on = 'ancestorId']$descendantId)
+			on = 'ancestorId']$descendantId, SNOMED = SNOMED)
 	}
 
 	if (include_self){
@@ -217,7 +217,7 @@ descendants <- function(conceptIds, include_self = FALSE,
 		# Exclude originals
 		if (length(descendantIds) > 0){
 			return(as.SNOMEDconcept(sort(descendantIds[
-				!(descendantIds %in% conceptIds)])))
+				!(descendantIds %in% conceptIds)]), SNOMED = SNOMED))
 		} else {
 			return(descendantIds) # zero length
 		}
@@ -243,6 +243,10 @@ descendants <- function(conceptIds, include_self = FALSE,
 #' TRANSITIVE <- createTransitive('Heart failure')
 createTransitive <- function(conceptIds, SNOMED = getSNOMED(),
 	tables = c('RELATIONSHIP', 'STATEDRELATIONSHIP')){
+		
+	# Define symbols for R CMD check
+	childId <- parentId <- sourceId <- destinationId <- typeId <- NULL
+		
 	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
 	WORKING <- rbindlist(lapply(tables, function(x){
 		TEMP <- get(x, envir = SNOMED)
@@ -253,7 +257,7 @@ createTransitive <- function(conceptIds, SNOMED = getSNOMED(),
 			TEMP[(sourceId %in% conceptIds |
 				destinationId %in% conceptIds) &
 				typeId == bit64::as.integer64('116680003'),
-				.(childId = sourceId, parentId = destinationId)]
+				list(childId = sourceId, parentId = destinationId)]
 		}
 	}))
 	WORKING <- WORKING[!duplicated(WORKING)]
@@ -261,16 +265,16 @@ createTransitive <- function(conceptIds, SNOMED = getSNOMED(),
 	old_nrows <- 0
 	while(new_nrows > old_nrows){
 		WORKING <- rbind(WORKING, merge(
-			WORKING[, .(childId, selfId = parentId)],
-			WORKING[, .(selfId = childId, parentId)], by = 'selfId',
-			allow.cartesian = TRUE)[, .(childId, parentId)])
+			WORKING[, list(childId, selfId = parentId)],
+			WORKING[, list(selfId = childId, parentId)], by = 'selfId',
+			allow.cartesian = TRUE)[, list(childId, parentId)])
 		WORKING <- WORKING[!duplicated(WORKING)]
 		gc()
 		old_nrows <- new_nrows
 		new_nrows <- nrow(WORKING)
 	}
 	WORKING[childId %in% conceptIds & parentId %in% conceptIds,
-		.(ancestorId = parentId, descendantId = childId)]
+		list(ancestorId = parentId, descendantId = childId)]
 }
 
 #' Whether SNOMED CT concepts have particular attributes
@@ -405,14 +409,17 @@ attrConcept <- function(conceptIds,
 #'
 #' semanticType(as.SNOMEDconcept(c('Heart failure', 'Is a')))
 semanticType <- function(conceptIds, SNOMED = getSNOMED()){
-	tag <- term <- NULL
+	
+	# Declare symbols to avoid R check error
+	tag <- term <- conceptId <- typeId <- active <- NULL
+	effectiveTime <- NULL
 	
 	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
 	DESC <- SNOMED$DESCRIPTION[conceptId %in% conceptIds & typeId %in%
 		bit64::as.integer64('900000000000003001') & active %in% TRUE,
-		.(conceptId, effectiveTime, term)][
+		list(conceptId, effectiveTime, term)][
 		order(conceptId, -effectiveTime)][
-		, .(term = term[1]), by = conceptId]
+		, list(term = term[1]), by = conceptId]
 	DESC <- DESC[data.table(conceptId = conceptIds), on = 'conceptId']
 	DESC[, tag := ifelse(term %like% '^.*\\(([[:alnum:]\\/\\+ ]+)\\)$',
 		sub('^.*\\(([[:alnum:]\\/\\+ ]+)\\)$', '\\1', term), '')]

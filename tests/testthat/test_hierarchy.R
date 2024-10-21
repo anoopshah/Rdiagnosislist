@@ -46,7 +46,8 @@ test_that('Ancestors', {
 	expect_true(all(as.SNOMEDconcept(c('105981003', '127337006'),
 		SNOMED = sampleSNOMED()) %in%
 		ancestors(as.SNOMEDconcept(c('Heart failure',
-		'Acute heart failure'), SNOMED = sampleSNOMED()))))
+		'Acute heart failure'), SNOMED = sampleSNOMED()),
+		SNOMED = sampleSNOMED())))
 })
 
 test_that('Semantic types', {

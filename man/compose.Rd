@@ -12,7 +12,7 @@ compose(
   due_to_conceptIds = bit64::integer64(0),
   without_conceptIds = bit64::integer64(0),
   with_conceptIds = bit64::integer64(0),
-  SNOMED = getSNOMED,
+  SNOMED = getSNOMED(),
   show_all_matches = FALSE
 )
 }
@@ -49,6 +49,29 @@ combination of a root concept and attributes. Based on a
 composeLookup table
 }
 \examples{
-# Not run
-# refineSNOMEDfinding
+SNOMED <- sampleSNOMED()
+miniCDB <- createCDB(SNOMED)
+
+D <- decompose('Cor pulmonale', CDB = miniCDB)
+print(D)
+
+# --------------------------------------------------------
+# 83291003 | Cor pulmonale (disorder)
+# --------------------------------------------------------
+# Root : 128404006 | Right heart failure (disorder)
+# - Due to : 19829001 | Disorder of lung (disorder)
+#
+# --------------------------------------------------------
+# 83291003 | Cor pulmonale (disorder)
+# --------------------------------------------------------
+# Root : 367363000 | Right ventricular failure (disorder)
+# - Due to : 19829001 | Disorder of lung (disorder)
+
+# Compile decompositions into a lookup table
+CL <- createComposeLookup(D, CDB = miniCDB)
+
+compose(as.SNOMEDconcept('Right heart failure'),
+  due_to_conceptIds = as.SNOMEDconcept('Disorder of lung'),
+  CDB = miniCDB, composeLookup = CL)
+# [1] "83291003 | Cor pulmonale (disorder)"
 }

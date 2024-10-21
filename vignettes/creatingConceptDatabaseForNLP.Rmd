@@ -1,0 +1,112 @@
+---
+title: "Converting concept database for natural language processing"
+author: "Anoop Shah"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Converting concept database for natural language processing}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+Converting concept database for natural language processing
+===========================================================
+
+This vignette describes the process for creating a concept database and SNOMED composition lookup for used with named entity recognition.
+
+Before using the code in this vignette, please follow the vignette 'Using SNOMED dictionaries and codelists' to download the NHS SNOMED distribution and create a R SNOMED dictionary.
+
+Creating a concept database for MiADE and MedCAT
+------------------------------------------------------
+
+MedCAT is a named entity recognition and linking system (NER+L) that uses supervised training on a large corpus of texts to learn the context surrounding definitive mentions of clinical concepts, and uses the context information to disambiguate between different meanings of acronyms or ambiguous terms. This package creates a concept database file in MedCAT format. 
+
+MiADE is a natural language processing system for real time extraction of structured information from clinical notes. MiADE incorporates MedCAT NER+L to select SNOMED CT concepts, with pre-procesing (paragraph chunking) and post-processing (conversion of suspected, negated and historic concepts, and filtering). This package creates MiADE lookups for converting suspected, negated and historic concepts to precoordinated SNOMED CT concepts.
+
+To create the MedCAT and MiADE lookups, the steps are:
+
+1. Load the SNOMED distribution using loadSNOMED() to create a SNOMED environment.
+2. Use createCDB() to create a CDB environment.
+3. Export the MiADE and MedCAT files using createMiADECDB() (requires SNOMED and CDB environments).
+
+
+SNOMED CT concept decomposition
+--------------------------------
+
+A future version of MiADE will be able to detect diagnosis attributes such as severity and body site separately to the pathology, and then combine them into the most precise and accurate SNOMED CT concept available.
+
+The first stage is to create 'decompositions' of SNOMED CT concepts, which uses the SNOMED CT concept model as well as text parsing to decompose a concept into components in a number of different ways. Example code is given below.
+
+```{r}
+library(Rdiagnosislist)
+
+# Load the SNOMED dictionary (for this example we are using the
+# sample included with the package)
+SNOMED <- sampleSNOMED()
+
+# Create a concept database environment
+miniCDB <- createCDB(SNOMED = SNOMED)
+
+# Create a decomposition
+D <- decompose('Cor pulmonale', CDB = miniCDB, noisy = TRUE)
+
+print(D)
+```
+
+To create the composition lookups, the steps are:
+
+1. Create the SNOMED and CDB objects as per above.
+2. Select the set of SNOMED CT concepts for which to create decompositions.
+3. Use the batchDecompose() function (note: this can take a long time to run), in our test it took about 10 days on a standard PC to decompose all SNOMED CT findings.
+4. Use the createComposeLookup() lookup to convert the decompositions into a lookup table which is optimised for fast search.
+
+The compose lookup table can now be used to refine SNOMED CT concepts using compose(), which selects a more specific concept based on supplied attributes.
+
+Example code:
+
+```
+# Create SNOMED and CDB
+SNOMED <- loadSNOMED(path_to_snomed)
+CDB <- createCDB(SNOMED)
+
+# Select SNOMED CT concepts to decompose
+disorders <- descendants('Disorder', SNOMED = SNOMED)
+
+# Batch decomposition
+batchDecompose(disorders, CDB = CDB, SNOMED = SNOMED,
+  output_filename = 'path_to_decompositions.csv')
+
+# Create composition lookup
+CL <- createComposeLookup('path_to_decompositions.csv',
+  CDB = CDB, SNOMED = SNOMED)
+
+# Test the decomoposition table to refine a SNOMED CT concept
+compose(conceptId = as.SNOMEDconcept('Fracture'),
+  CDB = CDB, composeLookup = CL,
+  attributes_conceptIds = as.SNOMEDconcept(c('Open', 'Femur')),
+  due_to_conceptIds = bit64::integer64(0),
+  without_conceptIds = bit64::integer64(0),
+  with_conceptIds = bit64::integer64(0),
+  SNOMED = SNOMED)
+```
+
+The following attributes can be supplied to compose():
+
+- attributes_conceptIds = body site, severity, stage, laterality, adjectives (qualifiers)
+- due_to_conceptIds = conditions that cause the root condition (e.g. AF due to hyperthyroidism)
+- without_conceptIds = conditions that are absent or negated (e.g. blister without infection)
+- with_conceptIds = conditions that are also present (e.g. hypertension with albuminuria)
+
+
+More information
+----------------
+
+For more information about SNOMED CT, visit the SNOMED CT international website: <https://www.snomed.org/>
+
+SNOMED CT (UK edition) can be downloaded from the NHS Digital site: <https://isd.digital.nhs.uk/trud/user/guest/group/0/home>
+
+The NHS Digital terminology browser can be used to search for terms interactively: <https://termbrowser.nhs.uk/>
+
+For more information about MiADE, visit <https://www.ucl.ac.uk/health-informatics/research/miade/miade-software-and-availability>
+
+For more information about MedCAT, visit <https://github.com/CogStack/MedCAT>

@@ -11,6 +11,7 @@
 #'   zip file.
 #' @param SNOMED environment containing SNOMED CT dictionary
 #' @return data.table containing Orphanet synonyms in the format
+#' @importFrom readxl read_excel
 #'   
 #' @export
 #' @seealso downloadWordnet
@@ -20,11 +21,12 @@
 #' # ORPHANET <- downloadOrphanet()
 downloadOrphanet <- function(
 	orphanet_url = 'https://www.orphadata.com/data/nomenclature/packs/Orphanet_Nomenclature_Pack_EN.zip',
-<<<<<<< HEAD
 	masterfile_name = NULL, SNOMED = getSNOMED()){
-=======
-	masterfile_name = NULL){
->>>>>>> fb1126fe9bc25aeb8fe3d715c7743864056e75f1
+
+	# Declare R symbols to avoid R check error
+	ORPHAcode <- PreferredTerm <- Synonyms <- term <- NULL
+	conceptId <- synonym <- typeId <- NULL
+
 	# Download Orphanet files and returns a data.table
 	orphanet_filename <- paste0(tempdir(), '/orphanet.zip')
 	download.file(orphanet_url, orphanet_filename)

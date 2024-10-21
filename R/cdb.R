@@ -31,6 +31,13 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	# Returns an environment containing data.tables used for
 	# generating decompositions 
 	CDB <- new.env()
+	
+	# Declare symbols to avoid R check error
+	type <- conceptId <- term <- typeId <- adj <- wordnetId <- NULL
+	synonyms <- syn <- part <- whole <- snomed <- synonym <- NULL
+	extra <- sourceId <- destinationId <- laterality <- NULL
+	nonlat_parentId <- N <- semType <- findingId <- otherId <- NULL
+	descendantId <- ancestorId <- bidirectional <- NULL
 
 	#### USEFUL FUNCTIONS ####
 	
@@ -50,15 +57,15 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		DESC <- description(x, SNOMED = SNOMED,
 			include_synonyms = TRUE)[type == 'Synonym']
 		if (nrow(DESC) > 0){
-			INIT <- rbind(DESC[, .(conceptId, term = std_term(term))],
-				DESC[, .(conceptId, term = std_term(term,
+			INIT <- rbind(DESC[, list(conceptId, term = std_term(term))],
+				DESC[, list(conceptId, term = std_term(term,
 					stopwords = stopwords, hyphens_to_space = TRUE))],
-				DESC[, .(conceptId, term = std_term(term,
+				DESC[, list(conceptId, term = std_term(term,
 					stopwords = stopwords, remove_stopwords = TRUE))],
-				DESC[, .(conceptId, term = std_term(term,
+				DESC[, list(conceptId, term = std_term(term,
 					stopwords = stopwords,
 					remove_words_in_parentheses = TRUE))],
-				acronyms(x, SNOMED = SNOMED)[, .(conceptId,
+				acronyms(x, SNOMED = SNOMED)[, list(conceptId,
 					term = paste0(' ', term, ' '))])
 			return(INIT[!duplicated(INIT)])
 		} else {
@@ -72,7 +79,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		SNOMED$RELATIONSHIP[typeId %in% s(
 		c('Due to', 'Causative agent', 'After'))]$destinationId),
 		SNOMED = SNOMED, include_synonyms = T)[type == 'Synonym',
-		.(conceptId, term = std_term(term))]
+		list(conceptId, term = std_term(term))]
 	
 	#### GENERATE TRANSITIVE TABLE ####
 	# Include sampleSNOMED() for testing purposes
@@ -91,13 +98,6 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	#### FINDINGS ####
 	if (noisy) message('Initialising findings and qualifiers.')
 	FINDINGS <- init('Clinical finding')
-
-	# Add findings with phrases in parentheses removed, e.g.
-	# ERCP (Endoscopic retrograde cholangiopancreatography) normal
-	# --> ERCP normal
-	#FINDINGS <- rbind(FINDINGS, FINDINGS[, .(conceptId,
-	#	term = sub('(.)  \\([^\\)]+\\)', '\\1', term))])
-	#FINDINGS <- FINDINGS[!duplicated(FINDINGS)]
 	
 	#### QUALIFIERS ####
 	QUAL <- init(c('Grades (qualifier value)',
@@ -115,7 +115,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	# Remove 'entire', 'structure of', 'of' and 'the'
 	strip_structure <- ' entire | structure of | structure | of the | of | the '
 	if (nrow(BODY) > 0){
-		BODY <- rbind(BODY, BODY[, .(conceptId,
+		BODY <- rbind(BODY, BODY[, list(conceptId,
 			term = gsub(strip_structure, ' ',
 			gsub(strip_structure, ' ', term)))])
 		BODY <- BODY[!duplicated(BODY)]
@@ -132,7 +132,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 					structure_type, ' where possible.'))
 				TEMP <- BODY[term %like% structure_type &
 					conceptId %in% desc(ANCESTOR$conceptId),
-					.(conceptId, term = gsub(paste0(strip_structure, '|',
+					list(conceptId, term = gsub(paste0(strip_structure, '|',
 					structure_type), ' ', gsub(paste0(strip_structure, '|',
 					structure_type), ' ', term)))]
 				TEMP[!duplicated(TEMP)]
@@ -178,7 +178,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		setattr(unique_structure_terms, 'names', structure_types)
 
 		EXTRA_WITHOUT_STRUCTURE <- rbindlist(unique_structure_terms)
-		BODY <- rbind(BODY, EXTRA_WITHOUT_STRUCTURE[, .(conceptId, term)])
+		BODY <- rbind(BODY, EXTRA_WITHOUT_STRUCTURE[, list(conceptId, term)])
 		gc()
 	}
 
@@ -189,12 +189,12 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		# XXX of XXX --> XXX XXX (adjectival)
 		# e.g. neck of femur --> femoral neck
 		#      dissection of artery --> arterial dissection
-		ADJ <- WN[, .(adj = adj[1][[1]]), by = .(wordnetId, cat)]
+		ADJ <- WN[, list(adj = adj[1][[1]]), by = list(wordnetId, cat)]
 		ADJ[, adj := sub('[1-9]$', '', adj)]
-		SYN <- WN[, .(syn = synonyms[1][[1]]), by = wordnetId]
+		SYN <- WN[, list(syn = synonyms[1][[1]]), by = wordnetId]
 		SYN[, syn := sub('[1-9]$', '', syn)]
 		ADJ <- merge(ADJ, SYN, by = 'wordnetId',
-			allow.cartesian = TRUE)[adj != syn, .(adj, syn, cat)]
+			allow.cartesian = TRUE)[adj != syn, list(adj, syn, cat)]
 		ADJ <- ADJ[!duplicated(ADJ)]
 
 		# Body structures
@@ -204,11 +204,11 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		ADJBODY[, whole := sub('^ ([[:alpha:]]+) of ([[:alpha:]]+) $',
 			'\\2', term)]
 
-		TEMP <- merge(ADJBODY[, .(syn = whole, part, conceptId)],
+		TEMP <- merge(ADJBODY[, list(syn = whole, part, conceptId)],
 			ADJ[cat %in% c('noun.body')], by = 'syn')
 		if (nrow(TEMP) > 0){
 			BODY <- rbind(BODY, TEMP[,
-				.(conceptId, term = paste0(' ', adj, ' ', part, ' '))])
+				list(conceptId, term = paste0(' ', adj, ' ', part, ' '))])
 			if (noisy){
 				message(paste0('Added ', nrow(TEMP),
 					' adjectival phrases for body structures.'))
@@ -225,12 +225,12 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		ADJFINDINGS[, whole := sub('^ ([[:alpha:]]+) of ([[:alpha:]]+) $',
 			'\\2', term)]
 
-		TEMP <- merge(ADJFINDINGS[, .(syn = whole, part, conceptId)],
+		TEMP <- merge(ADJFINDINGS[, list(syn = whole, part, conceptId)],
 			ADJ[cat %in% c('noun.state', 'noun.process', 'noun.phenomenon')],
 			by = 'syn')
 		if (nrow(TEMP) > 0){
 			FINDINGS <- rbind(FINDINGS, TEMP[,
-				.(conceptId, term = paste0(' ', adj, ' ', part, ' '))])
+				list(conceptId, term = paste0(' ', adj, ' ', part, ' '))])
 			if (noisy){
 				message(paste0('Added ', nrow(TEMP),
 					' adjectival phrases for findings.'))
@@ -290,11 +290,11 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 			M[, snomed := sub('^ *', ' ', sub(' *$', ' ', snomed))]
 			M[, synonym := sub('^ *', ' ', sub(' *$', ' ', synonym))]
 			X <- rbind(X,
-				merge(X, M[, .(term = snomed, extra = synonym)],
-				by = 'term')[, .(conceptId, term = extra)],
-				merge(X, M[bidirectional == TRUE, .(term = synonym,
+				merge(X, M[, list(term = snomed, extra = synonym)],
+				by = 'term')[, list(conceptId, term = extra)],
+				merge(X, M[bidirectional == TRUE, list(term = synonym,
 				extra = snomed)], by = 'term')[,
-				.(conceptId, term = extra)], fill = TRUE)
+				list(conceptId, term = extra)], fill = TRUE)
 		}
 		if (!is.null(WN)){
 			return(addWordnet(X, wn_categories = wn_categories,
@@ -340,8 +340,8 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	BODY[conceptId %in% bilateral_structures,
 		laterality := 'Bilateral']
 	# Remove morphologic abnormalities from BODY to FINDINGS
-	MORPH <- BODY[semanticType(conceptId) == 'morphologic abnormality',
-		.(conceptId, term)]
+	MORPH <- BODY[semanticType(conceptId, SNOMED = SNOMED) ==
+		'morphologic abnormality', list(conceptId, term)]
 	if (nrow(MORPH) > 0){
 		BODY <- BODY[!(conceptId %in% MORPH$conceptId)]
 	}
@@ -359,7 +359,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		!duplicated(CDB$BODY_LATERALITY)]
 
 	# Remove ambiguous parent concepts 
-	CDB$BODY_LATERALITY[, .N, by = .(laterality, nonlat_parentId)][
+	CDB$BODY_LATERALITY[, .N, by = list(laterality, nonlat_parentId)][
 		N > 1]$nonlat_parentId -> toremove
 	if (nrow(CDB$BODY_LATERALITY) > 0){
 		CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
@@ -379,11 +379,11 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	# OVERLAP = concepts that are in findings as well as another
 	# (qual etc.)
 	FindingsFSN <- description(FINDINGS$conceptId, SNOMED = SNOMED)[,
-		.(findingId = conceptId, term = sub(' \\([^\\(]+\\)$', '', term))]
+		list(findingId = conceptId, term = sub(' \\([^\\(]+\\)$', '', term))]
 	OtherFSN <- description(c(QUAL$conceptId, BODY$conceptId),
 		SNOMED = SNOMED)[,
-		.(otherId = conceptId, term = sub(' \\([^\\(]+\\)$', '', term))]
-	CDB$OVERLAP <- merge(FindingsFSN, OtherFSN)[, .(findingId, otherId)]
+		list(otherId = conceptId, term = sub(' \\([^\\(]+\\)$', '', term))]
+	CDB$OVERLAP <- merge(FindingsFSN, OtherFSN)[, list(findingId, otherId)]
 	CDB$OVERLAP <- CDB$OVERLAP[!duplicated(CDB$OVERLAP)]
 
 	CDB$TRANSITIVE <- TRANSITIVE
@@ -402,17 +402,17 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		
 	CDB$stopwords <- stopwords
 	CDB$SEMTYPE <- rbind(
-		CDB$FINDINGS[, .(conceptId, semType = semanticType(conceptId,
+		CDB$FINDINGS[, list(conceptId, semType = semanticType(conceptId,
 			SNOMED = SNOMED))],
-		CDB$MORPH[, .(conceptId, semType = 'morphologic abnormality')],
-		CDB$BODY[, .(conceptId, semType = 'body structure')],
-		CDB$QUAL[, .(conceptId, semType = 'qualifier value')],
-		CDB$LATERALITY[, .(conceptId, semType = 'laterality')],
-		CDB$SEVERITY[, .(conceptId, semType = 'severity')],
+		CDB$MORPH[, list(conceptId, semType = 'morphologic abnormality')],
+		CDB$BODY[, list(conceptId, semType = 'body structure')],
+		CDB$QUAL[, list(conceptId, semType = 'qualifier value')],
+		CDB$LATERALITY[, list(conceptId, semType = 'laterality')],
+		CDB$SEVERITY[, list(conceptId, semType = 'severity')],
 		CDB$OTHERCAUSE[!(conceptId %in% c(CDB$FINDINGS$conceptId,
 			CDB$BODY$conceptId, CDB$QUAL$conceptId,
 			CDB$LATERALITY$conceptId, CDB$SEVERITY$conceptId)),
-			.(conceptId, semType)])
+			list(conceptId, semType)])
 		# contents of stage are mostly findings so don't need to include
 	CDB$SEMTYPE[!duplicated(CDB$SEMTYPE)]
 	
@@ -441,6 +441,9 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 	# of semantic type 'Clinical finding' and 'Body structure'
 	# Output a data.table table text,p with {p ...} surrounding the
 	# acronym, which can be converted to MedCAT training data
+	
+	# Declare symbols to avoid R check error
+	term <- conceptId <- has_unigram <- conceptId <- text  <- NULL
 	
 	findings_to_disambiguate <- unique(CDB$FINDINGS[,
 		list(has_unigram = any(term %like% '^ [[:alpha:]]+ $')),
@@ -583,15 +586,16 @@ exportMiADECDB <- function(CDB, export_folderpath,
 	lang_refset_files = NULL, exclude = NULL, include = NULL,
 	exclude_historic = descendants('Disorder', SNOMED = getSNOMED()),
 	blacklist = NULL, SNOMED = getSNOMED()){
-<<<<<<< HEAD
-	
+		
+	# Declare symbols to avoid R check error
+	active <- effectiveTime <- referencedComponentId <- NULL
+	pref <- acceptabilityId <- Synonym <- typeId <- NULL
+	conceptId <- term <- lowerterm <- destinationId <- NULL
+	sourceId <- destinationId <- situationId <- findingId <- NULL
+	Nsit <- toremove <- name_status <- name <- otherId <- NULL
+
 	export_folderpath <- sub('([^/\\])$', '\\1/', export_folderpath)
-	
-=======
-	
-	export_folderpath <- sub('([^/\\])$', '\\1/', export_folderpath)
-	
->>>>>>> fb1126fe9bc25aeb8fe3d715c7743864056e75f1
+
 	if (!is.null(lang_refset_files)){
 		message(paste0('Loading language refset from ',
 			lang_refset_files))
@@ -613,8 +617,8 @@ exportMiADECDB <- function(CDB, export_folderpath,
 		# Mark the UK preferred terms
 		sct_pref <- bit64::as.integer64(SNOMEDconcept('Preferred'))
 		SNOMED$DESCRIPTION[, pref := 
-			LANG[, .(pref = any(acceptabilityId == sct_pref)),
-			by = .(id = referencedComponentId)][
+			LANG[, list(pref = any(acceptabilityId == sct_pref)),
+			by = list(id = referencedComponentId)][
 			SNOMED$DESCRIPTION, on = 'id']$pref]
 		synonym_type <- SNOMEDconcept('Synonym')
 		SNOMED$DESCRIPTION[, Synonym := typeId == synonym_type]
@@ -848,6 +852,10 @@ exclude_irrelevant_findings <- function(SNOMED = getSNOMED()){
 	# Remove social history (except housing problems and care needs),
 	# administrative statuses (except registered disabled) and
 	# normal findings
+	
+	# Define symbols for R CMD check
+	term <- NULL
+	
 	social_history <- descendants('Social and personal history finding',
 		SNOMED = SNOMED, include_self = TRUE)
 	admin <- descendants('Administrative statuses',
@@ -881,7 +889,7 @@ exclude_irrelevant_findings <- function(SNOMED = getSNOMED()){
 		'Delivery finding', 'Safety finding', 'Feeding finding',
 		'Finding of movement', 'Stool finding'), SNOMED = SNOMED)),
 		disorders)
-	normal <- SNOMEDconcept('^Normal| normal', exact = FALSE,
+	normal <- SNOMEDconcept('^Normal| normal', exact_match = FALSE,
 		SNOMED = SNOMED)
 	normal <- normal[semanticType(normal) == 'finding']
 	normal <- union(normal, descendants('No abnormality detected',

@@ -373,8 +373,17 @@ showCodelistHierarchy <- function(x, SNOMED = getSNOMED(),
 	
 	# Ensure that x is a SNOMEDcodelist
 	x <- as.SNOMEDcodelist(x, SNOMED = SNOMED, ...)
+	x <- data.table::copy(x)
 	
-	out <- expandSNOMED(data.table::copy(x), SNOMED = SNOMED)
+	# Convert any 'list' columns to character
+	for (i in colnames(x)){
+		if (is.list(x[[i]])){
+			x[, (i) := sapply(x[[i]],
+				function(z) paste(z, collapse = ','))]
+		}
+	}
+	
+	out <- expandSNOMED(x, SNOMED = SNOMED)
 	out[, included := TRUE]
 	out <- out[!duplicated(out)] # remove duplicates of entire rows
 	

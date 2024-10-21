@@ -34,9 +34,6 @@ together, and are automatically appended by the function.
 The SNOMED CT files are available from the NHS Digital Technology
 Reference Update Distribution:
 \url{https://isd.digital.nhs.uk/trud/user/guest/group/0/home}
-
-(Note: May 2022 - This function needs to be updated to use the 
-latest SNOMED CT TRUD versions including the SNOMED CT definitions).
 }
 \examples{
 # Create a TEST environment and load the sample dictionaries

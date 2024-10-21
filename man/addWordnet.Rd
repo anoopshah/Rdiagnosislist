@@ -57,7 +57,7 @@ WORDNET <- data.table::data.table(cat = c('noun.body', 'noun.state'),
 SNOMED <- sampleSNOMED()
 CDB_TABLE <- description(c('Heart', 'Infection'),
   include_synonyms = TRUE)[type == 'Synonym',
-  .(conceptId, term = paste0(' ', tolower(term), ' '))]
+  list(conceptId, term = paste0(' ', tolower(term), ' '))]
 addWordnet(CDB_TABLE, 'noun.state', WORDNET)
 }
 \references{
