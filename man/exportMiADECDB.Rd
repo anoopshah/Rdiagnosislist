@@ -110,8 +110,18 @@ For MiADE postprocessing:
      force MiADE to ignore any specific SNOMED CT concepts in the
      output. Sorted in ascending order.}
 }
+
+For more information about MiADE, visit
+\url{https://www.ucl.ac.uk/health-informatics/research/miade/miade-software-and-availability}
+
+For more information about MedCAT, visit 
+\url{https://github.com/CogStack/MedCAT}
 }
 \examples{
 # Not run
 # exportMiADECDB(CDB, export_folderpath = tempdir())
+}
+\seealso{
+createCDB, downloadWordnet, downloadOrphanet, MANUAL_SYNONYMS,
+  exclude_irrelevant_findings
 }

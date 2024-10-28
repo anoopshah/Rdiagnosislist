@@ -19,6 +19,7 @@
 #' @param show_all_matches whether to stop if an exact match is found,
 #'   or continue to search for all potential matches
 #' @return a refined SNOMED concept Id
+#' @seealso decompose, batchDecompose, createComposeLookup
 #' @examples
 #' SNOMED <- sampleSNOMED()
 #' miniCDB <- createCDB(SNOMED)

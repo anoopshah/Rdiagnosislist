@@ -35,5 +35,5 @@ D <- decompose('Cor pulmonale', CDB = miniCDB, noisy = TRUE)
 print(D)
 }
 \seealso{
-[decompose()]
+decompose, compose, createComposeLookup
 }

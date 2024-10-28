@@ -10,7 +10,7 @@
 #' @param ... out
 #' @return TRUE if successful 
 #' @export
-#' @seealso [decompose()]
+#' @seealso decompose, compose, createComposeLookup
 #' @examples
 #' # Load the SNOMED dictionary (for this example we are using the
 #' # sample included with the package)
@@ -64,7 +64,7 @@ batchDecompose <- function(conceptIds, CDB, output_filename,
 #' @param ... other arguments to pass to fread
 #' @return data.table 
 #' @export
-#' @seealso [decompose()]
+#' @seealso decompose, compose, batchDecompose
 #' @examples
 #' # Not run
 #'

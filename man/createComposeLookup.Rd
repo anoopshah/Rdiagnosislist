@@ -41,5 +41,5 @@ Creates composition lookup table for a set of SNOMED CT concepts
 # mylookup <- createComposeLookup(D)
 }
 \seealso{
-[decompose()]
+decompose, compose, batchDecompose
 }

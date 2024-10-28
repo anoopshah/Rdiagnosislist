@@ -545,6 +545,12 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 #'      output. Sorted in ascending order.}
 #' }
 #'
+#' For more information about MiADE, visit
+#' \url{https://www.ucl.ac.uk/health-informatics/research/miade/miade-software-and-availability}
+#' 
+#' For more information about MedCAT, visit 
+#' \url{https://github.com/CogStack/MedCAT}
+#'
 #' @param CDB concept database environment created by createCDB
 #' @param export_folderpath folder path to export to
 #' @param lang_refset_files character vector of file paths to
@@ -576,7 +582,8 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 #'   findings or disorders that are not useful for the particular
 #'   application. 
 #' @param SNOMED environment containing a SNOMED dictionary
-
+#' @seealso createCDB, downloadWordnet, downloadOrphanet, MANUAL_SYNONYMS,
+#'   exclude_irrelevant_findings
 #' @return TRUE if successful
 #' @export
 #' @examples
@@ -845,6 +852,7 @@ exportMiADECDB <- function(CDB, export_folderpath,
 #'      and vague disorders, intended to be used in the blacklist}
 #' }
 #'
+#' @seealso exportMiADECDB, createCDB
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @return SNOMEDconcept vector containing findings to exclude
 #' @export
@@ -968,37 +976,6 @@ blacklist_almost_all_except_diseases <- function(SNOMED = getSNOMED()){
 		blacklist_vague_findings(SNOMED = SNOMED))
 }
 
-#' Sample inclusion, exclusion and blacklist sets for a MiADE CDB
-#'
-#' Returns a set of SNOMED concepts (as a SNOMEDconcept vector)
-#' which can be used to exclude
-#' findings in the MedCAT named entity recognition step, or blacklist
-#' (filter out) findings from the final output.
-#'
-#' \describe{
-#'   \item{exclude_irrelevant_findings}{social history 
-#'      (except housing problems and care needs),
-#'      administrative statuses (except registered disabled) and
-#       normal findings, intended to be used as an exclusion list
-#'      for concept detection}
-#'   \item{blacklist_vague_findings}{vague findings and disorders,
-#'      intended to be used in the blacklist}
-#'   \item{blacklist_almost_all_except_diseases}{almost all findings
-#'      and vague disorders, intended to be used in the blacklist}
-#' }
-#'
-#' @param x text to standardise
-#' @param stopwords character vector of words to ignore or remove
-#' @param hyphens_to_space whether to convert hyphens to spaces
-#'   (default is to remove them)
-#' @param remove_stopwords whether to remove stopwords
-#' @param remove_words_in_parentheses whether to remove words in
-#'   parentheses (which are usually an alternative form or explanation
-#'   for other parts of the phrase)
-#' @return standardised text with space at start and end, lower case
-#'   (except for capitalised words or words with unusual
-#'   capitalisation) and other options applied as needed
-#' @export
 std_term <- function(x, stopwords = c('the', 'of', 'by', 'with', 'to',
 	'into', 'and', 'or', 'both', 'at', 'as', 'and/or', 'in'),
 	hyphens_to_space = FALSE, remove_stopwords = FALSE,

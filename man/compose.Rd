@@ -75,3 +75,6 @@ compose(as.SNOMEDconcept('Right heart failure'),
   CDB = miniCDB, composeLookup = CL)
 # [1] "83291003 | Cor pulmonale (disorder)"
 }
+\seealso{
+decompose, batchDecompose, createComposeLookup
+}

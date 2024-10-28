@@ -36,3 +36,6 @@ findings in the MedCAT named entity recognition step, or blacklist
      and vague disorders, intended to be used in the blacklist}
 }
 }
+\seealso{
+exportMiADECDB, createCDB
+}
