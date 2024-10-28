@@ -13,7 +13,7 @@ loadSNOMED(folders, active_only = TRUE, version = NULL)
 concepts}
 
 \item{version}{Version description. If NULL, it is derived from the
-folder paths and expressed in the form: INT{date} & UK{date}}
+folder paths and expressed in the form: INT date & UK date}
 }
 \value{
 An environment containing data.table objects: CONCEPT,

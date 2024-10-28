@@ -14,7 +14,7 @@
 #' @keywords datasets
 #'
 #' @details
-#' \itemize{
+#' \describe{
 #'   \item{moduleId}{ integer64: SNOMED CT core metadata concept, stating whether the refset is from the SNOMED CT core module or the UK extension.}
 #'   \item{refsetId}{ integer64: SNOMED CT conceptId of the refset. These concepts have semantic type 'foundation metadata concept'} 
 #'   \item{referencedComponentId}{ integer64: SNOMED CT conceptId of the member of the refset} 

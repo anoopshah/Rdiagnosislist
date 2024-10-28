@@ -15,7 +15,7 @@ data(EXTENDEDMAP)
 A sample of the SNOMED CT extended map table, containing maps to ICD-10 and OPCS4.
 }
 \details{
-\itemize{
+\describe{
   \item{moduleId}{ integer64: core metadata concept: 449080006 = SNOMED CT to ICD-10 rule-based mapping module, 999000031000000106 = SNOMED CT United Kingdom Edition reference set module}
   \item{refsetId}{ integer64: foundation metadata concept: 447562003 = ICD-10 complex map reference set, 1126441000000105 = Office of Population Censuses and Surveys Classification of Interventions and Procedures Version 4.9 complex map reference set, 999002271000000101 = International Classification of Diseases, Tenth Revision, Fifth Edition, five character code United Kingdom complex map reference set}
   \item{referencedComponentId}{ integer64: SNOMED CT conceptId of the concept mapped}

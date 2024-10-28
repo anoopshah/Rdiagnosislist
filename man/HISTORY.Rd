@@ -14,7 +14,7 @@ data(HISTORY)
 Sample of the SNOMED CT table showing current equivalents for inactive concepts.
 }
 \details{
-\itemize{
+\describe{
   \item{OLDCONCEPTID}{ integer64: concept ID of the inactive concepts} 
   \item{OLDCONCEPTSTATUS}{ integer: status of the old concept} 
   \item{NEWCONCEPTID}{ integer64: concept ID of the new concept}

@@ -12,7 +12,7 @@
 #' @keywords datasets
 #'
 #' @details
-#' \itemize{
+#' \describe{
 #'   \item{id}{ integer64: description ID}
 #'   \item{moduleId}{ integer64: class of SNOMED CT concept (whether it
 #'     is used for recording information or is a metadata concept)}

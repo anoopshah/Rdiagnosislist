@@ -16,7 +16,7 @@
 #' @keywords datasets
 #'
 #' @details
-#' \itemize{
+#' \describe{
 #'   \item{conceptId}{ integer64: SNOMED CT conceptId (primary key)} 
 #'   \item{read2_code}{ list: character list of 7-character Read V2 codes}
 #'   \item{read2_term}{ list: character list of Read V2 terms}

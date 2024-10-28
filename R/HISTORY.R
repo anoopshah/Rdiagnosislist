@@ -11,7 +11,7 @@
 #' @family SNOMEDsample
 #'
 #' @details
-#' \itemize{
+#' \describe{
 #'   \item{OLDCONCEPTID}{ integer64: concept ID of the inactive concepts} 
 #'   \item{OLDCONCEPTSTATUS}{ integer: status of the old concept} 
 #'   \item{NEWCONCEPTID}{ integer64: concept ID of the new concept}

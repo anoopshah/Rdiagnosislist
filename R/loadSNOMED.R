@@ -17,7 +17,7 @@
 #' @param active_only Whether to limit to current (active) SNOMED CT
 #'   concepts
 #' @param version Version description. If NULL, it is derived from the
-#'   folder paths and expressed in the form: INT{date} & UK{date}
+#'   folder paths and expressed in the form: INT date & UK date
 #' @return An environment containing data.table objects: CONCEPT,
 #'   DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, REFSET,
 #'   SIMPLEMAP, EXTENDEDMAP, HISTORY (optional), QUERY (optional)
@@ -534,7 +534,7 @@ getSNOMED <- function(SNOMEDname = 'SNOMED'){
 #' be missed out, and the list will be incomplete.
 #'
 #' This function uses the following three mapping files:
-#' \itemize{
+#' \describe{
 #'    \item{not_assured_rcsctmap_uk}{ File containing Read 2 codes
 #'      mapped to SNOMED CT, in file:
 #'      'Not Clinically Assured/rcsctmap_uk_20200401000001.txt'}
@@ -547,7 +547,7 @@ getSNOMED <- function(SNOMEDname = 'SNOMED'){
 #' }
 #' 
 #' The output data.table has the following columns:
-#' \itemize{
+#' \describe{
 #'   \item{conceptId}{ integer64: SNOMED CT conceptId (primary key)} 
 #'   \item{read2_code}{ list: character list of 7-character Read 2 codes}
 #'   \item{read2_term}{ list: character list of Read 2 terms}

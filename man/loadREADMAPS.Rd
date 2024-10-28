@@ -47,7 +47,7 @@ codelist to SNOMED CT) because some of the SNOMED CT terms will
 be missed out, and the list will be incomplete.
 
 This function uses the following three mapping files:
-\itemize{
+\describe{
    \item{not_assured_rcsctmap_uk}{ File containing Read 2 codes
      mapped to SNOMED CT, in file:
      'Not Clinically Assured/rcsctmap_uk_20200401000001.txt'}
@@ -60,7 +60,7 @@ This function uses the following three mapping files:
 }
 
 The output data.table has the following columns:
-\itemize{
+\describe{
   \item{conceptId}{ integer64: SNOMED CT conceptId (primary key)} 
   \item{read2_code}{ list: character list of 7-character Read 2 codes}
   \item{read2_term}{ list: character list of Read 2 terms}

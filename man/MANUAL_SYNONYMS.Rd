@@ -14,7 +14,7 @@ data(MANUAL_SYNONYMS)
 Sample manual synonym table to assist in creation of concept database
 }
 \details{
-\itemize{
+\describe{
   \item{synonym}{ character: Synonym, in lower case if case is unimportant} 
   \item{snomed}{ character: SNOMED CT term, in lower case if case is unimportant}
   \item{bidirectional}{ boolean: whether synonym can only ever mean

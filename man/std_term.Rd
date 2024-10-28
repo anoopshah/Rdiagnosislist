@@ -39,7 +39,7 @@ findings in the MedCAT named entity recognition step, or blacklist
 (filter out) findings from the final output.
 }
 \details{
-\itemize{
+\describe{
   \item{exclude_irrelevant_findings}{social history 
      (except housing problems and care needs),
      administrative statuses (except registered disabled) and

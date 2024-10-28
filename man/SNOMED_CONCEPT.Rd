@@ -15,7 +15,7 @@ data(CONCEPT)
 A sample of the SNOMED CT concept table.
 }
 \details{
-\itemize{
+\describe{
   \item{id}{ integer64: SNOMED CT conceptId (primary key)} 
   \item{moduleId}{ integer64: class of SNOMED CT concept (whether it is used for recording information or is a metadata concept)}
   \item{definitionStatusId}{ integer64: 900000000000074008 = primitive concept, 900000000000073002 = defined by conditions}

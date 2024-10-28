@@ -20,7 +20,7 @@ Reference data Update Distribution
 \url{https://isd.digital.nhs.uk/trud/user/guest/group/0/pack/9/subpack/9/releases}.
 }
 \details{
-\itemize{
+\describe{
   \item{conceptId}{ integer64: SNOMED CT conceptId (primary key)} 
   \item{read2_code}{ list: character list of 7-character Read V2 codes}
   \item{read2_term}{ list: character list of Read V2 terms}

@@ -15,7 +15,7 @@
 #' @family SNOMEDsample
 #'
 #' @details
-#' \itemize{
+#' \describe{
 #'   \item{id}{ integer64: ID of the relationship record (primary key)} 
 #'   \item{active}{ logical: whether this concept is currently active}
 #'   \item{moduleId}{ integer64: class of SNOMED CT concept (whether it

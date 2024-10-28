@@ -69,7 +69,7 @@ The following files are exported:
 
 For MedCAT (named entity recognition and linking):
 
-\itemize{
+\describe{
   \item{problems_cdb.csv}{ - CSV file in MedCAT concept database
      format
      containing cui (SNOMED CT concept ID), name, name_status ('P'
@@ -80,7 +80,7 @@ For MedCAT (named entity recognition and linking):
 
 For MiADE postprocessing:
 
-\itemize{
+\describe{
   \item{negated.csv}{ - CSV file with columns findingId (SNOMED CT
      concept ID of the underlying finding / disorder) and
      situationId (SNOMED CT concept ID of the pre-coordinated

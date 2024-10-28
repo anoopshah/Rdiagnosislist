@@ -503,7 +503,7 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 #'
 #' For MedCAT (named entity recognition and linking):
 #'
-#' \itemize{
+#' \describe{
 #'   \item{problems_cdb.csv}{ - CSV file in MedCAT concept database
 #'      format
 #'      containing cui (SNOMED CT concept ID), name, name_status ('P'
@@ -514,7 +514,7 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 #'
 #' For MiADE postprocessing:
 #'
-#' \itemize{
+#' \describe{
 #'   \item{negated.csv}{ - CSV file with columns findingId (SNOMED CT
 #'      concept ID of the underlying finding / disorder) and
 #'      situationId (SNOMED CT concept ID of the pre-coordinated
@@ -833,7 +833,7 @@ exportMiADECDB <- function(CDB, export_folderpath,
 #' findings in the MedCAT named entity recognition step, or blacklist
 #' (filter out) findings from the final output.
 #'
-#' \itemize{
+#' \describe{
 #'   \item{exclude_irrelevant_findings}{social history 
 #'      (except housing problems and care needs),
 #'      administrative statuses (except registered disabled) and
@@ -975,7 +975,7 @@ blacklist_almost_all_except_diseases <- function(SNOMED = getSNOMED()){
 #' findings in the MedCAT named entity recognition step, or blacklist
 #' (filter out) findings from the final output.
 #'
-#' \itemize{
+#' \describe{
 #'   \item{exclude_irrelevant_findings}{social history 
 #'      (except housing problems and care needs),
 #'      administrative statuses (except registered disabled) and
