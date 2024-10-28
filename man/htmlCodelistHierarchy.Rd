@@ -47,7 +47,7 @@ my_codelist <- SNOMEDcodelist(data.frame(conceptId = my_concepts,
   include_desc = TRUE))
 my_codelist <- getMaps(my_codelist, to = 'icd10')
 htmlCodelistHierarchy(my_codelist, file = paste0(tempdir(),
-  'codelist.html'), extracols = 'icd10_code')
+  '/codelist.html'), extracols = 'icd10_code')
 # The codelist.html file can now be viewed in a web browser
 
 # Clean up temporary file
