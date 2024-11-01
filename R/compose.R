@@ -150,7 +150,7 @@ compose <- function(conceptId, CDB, composeLookup,
 	}
 
 	# Ensure that matches are descendants of rootId
-	matchIds <- intersect(matchIds, add_overlap(descendants(rootId,
+	matchIds <- intersect(matchIds, add_overlap(descendants(conceptId,
 		SNOMED = SNOMED, TRANSITIVE = CDB$TRANSITIVE)))
 	
 	# Return original concept if no decompositions

@@ -627,8 +627,7 @@ is.SNOMEDcodelist <- function(x, format = NULL, codelist_name = NULL,
 #' @param filename character vector of length 1 for the file
 #'   to write to. If NULL, a filename is generated from the
 #'   codelist filename.
-#' @param metadata Whether meta-data is exported or not.
-#' Default is TRUE. 
+#' @param metadata whether metadata is exported (default = TRUE)
 #' @param ... not used
 #' @return invisibly returns the exported codelist
 #' @family SNOMEDcodelist functions
@@ -642,7 +641,7 @@ export <- function(x, ...){
 #' @family SNOMEDcodelist functions
 #' @export
 export.SNOMEDcodelist <- function(x, filename = NULL, 
-				  metadata = TRUE, ...){
+	metadata = TRUE, ...){
 	# Exports a codelist to file.
 	# All metadata must be stored in the codelist.
 
@@ -659,32 +658,30 @@ export.SNOMEDcodelist <- function(x, filename = NULL,
 	# Prepare output file
 	out <- copy(x)
 
-	if (metadata == TRUE) {
-	
-	# Create the metadata character vector
-	metadata <- encodeMetadata(x)
-	metadataWidth <- max(nchar(metadata)) + 1
-	metadata <- padTo(metadata, metadataWidth)
-	
-	# Output to file
-	# Export to text file (CSV or tab separated)
-	# Bind metadata column onto codelist
-	if (length(metadata) < nrow(out)){
-		metadata <- c(metadata, rep(padTo('', metadataWidth),
-			nrow(out) - length(metadata)))
-	} else if (length(metadata) > nrow(out)) {
-		out <- copy(out[1:length(metadata)])
+	if (metadata == TRUE) {	
+		# Create the metadata character vector
+		metadata <- encodeMetadata(x)
+		metadataWidth <- max(nchar(metadata)) + 1
+		metadata <- padTo(metadata, metadataWidth)
+		
+		# Output to file
+		# Export to text file (CSV or tab separated)
+		# Bind metadata column onto codelist
+		if (length(metadata) < nrow(out)){
+			metadata <- c(metadata, rep(padTo('', metadataWidth),
+				nrow(out) - length(metadata)))
+		} else if (length(metadata) > nrow(out)) {
+			out <- copy(out[1:length(metadata)])
+		}
+
+		# Bind them all together in a custom CSV
+		out[, metadata:= metadata]
+
+		# Put the metadata column first
+		setcolorder(out, c('metadata', setdiff(colnames(out),
+			c('metadata'))))
 	}
 
-	# Bind them all together in a custom CSV
-	out[, metadata:= metadata]
-
-	# Put the metadata column first
-	setcolorder(out, c('metadata', setdiff(colnames(out),
-		c('metadata'))))
-
-		}
-		
 	 if (grepl('.csv$', tolower(filename))){
 		data.table::fwrite(out, file = filename)
 	} else {

@@ -7,7 +7,7 @@
 \usage{
 export(x, ...)
 
-\method{export}{SNOMEDcodelist}(x, filename = NULL, ...)
+\method{export}{SNOMEDcodelist}(x, filename = NULL, metadata = TRUE, ...)
 }
 \arguments{
 \item{x}{SNOMEDcodelist object to export to file}
@@ -17,6 +17,8 @@ export(x, ...)
 \item{filename}{character vector of length 1 for the file
 to write to. If NULL, a filename is generated from the
 codelist filename.}
+
+\item{metadata}{whether metadata is exported (default = TRUE)}
 }
 \value{
 invisibly returns the exported codelist
