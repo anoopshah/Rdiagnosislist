@@ -673,6 +673,7 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 						get(x, envir = CDB)[conceptId %in%
 						relevant_conceptId, list(conceptId, term)]
 					}))
+				OTHERSEARCH <- OTHERSEARCH[!conceptId %in% DATALINE$rootId]
 				if (nrow(OTHERSEARCH) > 0){
 					if (to_match %in% OTHERSEARCH$term){
 						match <- TRUE
@@ -721,9 +722,13 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 	C <- C[!(rootId == origId)]
 	
 	# Remove any entries where other_conceptId is not matched to a
-	# SNOMED CT concept
+	# SNOMED CT concept or if there are no attributes
 	if (omit_unmatched){
 		C <- C[!(other_conceptId %like% '[A-Za-z]')]
+		C <- C[!is.na(with) | !is.na(due_to) | !is.na(after) |
+			!is.na(without) | !is.na(body_site) | !is.na(severity) |
+			!is.na(stage) | !is.na(laterality) |
+			other_conceptId %like% '[0-9]']
 	}
 	
 	# Now expand where there are alternative entries

@@ -10,3 +10,6 @@ Maintainer: 'Anoop Shah <anoop@doctors.org.uk>'
 New functions for SNOMED concept decomposition and composition,
 transitive closure table and export concept databases for MedCAT
 and MiADE natural language processing system.
+
+Corrects the error in the previous submission where a temporary
+file was saved in the incorrect location.

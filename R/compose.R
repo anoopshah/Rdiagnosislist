@@ -68,11 +68,15 @@ compose <- function(conceptId, CDB, composeLookup,
 		} else {
 			x <- as.SNOMEDconcept(x, SNOMED = SNOMED)
 		}
-		x <- unique(c(x,
-			CDB$OVERLAP[findingId %in% x]$otherId,
-			CDB$OVERLAP[otherId %in% x]$findingId))
+		x <- add_overlap(x)
 		ancestors(x, SNOMED = SNOMED,
 			TRANSITIVE = CDB$TRANSITIVE, include_self = TRUE)
+	}
+	
+	add_overlap <- function(x){
+		unique(c(x,
+			CDB$OVERLAP[findingId %in% x]$otherId,
+			CDB$OVERLAP[otherId %in% x]$findingId))
 	}
 	
 	harmonise <- function(x, limitToFindings = FALSE){
@@ -99,7 +103,10 @@ compose <- function(conceptId, CDB, composeLookup,
 	with_search <- harmonise(with_conceptIds, TRUE)
 	
 	conceptId <- as.SNOMEDconcept(conceptId, SNOMED = SNOMED)
-	root_search <- expand(conceptId)
+	root_search <- expand(conceptId) # this is the most comprehensive
+	# way of doing the search but it might be possible to use a 
+	# more efficient way (e.g. include just a couple of generations
+	# above) to reduce the search space.
 	
 	# Find highest number of attribute fields in this composeLookup
 	SUBSET <- composeLookup[rootId %in% root_search &
@@ -131,7 +138,7 @@ compose <- function(conceptId, CDB, composeLookup,
 	if (nrow(SUBSET) == 0){
 		return(conceptId)
 	}
-	
+
 	# Try for an exact match
 	matchIds <- unique(as.SNOMEDconcept(SUBSET_EXACT$origId,
 		SNOMED = SNOMED))
@@ -141,9 +148,19 @@ compose <- function(conceptId, CDB, composeLookup,
 		matchIds <- unique(as.SNOMEDconcept(SUBSET$origId,
 			SNOMED = SNOMED))
 	}
+
+	# Ensure that matches are descendants of rootId
+	matchIds <- intersect(matchIds, add_overlap(descendants(rootId,
+		SNOMED = SNOMED, TRANSITIVE = CDB$TRANSITIVE)))
+	
+	# Return original concept if no decompositions
+	if (length(matchIds) == 0){
+		return(conceptId)
+	}
+	
 	# Remove all matches which are an ancestor of another match
 	i <- 1
-	while (i <= length(matchIds)){
+	while (i <= length(matchIds) & length(matchIds) > 1){
 		ancIds <- ancestors(matchIds[i], SNOMED = SNOMED,
 			TRANSITIVE = CDB$TRANSITIVE, include_self = FALSE)
 		if (length(intersect(matchIds, ancIds)) > 0){
@@ -155,7 +172,7 @@ compose <- function(conceptId, CDB, composeLookup,
 	}
 	
 	# Return the matches
-	as.SNOMEDconcept(matchIds, SNOMED = SNOMED)
+	matchIds
 }
 
 
