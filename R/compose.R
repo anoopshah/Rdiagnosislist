@@ -16,8 +16,6 @@
 #'   absent
 #' @param with_conceptIds SNOMED concept Ids of conditions also present
 #' @param SNOMED environment containing SNOMED CT tables
-#' @param show_all_matches whether to stop if an exact match is found,
-#'   or continue to search for all potential matches
 #' @return a refined SNOMED concept Id
 #' @seealso decompose, batchDecompose, createComposeLookup
 #' @examples
@@ -52,7 +50,7 @@ compose <- function(conceptId, CDB, composeLookup,
 	due_to_conceptIds = bit64::integer64(0),
 	without_conceptIds = bit64::integer64(0),
 	with_conceptIds = bit64::integer64(0),
-	SNOMED = getSNOMED(), show_all_matches = FALSE){
+	SNOMED = getSNOMED()){
 	
 	NA_concept <- bit64::as.integer64(NA)
 	setattr(NA_concept, 'class', c('SNOMEDconcept', 'integer64'))
@@ -69,8 +67,10 @@ compose <- function(conceptId, CDB, composeLookup,
 			x <- as.SNOMEDconcept(x, SNOMED = SNOMED)
 		}
 		x <- add_overlap(x)
-		ancestors(x, SNOMED = SNOMED,
-			TRANSITIVE = CDB$TRANSITIVE, include_self = TRUE)
+		out <- ancestors(x, SNOMED = SNOMED, TRANSITIVE = CDB$TRANSITIVE)
+		# For body site concepts, remove ancestor concepts with 'and'
+		# or 'or'
+		return(union(x, setdiff(out, CDB$BODY[multipart == TRUE]$conceptId)))
 	}
 	
 	add_overlap <- function(x){
@@ -93,67 +93,53 @@ compose <- function(conceptId, CDB, composeLookup,
 	}
 	
 	# Ensure correct data types
+	conceptId <- as.SNOMEDconcept(conceptId, SNOMED = SNOMED)
+	
+	# Expand to include ancestors
 	due_to_search <- harmonise(due_to_conceptIds, TRUE)
-	attributes_exact <- union(union(as.SNOMEDconcept(
-		bit64::as.integer64(due_to_conceptIds)),
-		as.SNOMEDconcept(bit64::as.integer64(attributes_conceptIds))),
-		NA_concept)
-	attributes_search <- harmonise(attributes_exact)
+	attributes_search <- union(harmonise(attributes_conceptIds),
+		due_to_search)
 	without_search <- harmonise(without_conceptIds, TRUE)
 	with_search <- harmonise(with_conceptIds, TRUE)
+
+	# Expand root concept to include ancestors that are in
+	# compostLookup (in case they provide a wider variety of
+	# composition options)
+	root_search <- add_overlap(conceptId)
+	root_search <- union(root_search,
+		composeLookup[origId %in% root_search]$rootId)
 	
-	conceptId <- as.SNOMEDconcept(conceptId, SNOMED = SNOMED)
-	root_search <- expand(conceptId) # this is the most comprehensive
-	# way of doing the search but it might be possible to use a 
-	# more efficient way (e.g. include just a couple of generations
-	# above) to reduce the search space.
-	
-	# Find highest number of attribute fields in this composeLookup
-	SUBSET <- composeLookup[rootId %in% root_search &
-		without %in% without_search &
-		with %in% with_search &
-		due_to %in% due_to_search &
-		attr_1 %in% attributes_search]
-	SUBSET_EXACT <- SUBSET[attr_1 %in% attributes_exact]
+	# Create indexed data.table for fast lookup
+	LOOKUP <- data.table(expand.grid(root_search, attributes_search))
+	setnames(LOOKUP, c('rootId', 'attr_1'))
+	setkeyv(LOOKUP, c('rootId', 'attr_1'))
 	
 	# Find highest number of attribute fields in this composeLookup
 	max_attr <- max(as.numeric(sub('^attr_', '', 
 		names(composeLookup)[names(composeLookup) %like% '^attr_'])))
 	
-	if (max_attr > 1){
-		for (j in 2:max_attr){
-			attr_x_name <- paste0('attr_', j)
-			if (nrow(SUBSET) > 0){
-				SUBSET <- SUBSET[get(attr_x_name) %in% attributes_search]
-			}
-			# get() will create a warning if SUBSET_EXACT is an empty
-			# data.table
-			if (nrow(SUBSET_EXACT) > 0){
-				SUBSET_EXACT <- SUBSET_EXACT[get(attr_x_name) %in%
-					attributes_exact]
-			}
-		}
+	if (max_attr == 1){
+		SUBSET <- merge(composeLookup, LOOKUP)[without %in% without_search &
+			with %in% with_search & due_to %in% due_to_search]
+	} else {
+		# This code could be simplified if number of attribute fields
+		# is fixed to 10
+		attr_text <- paste(paste0('attr_', 2:max_attr,
+				' %in% attributes_search &'), collapse = ' ')
+		SUBSET <- merge(composeLookup, LOOKUP)[eval(parse(text =
+			paste(attr_text, 'without %in% without_search &', 
+				'with %in% with_search & due_to %in% due_to_search')))]
 	}
 	
 	if (nrow(SUBSET) == 0){
 		return(conceptId)
 	}
 
-	# Try for an exact match
-	matchIds <- unique(as.SNOMEDconcept(SUBSET_EXACT$origId,
+	# Retrieve valid compositions
+	matchIds <- unique(as.SNOMEDconcept(SUBSET$origId,
 		SNOMED = SNOMED))
-	
-	# If no exact match, return all possible matches
-	if (length(matchIds) == 0){
-		matchIds <- unique(as.SNOMEDconcept(SUBSET$origId,
-			SNOMED = SNOMED))
-	}
 
-	# Ensure that matches are descendants of rootId
-	matchIds <- intersect(matchIds, add_overlap(descendants(conceptId,
-		SNOMED = SNOMED, TRANSITIVE = CDB$TRANSITIVE)))
-	
-	# Return original concept if no decompositions
+	# Return original concept if no compositions
 	if (length(matchIds) == 0){
 		return(conceptId)
 	}

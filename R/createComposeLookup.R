@@ -101,13 +101,16 @@ createComposeLookup <- function(decompositions, CDB, maxcol = 10,
 		setnames(D, '.temp', i)
 	}
 	
-	# Remove rows without rootId (i.e. without a valid decomposition)
-	D <- D[!is.na(rootId)]
-	
 	# Remove rows with outstanding text
 	D <- D[!(other_conceptId %like% '[[:alpha:]]')]
 	D[, other_conceptId := gsub('^ +| +$', '', other_conceptId)]
-	
+
+	# Remove rows without rootId or without a valid decomposition
+	D <- D[!is.na(rootId)]
+	D <- D[!(is.na(with) & is.na(due_to) & is.na(after) &
+		is.na(without) & is.na(body_site) & is.na(severity) &
+		is.na(stage) & is.na(laterality) & other_conceptId == '')]
+
 	# Separate due to findings; due to anything else is other_attr
 	D[!(due_to %in% CDB$FINDINGS$conceptId) & !is.na(due_to),
 		other_conceptId := paste(due_to, other_conceptId)]
@@ -169,8 +172,8 @@ createComposeLookup <- function(decompositions, CDB, maxcol = 10,
 		setnames(D, '.temp2', paste0('attr_', i))
 		D[, .temp := NULL]
 	}
-	cols_to_keep <- c('rootId', 'with', 'due_to', 'without',
-		paste0('attr_', 1:maxcol), 'origId')
+	cols_to_keep <- c('rootId', paste0('attr_', 1:maxcol), 
+		'with', 'due_to', 'without', 'origId')
 	D <- subset(D, select = cols_to_keep)
 	D <- D[!duplicated(D)]
 	setorderv(D, cols_to_keep)

@@ -3,7 +3,7 @@ Version 1.4 - In development
 =====================================================================
 
 BUG FIXES:
-- Bug fixes in decompose and compose
+- Bug fixes in createCDB, decompose and compose
 
 NEW FEATURES:
 - Option to omit metadata in codelist export

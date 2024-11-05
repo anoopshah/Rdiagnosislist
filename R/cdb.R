@@ -113,7 +113,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	BODY <- init('Body structure')
 	
 	# Remove 'entire', 'structure of', 'of' and 'the'
-	strip_structure <- ' entire | structure of | structure | of the | of | the '
+	strip_structure <- ' entire | region structure | structure of | structure | of the | of | the '
 	if (nrow(BODY) > 0){
 		BODY <- rbind(BODY, BODY[, list(conceptId,
 			term = gsub(strip_structure, ' ',
@@ -123,7 +123,8 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		# Remove structure type (e.g. 'muscle structure' etc.) if a name is
 		# unique (e.g. there is only one rectus femoris and it is a muscle)
 		structure_types <- c(' muscle | skeletal muscle ', ' ligament ',
-			' tendon ', ' bone | bone structure ', ' joint ', ' artery ' , ' vein ')
+			' tendon ', ' bone | bone structure ', ' joint ', ' artery ',
+			' vein ')
 		structure_terms <- lapply(structure_types, function(structure_type){
 			# Find concepts with structure
 			ANCESTOR <- BODY[term %like% paste0('^(', structure_type, ')$')]
@@ -339,6 +340,15 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	BODY[conceptId %in% right_structures, laterality := 'Right']
 	BODY[conceptId %in% bilateral_structures,
 		laterality := 'Bilateral']
+	
+	# Mark body site concepts that are actually concepts describing
+	# two separate body parts (e.g. proximal end of radius and ulna)
+	# Use the 
+	BODY[, multipart := conceptId %in% 
+		description(unique(BODY$conceptId), SNOMED = SNOMED)[
+		tolower(term) %like%
+		' and | or | and/or |\\(combined site\\)']$conceptId]
+	
 	# Remove morphologic abnormalities from BODY to FINDINGS
 	MORPH <- BODY[semanticType(conceptId, SNOMED = SNOMED) ==
 		'morphologic abnormality', list(conceptId, term)]
@@ -399,7 +409,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	CDB$allergyConcepts <- s(c('Allergic disposition', 'Adverse reaction',
 		'Intolerance to substance', 'Hypersensitivity disposition'))
 	# remove allergy as synonym of 'allergic reaction'
-		
+	
 	CDB$stopwords <- stopwords
 	CDB$SEMTYPE <- rbind(
 		CDB$FINDINGS[, list(conceptId, semType = semanticType(conceptId,
@@ -414,8 +424,8 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 			CDB$LATERALITY$conceptId, CDB$SEVERITY$conceptId)),
 			list(conceptId, semType)])
 		# contents of stage are mostly findings so don't need to include
-	CDB$SEMTYPE[!duplicated(CDB$SEMTYPE)]
-	
+	CDB$SEMTYPE <- CDB$SEMTYPE[!duplicated(CDB$SEMTYPE)]
+
 	# Set keys for fast searching
 	if (noisy) message('Creating indices for fast searching')
 	setkey(CDB$SEMTYPE, conceptId)

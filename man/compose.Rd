@@ -12,8 +12,7 @@ compose(
   due_to_conceptIds = bit64::integer64(0),
   without_conceptIds = bit64::integer64(0),
   with_conceptIds = bit64::integer64(0),
-  SNOMED = getSNOMED(),
-  show_all_matches = FALSE
+  SNOMED = getSNOMED()
 )
 }
 \arguments{
@@ -36,9 +35,6 @@ absent}
 \item{with_conceptIds}{SNOMED concept Ids of conditions also present}
 
 \item{SNOMED}{environment containing SNOMED CT tables}
-
-\item{show_all_matches}{whether to stop if an exact match is found,
-or continue to search for all potential matches}
 }
 \value{
 a refined SNOMED concept Id
