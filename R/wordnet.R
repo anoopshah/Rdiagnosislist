@@ -130,8 +130,8 @@ downloadWordnet <- function(
 #' ensure that words with multiple meanings are not linked to the wrong
 #' synonym. This function also corrects some known errors in WordNet to
 #' avoid them being passed on to the CDB; currently this applies to 
-#' 'allergy = allergic reaction' and 'cuneiform bone = triquetral'
-#' but more corrections can be done if needed.
+#' 'allergy = allergic reaction', 'cuneiform bone = triquetral'
+#' and 'trauma' = 'injury', but more corrections can be done if needed.
 #'
 #' @param CDB_TABLE data.frame or data.table with columns
 #'   conceptId (integer64) and term (character, with space before
@@ -168,6 +168,8 @@ addWordnet <- function(CDB_TABLE, wn_categories, WN,
 	CHECK_TABLE = NULL, errors_to_remove = list(
 	c('allergy', 'allergic reaction'),
 	c('allergic', 'allergic reaction'),
+	c('trauma', 'injury'),
+	c('traumatic', 'injury'),
 	c('cuneiform bone', 'triquetral bone'),
 	c('upset', 'disorder'),
 	c('disorderliness', 'disorder'))){
@@ -183,7 +185,7 @@ addWordnet <- function(CDB_TABLE, wn_categories, WN,
 	WNLONG[, term := paste0(' ', gsub('_', ' ', term), ' ')]
 	
 	# Correct known errors in Wordnet
-	remove <- function(word_to_remove, base_word){
+	remove <- function(WNLONG, word_to_remove, base_word){
 		word_to_remove <- paste0(' ', gsub('^ +| $', '', word_to_remove), ' ')
 		base_word <- paste0(' ', gsub('^ +| $', '', base_word), ' ')
 		TOREMOVE <- WNLONG[wordnetId %in%
@@ -196,8 +198,9 @@ addWordnet <- function(CDB_TABLE, wn_categories, WN,
 			WNLONG
 		}
 	}
-	for (i in length(errors_to_remove)){
-		WNLONG <- remove(errors_to_remove[[i]][1],
+	
+	for (i in 1:length(errors_to_remove)){
+		WNLONG <- remove(WNLONG, errors_to_remove[[i]][1],
 			errors_to_remove[[i]][2])
 	}
 	

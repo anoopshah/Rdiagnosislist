@@ -10,8 +10,9 @@ addWordnet(
   WN,
   CHECK_TABLE = NULL,
   errors_to_remove = list(c("allergy", "allergic reaction"), c("allergic",
-    "allergic reaction"), c("cuneiform bone", "triquetral bone"), c("upset", "disorder"),
-    c("disorderliness", "disorder"))
+    "allergic reaction"), c("trauma", "injury"), c("traumatic", "injury"),
+    c("cuneiform bone", "triquetral bone"), c("upset", "disorder"), c("disorderliness",
+    "disorder"))
 )
 }
 \arguments{
@@ -42,8 +43,8 @@ on term. It is recommended to restrict the wordnet categories to
 ensure that words with multiple meanings are not linked to the wrong
 synonym. This function also corrects some known errors in WordNet to
 avoid them being passed on to the CDB; currently this applies to 
-'allergy = allergic reaction' and 'cuneiform bone = triquetral'
-but more corrections can be done if needed.
+'allergy = allergic reaction', 'cuneiform bone = triquetral'
+and 'trauma' = 'injury', but more corrections can be done if needed.
 }
 \examples{
 WORDNET <- data.table::data.table(cat = c('noun.body', 'noun.state'),
