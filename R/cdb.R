@@ -128,6 +128,8 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		structure_terms <- lapply(structure_types, function(structure_type){
 			# Find concepts with structure
 			ANCESTOR <- BODY[term %like% paste0('^(', structure_type, ')$')]
+			# first generation children are non-specific and are not to have
+			# their body type stripped out
 			if (nrow(ANCESTOR) > 0){
 				if (noisy) message(paste0('Removing the words ',
 					structure_type, ' where possible.'))
@@ -162,14 +164,24 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 			paste(structure_types, collapse = '|'), ')$')]$conceptId
 		OTHER_BODY_PARTS <- BODY[!(conceptId %in% desc(body_ancestors))]
 
+		# Find concepts for generic body parts (these should not have
+		# their body type stripped)
+		firstgen <- BODY[term %like% paste0('^(',
+			paste(structure_types, collapse = '|'),
+			')(part |)$')]$conceptId
+		firstgen <- children(firstgen, include_self = TRUE,
+			SNOMED = SNOMED)
+		
+		# Find unique structure terms without body part type
 		unique_structure_terms <- lapply(structure_types,
 			function(structure_type){
 				TEMP <- structure_terms[[structure_type]]
 				searchtext <- paste(setdiff(structure_types, structure_type),
 					collapse = '|')
-				exclude <- TEMP[(term %in% c(OTHER_BODY_PARTS$term,
+				exclude <- c(TEMP[(term %in% c(OTHER_BODY_PARTS$term,
 					other_structure_terms[[structure_type]])) |
-					(term %like% searchtext)]$conceptId
+					(term %like% searchtext)]$conceptId, 
+					firstgen)
 				# Exclude if term is ambiguous or has another structure
 				# type mentioned
 				TEMP[!(conceptId %in% exclude), 

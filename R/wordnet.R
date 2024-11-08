@@ -170,6 +170,7 @@ addWordnet <- function(CDB_TABLE, wn_categories, WN,
 	c('allergic', 'allergic reaction'),
 	c('trauma', 'injury'),
 	c('traumatic', 'injury'),
+	c('skinny', 'skin'),
 	c('cuneiform bone', 'triquetral bone'),
 	c('upset', 'disorder'),
 	c('disorderliness', 'disorder'))){
