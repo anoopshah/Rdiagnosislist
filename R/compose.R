@@ -103,7 +103,7 @@ compose <- function(conceptId, CDB, composeLookup,
 	with_search <- harmonise(with_conceptIds, TRUE)
 
 	# Expand root concept to include ancestors that are in
-	# compostLookup (in case they provide a wider variety of
+	# composeLookup (in case they provide a wider variety of
 	# composition options)
 	root_search <- add_overlap(conceptId)
 	root_search <- union(root_search,

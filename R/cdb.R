@@ -400,10 +400,10 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	
 	# OVERLAP = concepts that are in findings as well as another
 	# (qual etc.)
-	FindingsFSN <- description(FINDINGS$conceptId, SNOMED = SNOMED)[,
+	FindingsFSN <- description(CDB$FINDINGS$conceptId, SNOMED = SNOMED)[,
 		list(findingId = conceptId, term = sub(' \\([^\\(]+\\)$', '', term))]
-	OtherFSN <- description(c(QUAL$conceptId, BODY$conceptId),
-		SNOMED = SNOMED)[,
+	OtherFSN <- description(c(CDB$QUAL$conceptId, CDB$BODY$conceptId,
+		CDB$MORPH$conceptId), SNOMED = SNOMED)[,
 		list(otherId = conceptId, term = sub(' \\([^\\(]+\\)$', '', term))]
 	CDB$OVERLAP <- merge(FindingsFSN, OtherFSN)[, list(findingId, otherId)]
 	CDB$OVERLAP <- CDB$OVERLAP[!duplicated(CDB$OVERLAP)]
