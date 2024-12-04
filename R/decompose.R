@@ -918,15 +918,15 @@ print.SNOMEDfindings <- function(x, ...){
 				}
 			}
 		}
+		show('body_site')
+		show('severity')
+		show('stage')
+		show('laterality')
 		show('with')
 		show('due_to')
 		show('causing')
 		show('after')
 		show('without')
-		show('body_site')
-		show('severity')
-		show('stage')
-		show('laterality')
 		show('attributes')
 		if ('other_conceptId' %in% names(D)){
 			# other conceptIds as a character vector 
