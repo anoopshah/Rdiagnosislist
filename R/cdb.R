@@ -510,7 +510,7 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 			disambiguate_concept(body_to_disambiguate[x], prefix = 'p')
 		}))
 	)
-	# Exclude entires with no context
+	# Exclude entries with no context
 	OUT <- OUT[!(text %like% '^ \\{.*\\} $')]
 }
 
@@ -831,7 +831,7 @@ exportMiADECDB <- function(CDB, export_folderpath,
 	
 	# Format of output file for MedCAT:
 	# cui, name, ontologies, name_status
-	setkey(SCT, conceptId, name_status, name)
+	setkey(SCT, conceptId, name_status, term)
 	
 	fwrite(SCT[, list(cui = conceptId, name = term,
 		ontologies = 'SNO', name_status)],
