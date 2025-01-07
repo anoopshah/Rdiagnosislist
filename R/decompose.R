@@ -349,8 +349,8 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 		# Returns a data.table containing the original DATALINE and
 		# optionally additional data lines with decompositions by
 		# searching for different ancestors
-		ANC <- A[, list(use = DATALINE$text %like% term, conceptId, term),
-			by = .I][use == TRUE, list(conceptId, term)]
+		use <- sapply(A$term, function(x) DATALINE$text %like% x)
+		ANC <- A[use == TRUE, list(conceptId, term)]
 		if (nrow(ANC) > 0){
 			return(rbindlist(lapply(1:nrow(ANC), function(x){
 				new_text <- sub(ANC[x]$term, repl_(ANC[x]$term), DATALINE$text)
@@ -365,9 +365,10 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 				message('\nNo valid ancestors, trying morphologies')
 			}
 			if (nrow(CDB$MORPH) > 0){
-				ANC <- CDB$MORPH[, list(use = DATALINE$text %like% term,
-					conceptId, term), by = .I][use == TRUE,
-					list(conceptId, term)]
+				use <- sapply(CDB$MORPH$term, function(x){
+					DATALINE$text %like% x
+				})
+				ANC <- CDB$MORPH[use == TRUE, list(conceptId, term)]
 			}
 			if (nrow(ANC) > 0){
 				return(rbindlist(lapply(1:nrow(ANC), function(x){
@@ -424,9 +425,10 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 		# as part of concept or as an additional attribute
 		if (nrow(B) > 0){
 			# Subset of body sites that match with this term
-			BOD <- B[, list(use = DATALINE$other_attr %like% term,
-				conceptId, term, required_laterality), by = .I][
-				use == TRUE, list(conceptId, term, required_laterality)]
+			use <- sapply(B$term, function(x){
+				DATALINE$other_attr %like% x
+			})
+			BOD <- B[use == TRUE, list(conceptId, term, required_laterality)]
 			if (nrow(BOD) > 0){
 				return(rbindlist(lapply(1:nrow(BOD), function(x){
 					# Is laterality included in the concept or
@@ -445,10 +447,11 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 							CDB$latConcepts[
 							BOD[x]$required_laterality]]
 						if (nrow(LATSELECT) > 0){
-							LATSELECT <- LATSELECT[, list(use = 
-								DATALINE$other_attr %like% term,
-								conceptId, term), by = .I][
-								use == TRUE, list(conceptId, term)]
+							use <- sapply(LATSELECT$term, function(x){
+								DATALINE$other_attr %like% x
+							})
+							LATSELECT <- LATSELECT[use == TRUE,
+								list(conceptId, term)]
 						}
 						if (nrow(LATSELECT) > 0){
 							# Only permit one row for simplicity
@@ -581,9 +584,10 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 			for (i in seq_along(the_causeIds)){
 				CAU <- CDB$CAUSES[conceptId %in% the_causeIds[i]]
 				if (nrow(CAU) > 0){
-					CAU <- CAU[, list(use = DATALINE$other_attr %like% term,
-						conceptId, term), by = .I][use == TRUE,
-						list(conceptId, term)]
+					use <- sapply(CAU$term, function(x){
+						DATALINE$other_attr %like% x
+					})
+					CAU <- CAU[use == TRUE, list(conceptId, term)]
 				}
 				if (nrow(CAU) > 0){
 					DATALINE <- rbindlist(lapply(1:nrow(CAU), function(x){
@@ -612,10 +616,11 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 
 	e_severity <- function(DATALINE){
 		# Returns a data.table containing the original DATALINE and
-		# with severity information extracted. 
-		SEV <- CDB$SEVERITY[,
-			list(use = DATALINE$other_attr %like% term, conceptId, term),
-			by = .I][use == TRUE, list(conceptId, term)]
+		# with severity information extracted.
+		use <- sapply(CDB$SEVERITY$term, function(x){
+			DATALINE$other_attr %like% x
+		})
+		SEV <- CDB$SEVERITY[use == TRUE, list(conceptId, term)]
 		if (nrow(SEV) > 0){
 			return(rbindlist(lapply(1:nrow(SEV), function(x){
 				new_text <- sub(SEV[x]$term, repl_(SEV[x]$term),
@@ -644,9 +649,10 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 	e_stage <- function(DATALINE){
 		# Returns a data.table containing the original DATALINE and
 		# with stage information extracted.
-		STA <- CDB$STAGE[,
-			list(use = DATALINE$other_attr %like% term, conceptId, term),
-			by = .I][use == TRUE, list(conceptId, term)]
+		use <- sapply(CDB$STAGE$term, function(x){
+			DATALINE$other_attr %like% x
+		})
+		STA <- CDB$STAGE[use == TRUE, list(conceptId, term)]
 		if (nrow(STA) > 0){
 			return(rbindlist(lapply(1:nrow(STA), function(x){
 				new_text <- sub(STA[x]$term, repl_(STA[x]$term),
