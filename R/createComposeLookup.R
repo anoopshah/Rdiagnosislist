@@ -23,7 +23,7 @@
 batchDecompose <- function(conceptIds, CDB, output_filename,
 	SNOMED = getSNOMED(), ...){
 		
-	# Decare symls for R check
+	# Decare symbols for R check
 	origId <- NULL
 	
 	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)

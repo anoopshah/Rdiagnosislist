@@ -931,11 +931,13 @@ print.SNOMEDfindings <- function(x, ...){
 		if ('other_conceptId' %in% names(D)){
 			# other conceptIds as a character vector 
 			# (used for CSV file import / export)
-			if (D[i]$other_conceptId != ''){
-				cat('\n- Other attributes :')
-				attributes <- strsplit(D[i]$other_conceptId, ' ')[[1]]
-				for (j in 1:length(attributes)){
-					cat('\n  -', show_concept(attributes[j], 4))
+			if (!is.na(D[i]$other_conceptId)){
+				if (D[i]$other_conceptId != ''){
+					cat('\n- Other attributes :')
+					attributes <- strsplit(D[i]$other_conceptId, ' ')[[1]]
+					for (j in 1:length(attributes)){
+						cat('\n  -', show_concept(attributes[j], 4))
+					}
 				}
 			}
 		}

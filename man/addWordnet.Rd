@@ -10,9 +10,9 @@ addWordnet(
   WN,
   CHECK_TABLE = NULL,
   errors_to_remove = list(c("allergy", "allergic reaction"), c("allergic",
-    "allergic reaction"), c("trauma", "injury"), c("traumatic", "injury"),
-    c("cuneiform bone", "triquetral bone"), c("upset", "disorder"), c("disorderliness",
-    "disorder"))
+    "allergic reaction"), c("trauma", "injury"), c("traumatic", "injury"), c("skinny",
+    "skin"), c("cuneiform bone", "triquetral bone"), c("upset", "disorder"),
+    c("disorderliness", "disorder"))
 )
 }
 \arguments{
