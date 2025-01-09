@@ -4,6 +4,8 @@ Version 1.4 - In development
 
 BUG FIXES:
 - Bug fixes in createCDB, decompose and compose
+- Previous version required data.table >= 1.14.3 but this was not listed
+  as a dependency, now it works with data.table >= 1.12.8
 
 NEW FEATURES:
 - Option to omit metadata in codelist export

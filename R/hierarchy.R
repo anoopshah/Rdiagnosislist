@@ -37,51 +37,69 @@ relatedConcepts <- function(conceptIds,
 
 	active <- sourceId <- destinationId <- conceptId <- NULL
 
-	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
+	conceptIds <- unique(as.SNOMEDconcept(conceptIds, SNOMED = SNOMED))
+	typeId <- as.SNOMEDconcept(typeId, SNOMED = SNOMED)
 	
 	# If no concepts supplied, return an empty vector
 	if (length(conceptIds) == 0){
 		return(conceptIds)
 	}
-	
-	typeId <- as.SNOMEDconcept(typeId, SNOMED = SNOMED)
-	if (reverse){
-		TOLINK <- data.table(destinationId = conceptIds, typeId = typeId)
-	} else {
-		TOLINK <- data.table(sourceId = conceptIds, typeId = typeId)
-	}
-	OUT <- data.table(active = logical(0),
-		conceptId = bit64::integer64(0))
-	# Retrieve relationship table
-	addRelationship <- function(tablename, OUT){
-		TABLE <- get(tablename, envir = SNOMED)
+
+	if (active_only){
 		if (reverse){
-			OUT <- rbind(OUT, TABLE[TOLINK,
-				on = c('destinationId', 'typeId')][,
-				list(active, conceptId = sourceId)])
+			TOLINK <- data.table(destinationId = conceptIds,
+				typeId = typeId, active = TRUE)
 		} else {
-			OUT <- rbind(OUT, TABLE[TOLINK,
-				on = c('sourceId', 'typeId')][,
-				list(active, conceptId = destinationId)])
+			TOLINK <- data.table(sourceId = conceptIds,
+				typeId = typeId, active = TRUE)
 		}
-		OUT
+	} else {
+		if (reverse){
+			TOLINK <- data.table(destinationId = conceptIds,
+				typeId = typeId)
+		} else {
+			TOLINK <- data.table(sourceId = conceptIds,
+				typeId = typeId)
+		}	
+	}
+
+	# Retrieve concepts with the relevant relationship
+	getRelationship <- function(tablename, active_only){
+		TABLE <- get(tablename, envir = SNOMED)
+		if (active_only){
+			if (reverse){
+				return(TABLE[TOLINK, on = c('destinationId', 'typeId',
+					'active')]$sourceId)
+			} else {
+				return(TABLE[TOLINK, on = c('sourceId', 'typeId',
+					'active')]$destinationId)
+			}
+		} else {
+			if (reverse){
+				return(TABLE[TOLINK,
+					on = c('destinationId', 'typeId')]$sourceId)
+			} else {
+				return(TABLE[TOLINK,
+					on = c('sourceId', 'typeId')]$destinationId)
+			}
+		}
 	}
 
 	# Add relationships from each table
-	for (table in tables){
-		OUT <- addRelationship(table, OUT)
+	out <- unique(as.SNOMEDconcept(getRelationship(tables[1],
+		active_only)))
+	if (length(tables) > 1){
+		for (table in tables[-1]){
+			out <- union(out, getRelationship(table, active_only))
+		}
 	}
-
-	# Limit to active terms if required
-	if (active_only){
-		out <- OUT[active == TRUE]$conceptId
-	} else {
-		out <- OUT$conceptId
-	}
+	# Remove NA values
+	out <- out[!is.na(out)]
 
 	# Recursion if appropriate
 	if (recursive == TRUE){
-		out <- sort(unique(c(conceptIds, out)))
+		# Include original concepts for recursion
+		out <- union(conceptIds, out)
 		if (length(conceptIds) < length(out)){
 			# Recurse
 			return(relatedConcepts(conceptIds = out,
@@ -89,10 +107,10 @@ relatedConcepts <- function(conceptIds,
 				reverse = reverse, recursive = TRUE,
 				active_only = active_only))
 		} else {
-			return(as.SNOMEDconcept(unique(out)))
+			return(out)
 		}
 	} else {
-		return(as.SNOMEDconcept(unique(out)))
+		return(out)
 	}
 }
 

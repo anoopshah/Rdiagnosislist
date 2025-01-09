@@ -16,7 +16,7 @@ Description: Functions and methods for manipulating 'SNOMED CT' concepts.
     of concepts IDs with descriptions. For more information about 'SNOMED CT'
     visit <https://www.snomed.org/>.
 License: GPL-3
-Imports: data.table, bit64, methods
+Imports: data.table (>= 1.12.8), bit64, methods
 Depends: readxl, R (>= 3.5.0)
 Suggests: knitr, rmarkdown, testthat
 Encoding: UTF-8

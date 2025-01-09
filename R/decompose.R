@@ -136,13 +136,16 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 			other_attr = character(0)))
 	}
 	
-	RELEVANT <- attrConcept(the_conceptId, SNOMED = SNOMED)
-	relevant_conceptId <- c(RELEVANT$sourceId, RELEVANT$destinationId)
-	relevant_conceptId <- union(union(children(
+	# RELEVANT <- attrConcept(the_conceptId, SNOMED = SNOMED)
+	# relevant_conceptId <- c(RELEVANT$sourceId, RELEVANT$destinationId)
+	# attrConcept is slow, to rewrite
+	relevant_conceptId <- c(SNOMED$RELATIONSHIP[sourceId %in%
+		the_conceptId]$destinationId,
+		SNOMED$RELATIONSHIP[destinationId %in% the_conceptId]$sourceId)
+	relevant_conceptId <- union(children(
 		setdiff(anc(relevant_conceptId), c(CDB$SCT_disorder,
 		CDB$SCT_finding)), SNOMED = SNOMED, include_self = TRUE),
-		desc(relevant_conceptId, include_self = TRUE)),
-		CDB$QUAL$conceptId)
+		desc(relevant_conceptId, include_self = TRUE))
 	
 	#### SPLIT INTO PARTS
 	do_splitparts <- function(conceptId, text){
@@ -511,7 +514,9 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 	# the_body_siteId should only be one but a few concepts have
 	# multiple body sites, so allow multiple
 	body_siteTerms <- paste0(' ',
-		tolower(description(body_siteIds, SNOMED = SNOMED)$term))
+		tolower(SNOMED$DESCRIPTION[conceptId %in% body_siteIds &
+		typeId == bit64::as.integer64('900000000000003001') &
+		active == TRUE]$term))
 
 	if (length(body_siteIds) > 0){
 		if (length(body_siteIds) == 2 &
@@ -693,12 +698,14 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 		# Loop until i reaches the end of other_attr
 		while (i < length(the_other_attr)){
 			# Advance to first word
-			while (i < length(the_other_attr) & the_other_attr[i] == '@'){
+			while (i < length(the_other_attr) &
+				the_other_attr[i] == '@'){
 				i <- i + 1
 			}
 			j <- i
 			# Locate end of phrase
-			while (j < length(the_other_attr) & the_other_attr[j] != '@'){
+			while (j < length(the_other_attr) &
+				the_other_attr[j] != '@'){
 				j <- j + 1
 			}
 			# Try to match sequence to a SNOMED concept
@@ -707,25 +714,27 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 				j <- j - 1
 				to_match <- paste0(' ', paste(the_other_attr[i:j],
 					collapse = ' '), ' ')
-				# search separately QUAL, FINDINGS, CAUSES, BODY
-				OTHERSEARCH <- rbindlist(lapply(
-					c('QUAL', 'FINDINGS', 'CAUSES', 'BODY'),
-					function(x){
-						get(x, envir = CDB)[conceptId %in%
-						relevant_conceptId, list(conceptId, term)]
-					}))
-				OTHERSEARCH <- OTHERSEARCH[!(conceptId %in%
-					c(DATALINE$rootId, DATALINE$body_site,
-					the_conceptId))]
-				if (nrow(OTHERSEARCH) > 0){
-					if (to_match %in% OTHERSEARCH$term){
-						match <- TRUE
-						DATALINE[, other_conceptId := paste(other_conceptId,
-							paste(
-							unique(OTHERSEARCH[term == to_match]$conceptId),
+				OTH <- rbind(
+					CDB$QUAL[term %in% to_match, .(conceptId, term)],
+					CDB$FINDINGS[term %in% to_match &
+						conceptId %in% relevant_conceptId &
+						!(conceptId %in% DATALINE$rootId),
+						.(conceptId, term)],
+					CDB$CAUSES[term %in% to_match &
+						conceptId %in% relevant_conceptId &
+						!(conceptId %in% DATALINE$rootId),
+						.(conceptId, term)],
+					CDB$BODY[term %in% to_match &
+						conceptId %in% relevant_conceptId &
+						!(conceptId %in% DATALINE$body_site),
+						.(conceptId, term)])
+				if (nrow(OTH) > 0){
+					match <- TRUE
+					DATALINE[, other_conceptId :=
+						paste(other_conceptId,
+							paste(unique(OTH$conceptId),
 							collapse = '|'))]
-						i <- j
-					}
+					i <- j
 				}
 			}
 			if (match == FALSE){
