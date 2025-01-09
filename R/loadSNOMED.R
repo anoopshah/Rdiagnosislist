@@ -79,7 +79,7 @@ HistorySubstitutionTable_Concepts|HISTORY')
 				message('No files matching ', thispattern)
 			} else {
 				for (thisfile in files[touse]){
-					message('Attempting to load ', sub(folder, '', thisfile))
+					message('Attempting to load ', thisfile)
 					TEMP <- NULL
 					try(TEMP <- data.table::fread(thisfile, quote = ""))
 					if (is.null(TEMP)){
