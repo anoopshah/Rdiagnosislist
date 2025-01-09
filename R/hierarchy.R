@@ -287,7 +287,6 @@ createTransitive <- function(conceptIds, SNOMED = getSNOMED(),
 			WORKING[, list(selfId = childId, parentId)], by = 'selfId',
 			allow.cartesian = TRUE)[, list(childId, parentId)])
 		WORKING <- WORKING[!duplicated(WORKING)]
-		gc()
 		old_nrows <- new_nrows
 		new_nrows <- nrow(WORKING)
 	}

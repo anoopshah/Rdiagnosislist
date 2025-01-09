@@ -75,7 +75,7 @@ createComposeLookup <- function(decompositions, CDB, maxcol = 10,
 	# Declare symbols to avoid R check error
 	.temp <- rootId <- other_conceptId <- due_to <- after <- NULL
 	body_site <- severity <- stage <- laterality <- NULL
-	attrId <- freq <- rootId <- freq <- .temp2 <- NULL
+	attrId <- freq <- rootId <- freq <- .temp2 <- without <- NULL
 	
 	sct_concept_colnames <- c('rootId', 'with', 'due_to',
 		'after', 'without', 'body_site', 'severity', 'stage',

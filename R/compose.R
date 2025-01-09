@@ -57,7 +57,7 @@ compose <- function(conceptId, CDB, composeLookup,
 	
 	# Declare symbols to avoid R check error
 	findingId <- otherId <- rootId <- without <- NULL
-	due_to <- attr_1 <- NULL
+	due_to <- attr_1 <- multipart <- origId <- NULL
 	
 	# Harmonise and append NA for each attribute
 	expand <- function(x){

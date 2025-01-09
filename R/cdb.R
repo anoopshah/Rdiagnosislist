@@ -37,7 +37,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	synonyms <- syn <- part <- whole <- snomed <- synonym <- NULL
 	extra <- sourceId <- destinationId <- laterality <- NULL
 	nonlat_parentId <- N <- semType <- findingId <- otherId <- NULL
-	descendantId <- ancestorId <- bidirectional <- NULL
+	descendantId <- ancestorId <- bidirectional <- multipart <- NULL
 
 	#### USEFUL FUNCTIONS ####
 	

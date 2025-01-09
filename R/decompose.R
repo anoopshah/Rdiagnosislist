@@ -38,7 +38,8 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 	type <- term <- partId <- rootId <- parttext <- conceptId <- NULL
 	conceptId <- use <- other_attr <- rootId <- origId <- NULL
 	required_laterality <- exact <- body_site <- laterality <- NULL
-	due_to <- severity <- stage <- other_conceptId <- NULL
+	due_to <- severity <- stage <- other_conceptId <- without <- NULL
+	sourceId <- destinationId <- typeId <- active <- after <- NULL
 	
 	conceptIds <- as.character(as.SNOMEDconcept(conceptIds,
 		SNOMED = SNOMED))
@@ -714,25 +715,25 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 				j <- j - 1
 				to_match <- paste0(' ', paste(the_other_attr[i:j],
 					collapse = ' '), ' ')
-				OTH <- rbind(
-					CDB$QUAL[term %in% to_match, .(conceptId, term)],
+				OTHER <- rbind(
+					CDB$QUAL[term %in% to_match, list(conceptId, term)],
 					CDB$FINDINGS[term %in% to_match &
 						conceptId %in% relevant_conceptId &
 						!(conceptId %in% DATALINE$rootId),
-						.(conceptId, term)],
+						list(conceptId, term)],
 					CDB$CAUSES[term %in% to_match &
 						conceptId %in% relevant_conceptId &
 						!(conceptId %in% DATALINE$rootId),
-						.(conceptId, term)],
+						list(conceptId, term)],
 					CDB$BODY[term %in% to_match &
 						conceptId %in% relevant_conceptId &
 						!(conceptId %in% DATALINE$body_site),
-						.(conceptId, term)])
-				if (nrow(OTH) > 0){
+						list(conceptId, term)])
+				if (nrow(OTHER) > 0){
 					match <- TRUE
 					DATALINE[, other_conceptId :=
 						paste(other_conceptId,
-							paste(unique(OTH$conceptId),
+							paste(unique(OTHER$conceptId),
 							collapse = '|'))]
 					i <- j
 				}

@@ -2,7 +2,7 @@ Package: Rdiagnosislist
 Title: Manipulate SNOMED CT Diagnosis Lists
 Version: 1.4
 Authors@R: 
-    person(given = "Anoop",
+    person(given = c("Anoop", "D."),
            family = "Shah",
            role = c("aut", "cre"),
            email = "anoop@doctors.org.uk",
@@ -22,6 +22,6 @@ Suggests: knitr, rmarkdown, testthat
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.1
-Author: Anoop Shah [aut, cre] (0000-0002-8907-5724)
-Maintainer: Anoop Shah <anoop@doctors.org.uk>
+Author: Anoop D. Shah [aut, cre] (<https://orcid.org/0000-0002-8907-5724>)
+Maintainer: Anoop D. Shah <anoop@doctors.org.uk>
 VignetteBuilder: knitr

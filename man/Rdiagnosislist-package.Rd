@@ -11,7 +11,7 @@ into R and use the hierarchies to search for concepts and navigate
 relations between concepts.
 }
 \author{
-\strong{Maintainer}: Anoop Shah \email{anoop@doctors.org.uk} (\href{https://orcid.org/0000-0002-8907-5724}{ORCID})
+\strong{Maintainer}: Anoop D. Shah \email{anoop@doctors.org.uk} (\href{https://orcid.org/0000-0002-8907-5724}{ORCID})
 
 }
 \keyword{internal}
