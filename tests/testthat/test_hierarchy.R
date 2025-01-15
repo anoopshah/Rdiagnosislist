@@ -6,6 +6,7 @@ require(data.table)
 context('SNOMED hierarchy')
 
 test_that('Related concepts', {
+	setDTthreads(threads = 1)
 	expect_equal(relatedConcepts(
 		as.SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED()),
 		typeId = as.SNOMEDconcept('Finding site', SNOMED = sampleSNOMED()),
@@ -14,6 +15,7 @@ test_that('Related concepts', {
 })
 
 test_that('createTransitive', {
+	setDTthreads(threads = 1)
 	TRANSITIVE <- createTransitive(
 		descendants('Heart failure', SNOMED = sampleSNOMED()),
 		SNOMED = sampleSNOMED())
@@ -23,6 +25,7 @@ test_that('createTransitive', {
 })
 
 test_that('hasAttributes', {
+	setDTthreads(threads = 1)
 	expect_equal(hasAttributes(
 		as.SNOMEDconcept(c('Heart failure', 'Acute heart failure'),
 		SNOMED = sampleSNOMED()),
@@ -33,6 +36,7 @@ test_that('hasAttributes', {
 })
 
 test_that('attrConcept', {
+	setDTthreads(threads = 1)
 	attrTable <- attrConcept(as.SNOMEDconcept('Heart failure',
 		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED())
 	expect_true(attrTable[,
@@ -43,6 +47,7 @@ test_that('attrConcept', {
 })
 
 test_that('Ancestors', {
+	setDTthreads(threads = 1)
 	expect_true(all(as.SNOMEDconcept(c('105981003', '127337006'),
 		SNOMED = sampleSNOMED()) %in%
 		ancestors(as.SNOMEDconcept(c('Heart failure',
@@ -51,6 +56,7 @@ test_that('Ancestors', {
 })
 
 test_that('Semantic types', {
+	setDTthreads(threads = 1)
 	expect_equal(semanticType(as.SNOMEDconcept('Heart failure',
 		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED()), 'disorder')
 	expect_equal(semanticType(as.SNOMEDconcept('Suspected heart failure',
@@ -60,6 +66,7 @@ test_that('Semantic types', {
 })
 
 test_that('Simplify - find closest single ancestor', {
+	setDTthreads(threads = 1)
 	possible_ancestors <- c('Heart failure', 'Acute heart failure',
 		'Cardiorenal syndrome')
 	original_terms <- c('Systolic heart failure',

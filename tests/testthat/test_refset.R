@@ -6,6 +6,7 @@ require(data.table)
 context('Retrieving refsets')
 
 test_that('Retrieving refsets', {
+	setDTthreads(threads = 1)
 	myrefset <- sort(getRefset('Renal clinical finding simple reference set',
 		SNOMED = sampleSNOMED()))
 	check <- sort(as.SNOMEDconcept(sampleSNOMED()$REFSET[refsetId ==

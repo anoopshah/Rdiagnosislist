@@ -58,7 +58,7 @@ To create the composition lookups, the steps are:
 1. Create the SNOMED and CDB objects as per above.
 2. Select the set of SNOMED CT concepts for which to create decompositions.
 3. Use the batchDecompose() function (note: this can take a long time to run), in our test it took about 10 days on a standard PC to decompose all SNOMED CT findings.
-4. Use the createComposeLookup() lookup to convert the decompositions into a lookup table which is optimised for fast search.
+4. Use addComposeLookupToCDB() lookup to convert the decompositions into a lookup table which is optimised for fast search, and add it to the CDB.
 
 The compose lookup table can now be used to refine SNOMED CT concepts using compose(), which selects a more specific concept based on supplied attributes.
 
@@ -77,12 +77,11 @@ batchDecompose(disorders, CDB = CDB, SNOMED = SNOMED,
   output_filename = 'path_to_decompositions.csv')
 
 # Create composition lookup
-CL <- createComposeLookup('path_to_decompositions.csv',
+CDB <- addComposeLookupToCDB('path_to_decompositions.csv',
   CDB = CDB, SNOMED = SNOMED)
 
 # Test the decomoposition table to refine a SNOMED CT concept
-compose(conceptId = as.SNOMEDconcept('Fracture'),
-  CDB = CDB, composeLookup = CL,
+compose(conceptId = as.SNOMEDconcept('Fracture'), CDB = CDB,
   attributes_conceptIds = as.SNOMEDconcept(c('Open', 'Femur')),
   due_to_conceptIds = bit64::integer64(0),
   without_conceptIds = bit64::integer64(0),

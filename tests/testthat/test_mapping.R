@@ -6,6 +6,7 @@ require(data.table)
 context('Mapping table')
 
 test_that('Test Read 2 to SNOMED CT mappings - multiple rows', {
+	setDTthreads(threads = 1)
 	data(READMAPS)
 	read2hfmaps <- getMaps(SNOMEDconcept('Heart failure',
 		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED(),
@@ -19,6 +20,7 @@ test_that('Test Read 2 to SNOMED CT mappings - multiple rows', {
 })
 
 test_that('Test CTV3 to SNOMED CT mappings - multiple rows', {
+	setDTthreads(threads = 1)
 	data(READMAPS)
 	ctv3hfmaps <- getMaps(SNOMEDconcept('Heart failure',
 		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED(),
@@ -32,6 +34,7 @@ test_that('Test CTV3 to SNOMED CT mappings - multiple rows', {
 })
 
 test_that('Test Read 2 / CTV3 to SNOMED CT mappings - single row', {
+	setDTthreads(threads = 1)
 	data(READMAPS)
 	allmaps <- getMaps(SNOMEDconcept('Heart failure',
 		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED(),
@@ -44,6 +47,7 @@ test_that('Test Read 2 / CTV3 to SNOMED CT mappings - single row', {
 })
 
 test_that('Test CTV3 to SNOMED CT mappings without READMAPS - single row', {
+	setDTthreads(threads = 1)
 	allmaps <- getMaps(SNOMEDconcept('Heart failure',
 		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED(),
 		to = 'ctv3simple', single_row_per_concept = TRUE)
@@ -55,6 +59,7 @@ test_that('Test CTV3 to SNOMED CT mappings without READMAPS - single row', {
 
 
 test_that('Test SNOMED CT to ICD-10 mappings - single row', {
+	setDTthreads(threads = 1)
 	icd10map <- getMaps(SNOMEDconcept('Heart failure',
 		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED(),
 		to = 'icd10', single_row_per_concept = TRUE)
@@ -63,6 +68,7 @@ test_that('Test SNOMED CT to ICD-10 mappings - single row', {
 })
 
 test_that('Test SNOMED CT to ICD-10 mappings - multiple rows', {
+	setDTthreads(threads = 1)
 	icd10map <- getMaps(SNOMEDconcept(c('Heart failure',
 		paste0('Heart failure with reduced ejection fraction ',
 		'due to coronary artery disease')),
@@ -74,6 +80,7 @@ test_that('Test SNOMED CT to ICD-10 mappings - multiple rows', {
 })
 
 test_that('Test SNOMED CT to OPCS mappings - single row', {
+	setDTthreads(threads = 1)
 	opcs4map <- getMaps(SNOMEDconcept(paste0('Implantation of ',
 		'permanent cardiac pacemaker using fluoroscopic guidance'),
 		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED(),
@@ -84,6 +91,7 @@ test_that('Test SNOMED CT to OPCS mappings - single row', {
 })
 
 test_that('Test SNOMED CT to OPCS mappings - multiple rows', {
+	setDTthreads(threads = 1)
 	opcs4map <- getMaps(SNOMEDconcept(paste0('Implantation of ',
 		'permanent cardiac pacemaker using fluoroscopic guidance'),
 		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED(),

@@ -11,7 +11,7 @@
 #' @param ... out
 #' @return TRUE if successful 
 #' @export
-#' @seealso decompose, compose, createComposeLookup
+#' @seealso decompose, compose, addComposeLookupToCDB
 batchDecompose <- function(conceptIds, CDB, output_filename,
 	SNOMED = getSNOMED(), ...){
 		

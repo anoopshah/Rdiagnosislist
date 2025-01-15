@@ -7,7 +7,6 @@
 compose(
   conceptId,
   CDB,
-  composeLookup,
   attributes_conceptIds = bit64::integer64(0),
   due_to_conceptIds = bit64::integer64(0),
   without_conceptIds = bit64::integer64(0),
@@ -20,9 +19,9 @@ compose(
 
 \item{CDB}{SNOMED CT concept database, as created by createCDB.
 An environment containing the following data tables: FINDINGS,
-QUAL, CAUSES, BODY, FINDINGS, OTHERSUB, OVERLAP, TRANSITIVE}
-
-\item{composeLookup}{lookup table created by createComposeLookup}
+QUAL, CAUSES, BODY, FINDINGS, OTHERSUB, OVERLAP, TRANSITIVE.
+Must also contain a COMPOSELOOKUP table created by
+addComposeLookupToCDB}
 
 \item{attributes_conceptIds}{SNOMED concept Ids of attributes of concept
 e.g. laterality, severity, acuteness}
@@ -45,6 +44,7 @@ combination of a root concept and attributes. Based on a
 composeLookup table
 }
 \examples{
+\dontrun{
 SNOMED <- sampleSNOMED()
 miniCDB <- createCDB(SNOMED)
 
@@ -54,23 +54,18 @@ print(D)
 # --------------------------------------------------------
 # 83291003 | Cor pulmonale (disorder)
 # --------------------------------------------------------
-# Root : 128404006 | Right heart failure (disorder)
-# - Due to : 19829001 | Disorder of lung (disorder)
-#
-# --------------------------------------------------------
-# 83291003 | Cor pulmonale (disorder)
-# --------------------------------------------------------
 # Root : 367363000 | Right ventricular failure (disorder)
 # - Due to : 19829001 | Disorder of lung (disorder)
 
 # Compile decompositions into a lookup table
-CL <- createComposeLookup(D, CDB = miniCDB)
+miniCDB <- addComposeLookupToCDB(D, CDB = miniCDB))
 
 compose(as.SNOMEDconcept('Right heart failure'),
   due_to_conceptIds = as.SNOMEDconcept('Disorder of lung'),
   CDB = miniCDB, composeLookup = CL)
 # [1] "83291003 | Cor pulmonale (disorder)"
 }
+}
 \seealso{
-decompose, batchDecompose, createComposeLookup
+decompose, batchDecompose, addComposeLookupToCDB
 }

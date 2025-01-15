@@ -17,7 +17,8 @@
 #' @export
 #' @seealso showCodelistHierarchy
 #' @examples
-#' SNOMED <- sampleSNOMED()
+#' data.table::setDTthreads(threads = 1) # for CRAN testing
+#' SNOMED <- sampleSNOMED() # use sample SNOMED for testing
 #'
 #' my_concepts <- SNOMEDconcept('Acute heart failure')
 #' my_codelist <- SNOMEDcodelist(data.frame(conceptId = my_concepts,

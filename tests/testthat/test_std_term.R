@@ -6,6 +6,7 @@ require(data.table)
 context('Term standardisation')
 
 test_that('std_term function', {
+	setDTthreads(threads = 1)
 	expect_equal(std_term('HbA1c'), ' HbA1c ')
 	expect_equal(std_term('nSTEMI'), ' nSTEMI ')
 	expect_equal(std_term('Fever'), ' fever ')

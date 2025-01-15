@@ -7,8 +7,9 @@
 #' @param conceptId SNOMED CT concept to refine
 #' @param CDB SNOMED CT concept database, as created by createCDB.
 #'   An environment containing the following data tables: FINDINGS,
-#'   QUAL, CAUSES, BODY, FINDINGS, OTHERSUB, OVERLAP, TRANSITIVE
-#' @param composeLookup lookup table created by createComposeLookup
+#'   QUAL, CAUSES, BODY, FINDINGS, OTHERSUB, OVERLAP, TRANSITIVE.
+#'   Must also contain a COMPOSELOOKUP table created by
+#'   addComposeLookupToCDB
 #' @param attributes_conceptIds SNOMED concept Ids of attributes of concept
 #'   e.g. laterality, severity, acuteness
 #' @param due_to_conceptIds SNOMED concept Ids of cause
@@ -17,8 +18,9 @@
 #' @param with_conceptIds SNOMED concept Ids of conditions also present
 #' @param SNOMED environment containing SNOMED CT tables
 #' @return a refined SNOMED concept Id
-#' @seealso decompose, batchDecompose, createComposeLookup
+#' @seealso decompose, batchDecompose, addComposeLookupToCDB
 #' @examples
+#' \dontrun{
 #' SNOMED <- sampleSNOMED()
 #' miniCDB <- createCDB(SNOMED)
 #' 
@@ -28,30 +30,30 @@
 #' # --------------------------------------------------------
 #' # 83291003 | Cor pulmonale (disorder)
 #' # --------------------------------------------------------
-#' # Root : 128404006 | Right heart failure (disorder)
-#' # - Due to : 19829001 | Disorder of lung (disorder)
-#' #
-#' # --------------------------------------------------------
-#' # 83291003 | Cor pulmonale (disorder)
-#' # --------------------------------------------------------
 #' # Root : 367363000 | Right ventricular failure (disorder)
 #' # - Due to : 19829001 | Disorder of lung (disorder)
 #'
 #' # Compile decompositions into a lookup table
-#' CL <- createComposeLookup(D, CDB = miniCDB)
+#' miniCDB <- addComposeLookupToCDB(D, CDB = miniCDB))
 #' 
 #' compose(as.SNOMEDconcept('Right heart failure'),
 #'   due_to_conceptIds = as.SNOMEDconcept('Disorder of lung'),
 #'   CDB = miniCDB, composeLookup = CL)
 #' # [1] "83291003 | Cor pulmonale (disorder)"
+#' }
 #' @export
-compose <- function(conceptId, CDB, composeLookup,
+compose <- function(conceptId, CDB,
 	attributes_conceptIds = bit64::integer64(0),
 	due_to_conceptIds = bit64::integer64(0),
 	without_conceptIds = bit64::integer64(0),
 	with_conceptIds = bit64::integer64(0),
 	SNOMED = getSNOMED()){
 	
+	if (is.null(CDB$COMPOSELOOKUP)){
+		stop(paste0('CDB requires a composition lookup table to be\n',
+			'added using addComposeLookupToCDB.'))
+	}
+
 	NA_concept <- bit64::as.integer64(NA)
 	setattr(NA_concept, 'class', c('SNOMEDconcept', 'integer64'))
 	
@@ -70,7 +72,8 @@ compose <- function(conceptId, CDB, composeLookup,
 		out <- ancestors(x, SNOMED = SNOMED, TRANSITIVE = CDB$TRANSITIVE)
 		# For body site concepts, remove ancestor concepts with 'and'
 		# or 'or'
-		return(union(x, setdiff(out, CDB$BODY[multipart == TRUE]$conceptId)))
+		return(union(x, setdiff(out, CDB$BODY[
+			multipart == TRUE]$conceptId)))
 	}
 	
 	add_overlap <- function(x){
@@ -107,7 +110,7 @@ compose <- function(conceptId, CDB, composeLookup,
 	# composition options)
 	root_search <- add_overlap(conceptId)
 	root_search <- union(root_search,
-		composeLookup[origId %in% root_search]$rootId)
+		CDB$COMPOSELOOKUP[origId %in% root_search]$rootId)
 	
 	# Create indexed data.table for fast lookup
 	LOOKUP <- data.table(expand.grid(root_search, attributes_search))
@@ -116,17 +119,19 @@ compose <- function(conceptId, CDB, composeLookup,
 	
 	# Find highest number of attribute fields in this composeLookup
 	max_attr <- max(as.numeric(sub('^attr_', '', 
-		names(composeLookup)[names(composeLookup) %like% '^attr_'])))
+		names(CDB$COMPOSELOOKUP)[
+		names(CDB$COMPOSELOOKUP) %like% '^attr_'])))
 	
 	if (max_attr == 1){
-		SUBSET <- merge(composeLookup, LOOKUP)[without %in% without_search &
+		SUBSET <- merge(CDB$COMPOSELOOKUP, LOOKUP)[
+			without %in% without_search &
 			with %in% with_search & due_to %in% due_to_search]
 	} else {
 		# This code could be simplified if number of attribute fields
 		# is fixed to 10
 		attr_text <- paste(paste0('attr_', 2:max_attr,
 				' %in% attributes_search &'), collapse = ' ')
-		SUBSET <- merge(composeLookup, LOOKUP)[eval(parse(text =
+		SUBSET <- merge(CDB$COMPOSELOOKUP, LOOKUP)[eval(parse(text =
 			paste(attr_text, 'without %in% without_search &', 
 				'with %in% with_search & due_to %in% due_to_search')))]
 	}

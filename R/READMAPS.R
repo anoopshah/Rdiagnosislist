@@ -1,4 +1,4 @@
- #' Sample mappings from Read to SNOMED CT
+#' Sample mappings from Read to SNOMED CT
 #'
 #' A sample of a mapping table derived from NHS Digital maps. 
 #' Contains concepts in Read Clinical Terms Version 2 and 

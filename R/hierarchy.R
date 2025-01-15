@@ -264,7 +264,8 @@ createTransitive <- function(conceptIds, SNOMED = getSNOMED(),
 		
 	# Define symbols for R CMD check
 	childId <- parentId <- sourceId <- destinationId <- typeId <- NULL
-		
+	descendantId <- ancestorId <- NULL
+	
 	conceptIds <- as.SNOMEDconcept(conceptIds, SNOMED = SNOMED)
 	WORKING <- rbindlist(lapply(tables, function(x){
 		TEMP <- get(x, envir = SNOMED)
@@ -290,8 +291,11 @@ createTransitive <- function(conceptIds, SNOMED = getSNOMED(),
 		old_nrows <- new_nrows
 		new_nrows <- nrow(WORKING)
 	}
-	WORKING[childId %in% conceptIds & parentId %in% conceptIds,
+	OUT <- WORKING[childId %in% conceptIds & parentId %in% conceptIds,
 		list(ancestorId = parentId, descendantId = childId)]
+	setkey(OUT, descendantId)
+	setindex(OUT, ancestorId)
+	OUT
 }
 
 #' Whether SNOMED CT concepts have particular attributes

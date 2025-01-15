@@ -131,7 +131,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 			# first generation children are non-specific and are not to have
 			# their body type stripped out
 			if (nrow(ANCESTOR) > 0){
-				if (noisy) message(paste0('Removing the words ',
+				if (noisy) message(paste0('Removing the word(s) ',
 					structure_type, ' where possible.'))
 				TEMP <- BODY[term %like% structure_type &
 					conceptId %in% desc(ANCESTOR$conceptId),
@@ -141,7 +141,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 				TEMP[!duplicated(TEMP)]
 				TEMP
 			} else {
-				data.table(conceptId = bit64::as.integer64(0),
+				data.table(conceptId = bit64::integer64(0),
 					term = character(0))
 			}
 		})
@@ -191,8 +191,8 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		setattr(unique_structure_terms, 'names', structure_types)
 
 		EXTRA_WITHOUT_STRUCTURE <- rbindlist(unique_structure_terms)
-		BODY <- rbind(BODY, EXTRA_WITHOUT_STRUCTURE[, list(conceptId, term)])
-		gc()
+		BODY <- rbind(BODY, EXTRA_WITHOUT_STRUCTURE[,
+			list(conceptId, term)])
 	}
 
 	#### ADDING WORDNET ADJECTIVES ####
@@ -367,8 +367,6 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	if (nrow(MORPH) > 0){
 		BODY <- BODY[!(conceptId %in% MORPH$conceptId)]
 	}
-	# MORPH <- CDB$BODY[semanticType(conceptId) == 'morphologic abnormality']
-	# CDB$BODY <- CDB$BODY[!(conceptId %in% MORPH$conceptId)]
 	
 	CDB$MORPH <- MORPH
 	CDB$BODY <- BODY
@@ -453,8 +451,6 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	setkey(CDB$BODY_LATERALITY, conceptId)
 	setindex(CDB$BODY_LATERALITY, laterality)
 	setindex(CDB$BODY_LATERALITY, nonlat_parentId)
-	setkey(CDB$TRANSITIVE, descendantId)
-	setindex(CDB$TRANSITIVE, ancestorId)
 	return(CDB)
 }
 

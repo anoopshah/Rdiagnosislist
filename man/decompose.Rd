@@ -41,13 +41,15 @@ may have a number of possible decompositions. Requires a CDB
 environment created by createCDB.
 }
 \examples{
+\dontrun{
 miniCDB <- createCDB(SNOMED = sampleSNOMED())
 D <- decompose(as.SNOMEDconcept('Cor pulmonale',
   SNOMED = sampleSNOMED()), CDB = miniCDB, SNOMED = sampleSNOMED())
+}
 
 # -------------------------------------------------------
 # 83291003 | Cor pulmonale (disorder)
 # -------------------------------------------------------
 # Root : 367363000 | Right ventricular failure (disorder)
-# - Due to : 70995007 | Pulmonary hypertension (disorder)
+# - Due to : 19829001 | Disorder of lung (disorder)
 }

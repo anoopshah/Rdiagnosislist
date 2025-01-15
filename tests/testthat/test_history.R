@@ -6,6 +6,7 @@ require(data.table)
 context('History and query table')
 
 test_that('Test the use of history and query table', {
+	setDTthreads(threads = 1)
 	TEST <-sampleSNOMED()
 	HFpEF <- SNOMEDconcept('Heart failure with normal ejection fraction',
 		SNOMED = TEST)

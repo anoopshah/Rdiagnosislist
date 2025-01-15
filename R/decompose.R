@@ -19,15 +19,17 @@
 #' @return a SNOMEDfinding objects, which is a data.table with
 #' @export
 #' @examples
+#' \dontrun{
 #' miniCDB <- createCDB(SNOMED = sampleSNOMED())
 #' D <- decompose(as.SNOMEDconcept('Cor pulmonale',
 #'   SNOMED = sampleSNOMED()), CDB = miniCDB, SNOMED = sampleSNOMED())
+#' }
 #'
 #' # -------------------------------------------------------
 #' # 83291003 | Cor pulmonale (disorder)
 #' # -------------------------------------------------------
 #' # Root : 367363000 | Right ventricular failure (disorder)
-#' # - Due to : 70995007 | Pulmonary hypertension (disorder)
+#' # - Due to : 19829001 | Disorder of lung (disorder)
 decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 	SNOMED = getSNOMED(), noisy = FALSE, omit_unmatched = TRUE){
 	# decomposes the diagnosis_text (e.g. from a SNOMED CT description)
@@ -51,6 +53,7 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 					SNOMED = SNOMED, noisy = noisy,
 					omit_unmatched = omit_unmatched)
 			}))
+			C <- C[!duplicated(C)]
 			setattr(C, 'class', c('SNOMEDfindings', 'data.table', 'data.frame'))
 			return(C)
 		} else if (length(diagnosis_text) == length(conceptIds)){
@@ -59,6 +62,7 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 					SNOMED = SNOMED, noisy = noisy,
 					omit_unmatched = omit_unmatched)
 			}, x = conceptIds, y = diagnosis_text))
+			C <- C[!duplicated(C)]
 			setattr(C, 'class', c('SNOMEDfindings', 'data.table', 'data.frame'))
 			return(C)
 		} else {
@@ -80,6 +84,7 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 				SNOMED = SNOMED, noisy = noisy,
 				omit_unmatched = omit_unmatched)
 		}))
+		C <- C[!duplicated(C)]
 		setattr(C, 'class', c('SNOMEDfindings', 'data.table', 'data.frame'))
 		return(C)
 	}
@@ -824,37 +829,6 @@ matchpos <- function(bigvector, smallvector){
 		return(NULL)
 	}
 }
-
-# old version of test function
-#~ test_decompose <- function(the_conceptId, CDB = NULL,
-#~ 	diagnosis_text = NULL, SNOMED = getSNOMED(), noisy = FALSE){
-#~ 	the_conceptId <- as.SNOMEDconcept(the_conceptId, SNOMED = SNOMED)
-#~ 	if (length(the_conceptId) == 0){
-#~ 		stop('No SNOMED concept')
-#~ 	}
-#~ 	if (is.null(CDB)){
-#~ 		CDB <- get('CDB', envir = globalenv())
-#~ 		if (is.null(CDB)){
-#~ 			stop('No CDB provided')
-#~ 		} else {
-#~ 			message('Using object named "CDB" from global environment')
-#~ 		}
-#~ 	}
-#~ 	if (is.null(diagnosis_text)){
-#~ 		texts <- description(the_conceptId, SNOMED = SNOMED,
-#~ 			include_synonyms = TRUE)[type == 'Synonym']$term
-#~ 	} else {
-#~ 		texts <- diagnosis_text
-#~ 	}
-	
-#~ 	cat('\nDecomposition of ', as.character(the_conceptId), ':\n')
-#~ 	for (diagnosis_text in texts){
-#~ 		cat('\n\n', diagnosis_text, '\n')
-#~ 		print(decompose(
-#~ 			the_conceptId, diagnosis_text, SNOMED = SNOMED,
-#~ 			CDB = CDB, noisy = noisy))
-#~ 	}
-#~ }
 
 #' Print method for output of 'decompose' function
 #'

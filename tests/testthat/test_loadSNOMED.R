@@ -6,6 +6,7 @@ require(data.table)
 context('Loading SNOMED dictionary')
 
 test_that('Test exporting and reloading sample SNOMED dictionary', {
+	setDTthreads(threads = 1)
 	TEST <-sampleSNOMED()
 	# Export to temporary directory
 	exportSNOMEDenvir(TEST, tempdir())
@@ -34,6 +35,7 @@ test_that('Test exporting and reloading sample SNOMED dictionary', {
 })
 
 test_that('Test exporting and reloading multiple files', {
+	setDTthreads(threads = 1)
 	TEST <- sampleSNOMED()
 	# Create temporary directories
 	dir.create(paste0(tempdir(), '/1'))
