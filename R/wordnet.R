@@ -232,6 +232,6 @@ addWordnet <- function(CDB_TABLE, wn_categories, WN,
 		list(conceptId, term)]
 	
 	# Add WN synonyms
-	D <- rbind(D, MERGELINK[conceptId %in% D$conceptId])
+	D <- rbind(D, MERGELINK[conceptId %in% D$conceptId], fill = TRUE)
 	return(D[!duplicated(D)])
 }

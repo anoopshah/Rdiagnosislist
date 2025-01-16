@@ -16,7 +16,13 @@
 #' @param noisy whether to output messages (for debugging)
 #' @param omit_unmatched whether to omit rows in which some attributes
 #'   could not be matched to SNOMED CT concepts
-#' @return a SNOMEDfinding objects, which is a data.table with
+#' @return a SNOMEDfinding objects, which is a data.table with columns
+#'   rootId (integer64), with (integer64), due_to (integer64),
+#'   after (integer64), without (integer64), body_site (integer64),
+#'   severity (integer64), stage (integer64), laterality (integer64),
+#'   roottext (character), partId (integer64),
+#'   other_conceptId (character, a string of SNOMED CT concept IDs
+#'   separated by spaces), origId (integer64)
 #' @export
 #' @examples
 #' \dontrun{
@@ -724,12 +730,12 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 					CDB$QUAL[term %in% to_match, list(conceptId, term)],
 					CDB$FINDINGS[term %in% to_match &
 						conceptId %in% relevant_conceptId &
-						!(conceptId %in% DATALINE$rootId),
-						list(conceptId, term)],
+						!(conceptId %in% c(DATALINE$rootId,
+						DATALINE$partId)), list(conceptId, term)],
 					CDB$CAUSES[term %in% to_match &
 						conceptId %in% relevant_conceptId &
-						!(conceptId %in% DATALINE$rootId),
-						list(conceptId, term)],
+						!(conceptId %in% c(DATALINE$rootId,
+						DATALINE$partId)), list(conceptId, term)],
 					CDB$BODY[term %in% to_match &
 						conceptId %in% relevant_conceptId &
 						!(conceptId %in% DATALINE$body_site),
@@ -806,7 +812,9 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 		C <- C[!duplicated(C)]
 	}
 	C[, other_conceptId := gsub('^ +| +$', '', other_conceptId)]
-	
+	C[, other_attr := NULL]
+	C[, parttext := NULL]
+	C <- C[!duplicated(C)]
 	setattr(C, 'class', c('SNOMEDfindings', 'data.table', 'data.frame'))
 	C
 }

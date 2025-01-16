@@ -6,7 +6,7 @@ require(data.table)
 context('SNOMED codelists')
 
 test_that('Checking conversion of SNOMED concepts in data.table and data.frame', {
-	setDTthreads(threads = 1)
+	data.table::setDTthreads(threads = 1)
 	myconcepts <- SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED())
 	
 	# data.frame
@@ -41,7 +41,7 @@ test_that('Checking conversion of SNOMED concepts in data.table and data.frame',
 })
 
 test_that('Creating codelists from concept IDs or tables', {
-	setDTthreads(threads = 1)
+	data.table::setDTthreads(threads = 1)
 	myconcepts <- SNOMEDconcept('Heart failure', SNOMED = sampleSNOMED())
 	# Converting to SNOMEDcodelist from a vector
 	concept_codelist <- SNOMEDcodelist(myconcepts, SNOMED = sampleSNOMED(),
@@ -74,7 +74,7 @@ test_that('Creating codelists from concept IDs or tables', {
 })
 
 test_that('Codelist with missing descriptions', {
-	setDTthreads(threads = 1)
+	data.table::setDTthreads(threads = 1)
 	my_codelist <- SNOMEDcodelist('1234', SNOMED = sampleSNOMED())
 	expect_equal(nrow(my_codelist), 1)
 	expect_equal(my_codelist$conceptId, as.SNOMEDconcept('1234'))
@@ -82,7 +82,7 @@ test_that('Codelist with missing descriptions', {
 })
 
 test_that('Expand and contract codelists', {
-	setDTthreads(threads = 1)
+	data.table::setDTthreads(threads = 1)
 	my_concepts <- SNOMEDconcept('Heart failure',
 		SNOMED = sampleSNOMED())
 	orig <- SNOMEDcodelist(data.frame(conceptId = my_concepts,
@@ -120,7 +120,7 @@ test_that('Expand and contract codelists', {
 })
 
 test_that('Related concepts for a NULL list', {
-	setDTthreads(threads = 1)
+	data.table::setDTthreads(threads = 1)
 	my_concepts <- as.SNOMEDconcept('0')[-1]
 	related_concepts <- relatedConcepts(my_concepts,
 		SNOMED = sampleSNOMED())
@@ -132,7 +132,7 @@ test_that('Related concepts for a NULL list', {
 })
 
 test_that('Expand codelist with nothing to expand', {
-	setDTthreads(threads = 1)
+	data.table::setDTthreads(threads = 1)
 	my_concepts <- as.SNOMEDconcept(
 		c('Heart failure', 'Acute heart failure'),
 		SNOMED = sampleSNOMED())
@@ -161,7 +161,7 @@ test_that('Expand codelist with nothing to expand', {
 })
 
 test_that('Safely contract codelist', {
-	setDTthreads(threads = 1)
+	data.table::setDTthreads(threads = 1)
 	my_codelist <- SNOMEDcodelist(data.frame(
 		conceptId = SNOMEDconcept(c('Heart failure', 'Is a'),
 		SNOMED = sampleSNOMED()), include_desc = c(TRUE, NA)),
@@ -178,7 +178,7 @@ test_that('Safely contract codelist', {
 })
 
 test_that('Codelist with some concepts not in dictionary', {
-	setDTthreads(threads = 1)
+	data.table::setDTthreads(threads = 1)
 	myconcepts <- SNOMEDconcept(c('78408007',
 		'78643003', '9999999999'))
 	expect_equal(nrow(SNOMEDcodelist(myconcepts,
@@ -186,7 +186,7 @@ test_that('Codelist with some concepts not in dictionary', {
 })
 
 test_that('Importing and exporting a codelist', {
-	setDTthreads(threads = 1)
+	data.table::setDTthreads(threads = 1)
 	data(READMAPS)
 	my_concepts <- SNOMEDconcept('Heart failure',
 		SNOMED = sampleSNOMED())

@@ -32,7 +32,13 @@ createCDB}
 could not be matched to SNOMED CT concepts}
 }
 \value{
-a SNOMEDfinding objects, which is a data.table with
+a SNOMEDfinding objects, which is a data.table with columns
+  rootId (integer64), with (integer64), due_to (integer64),
+  after (integer64), without (integer64), body_site (integer64),
+  severity (integer64), stage (integer64), laterality (integer64),
+  roottext (character), partId (integer64),
+  other_conceptId (character, a string of SNOMED CT concept IDs
+  separated by spaces), origId (integer64)
 }
 \description{
 Decomposes a SNOMED CT term into separate components according

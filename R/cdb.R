@@ -51,9 +51,12 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	init <- function(x){
 		x <- desc(x)
 		# Add acronyms e.g. 'AF - atrial fibrillation' --> AF
-		# Add concepts with phrases in parentheses removed, e.g.
+		# Add concepts with phrases in parentheses removed unless
+		# the phrase in brackets alters the meaning of the root phrase
+		# , e.g.
 		# ERCP (Endoscopic retrograde cholangiopancreatography) normal
 		# --> ERCP normal
+		# but not if brackets start with except|exclud|with|without
 		DESC <- description(x, SNOMED = SNOMED,
 			include_synonyms = TRUE)[type == 'Synonym']
 		if (nrow(DESC) > 0){
@@ -284,14 +287,14 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	LATERALITY <- QUAL[conceptId %in% CDB$latConcepts]
 	LATERALITY <- rbind(LATERALITY,
 		data.table(conceptId = s('Left'),
-		term = c(' L ', ' lt ')))
+		term = c(' L ', ' lt ', ' left sided ')))
 	LATERALITY <- rbind(LATERALITY,
 		data.table(conceptId = s('Right'),
-		term = c(' R ', ' rt ')))
+		term = c(' R ', ' rt ', ' right sided ')))
 	LATERALITY <- rbind(LATERALITY,
 		data.table(conceptId = s('Bilateral'),
 		term = c(' left and right ', ' both sided ', ' bilat ',
-			' L and R ', ' R and L')))
+			' L and R ', ' R and L ')))
 	QUAL <- QUAL[!(conceptId %in% LATERALITY$conceptId)]
 	QUAL <- QUAL[!(term %in% paste0(' ', stopwords, ' '))]
 
@@ -318,6 +321,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 			return(X[!duplicated(X)])
 		}
 	}
+
 	CDB$FINDINGS <- addmw(FINDINGS, c('noun.state',
 		'noun.process', 'noun.phenomenon'))
 	CDB$QUAL <- addmw(QUAL, c('noun.state',
@@ -995,16 +999,19 @@ blacklist_almost_all_except_diseases <- function(SNOMED = getSNOMED()){
 }
 
 std_term <- function(x, stopwords = c('the', 'of', 'by', 'with', 'to',
-	'into', 'and', 'or', 'both', 'at', 'as', 'and/or', 'in'),
+	'into', 'and', 'or', 'at', 'as', 'and/or', 'in'),
 	hyphens_to_space = FALSE, remove_stopwords = FALSE,
-	remove_words_in_parentheses = FALSE){
+	remove_words_in_parentheses = FALSE,
+	regex_do_not_remove_parentheses =
+	'\\(exclud|\\(with|\\(except|\\(includ'){
 	# lowercase except if single word concepts with second, third
 	# or final letter upper case (i.e. an acronym like HbA1c or
 	# nSTEMI)
 	# decapitalise the first letter if rest of first word is 
 	# lower case and non-numeric, otherwise keep case as is.
 	if (remove_words_in_parentheses){
-		x <- sub('(.) \\([^\\)]+\\)', '\\1', x)
+		x <- ifelse(x %like% regex_do_not_remove_parentheses, x,
+			sub('(.) \\([^\\)]+\\)', '\\1', x))
 	}
 	if (hyphens_to_space){
 		x <- gsub('-', ' ', x)
