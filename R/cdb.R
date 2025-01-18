@@ -27,7 +27,7 @@
 createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	WN = NULL, MANUAL_SYNONYMS = NULL, noisy = TRUE,
 	stopwords = c('the', 'of', 'by', 'with', 'to', 'into', 'and', 'or',
-	'both', 'at', 'as', 'and/or', 'in')){
+	'at', 'as', 'and/or', 'in')){
 	# Returns an environment containing data.tables used for
 	# generating decompositions 
 	CDB <- new.env()
@@ -449,6 +449,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	setkey(CDB$QUAL, term); setindex(CDB$QUAL, conceptId)
 	setkey(CDB$LATERALITY, term); setindex(CDB$LATERALITY, conceptId)
 	setkey(CDB$SEVERITY, term); setindex(CDB$SEVERITY, conceptId)
+	setkey(CDB$STAGE, term); setindex(CDB$STAGE, conceptId)
 	setkey(CDB$OTHERCAUSE, term); setindex(CDB$OTHERCAUSE, conceptId)
 	setkey(CDB$CAUSES, term); setindex(CDB$CAUSES, conceptId)
 	setkey(CDB$OVERLAP, otherId)
