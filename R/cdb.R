@@ -316,7 +316,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 			return(addWordnet(X, wn_categories = wn_categories,
 				WN = WN, CHECK_TABLE <- rbind(QUAL, LATERALITY,
 				FINDINGS, BODY, STAGE, CAUSES, SEVERITY,
-				fill = TRUE)))
+				fill = TRUE), noisy = noisy))
 		} else {
 			return(X[!duplicated(X)])
 		}
