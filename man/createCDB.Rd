@@ -10,7 +10,7 @@ createCDB(
   WN = NULL,
   MANUAL_SYNONYMS = NULL,
   noisy = TRUE,
-  stopwords = c("the", "of", "by", "with", "to", "into", "and", "or", "both", "at", "as",
+  stopwords = c("the", "of", "by", "with", "to", "into", "and", "or", "at", "as",
     "and/or", "in")
 )
 }
