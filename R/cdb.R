@@ -420,9 +420,13 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	CDB$SCT_findingsite <- s('Finding site')
 	CDB$SCT_disorder <- s('Disorder')
 	CDB$SCT_finding <- s('Clinical finding')
-	CDB$allergyConcepts <- s(c('Allergic disposition', 'Adverse reaction',
-		'Intolerance to substance', 'Hypersensitivity disposition'))
-	# remove allergy as synonym of 'allergic reaction'
+	CDB$allergyConcepts <- union(s(c('Allergic disposition',
+		'Adverse reaction',
+		'Intolerance to substance',
+		'Hypersensitivity disposition')), s('281647001'))
+	# remove allergy as synonym of 'allergic reaction'. Ensure that
+	# there is at least one allergy concept regardless of version of
+	# SNOMED dictionary used, to avoid error.
 	
 	CDB$stopwords <- stopwords
 	CDB$SEMTYPE <- rbind(
