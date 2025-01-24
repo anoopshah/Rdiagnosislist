@@ -29,6 +29,7 @@
 #'   \item{active}{ logical: whether this concept is currently active}
 #' }
 #' 
+#' @family sampleSNOMED
 #' @examples
 #' # Show properties of the DESCRIPTION table
 #' data('DESCRIPTION')

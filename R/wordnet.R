@@ -9,7 +9,8 @@
 #'   categories, in the format: cat (character), wordnetId (integer64),
 #'   synonyms (list), parents (list), adj (list)
 #' @export
-#' @seealso [addWordNet()]
+#' @seealso addWordNet
+#' @family CDB functions
 #' @references \url{https://wordnet.princeton.edu/}
 #' @examples
 #' # Not run
@@ -149,7 +150,8 @@ downloadWordnet <- function(
 #' @param noisy whether to output test comments
 #' @return CDB_TABLE with extra rows for Wordnet synonyms
 #' @export
-#' @seealso [downloadWordnet()]
+#' @seealso downloadWordnet
+#' @family CDB functions
 #' @references \url{https://wordnet.princeton.edu/}
 #' @examples
 #' WORDNET <- data.table::data.table(cat = c('noun.body', 'noun.state'),

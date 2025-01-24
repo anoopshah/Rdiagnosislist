@@ -24,6 +24,7 @@
 #'   \item{ctv3_termid}{ list: character list of CTV3 term description codes}
 #' }
 #' 
+#' @family sampleSNOMED
 #' @seealso loadREADMAPS, getMaps
 #' @examples
 #' # Show properties of the READMAPS table

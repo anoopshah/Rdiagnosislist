@@ -31,6 +31,7 @@
 #'     363698007 = Finding site, 363702006 = Has focus}
 #' }
 #' 
+#' @family sampleSNOMED
 #' @examples
 #' # Create a TEST environment and load the sample dictionaries
 #' TEST <- new.env()

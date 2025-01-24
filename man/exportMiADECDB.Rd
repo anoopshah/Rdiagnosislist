@@ -24,8 +24,8 @@ exportMiADECDB(
 SNOMED CT language refset files, in order to identify the
 preferred term for each concept. If NULL, the Fully Specified Name
 minus the semantic type suffix is used as the preferred term
-(e.g. if the Fully Specified Name is 'Cancer (disorder)', the
-default preferred term is 'Cancer'.}
+(e.g. if the Fully Specified Name is `Cancer (disorder)', the
+default preferred term is `Cancer'.}
 
 \item{exclude}{a SNOMEDconcept or SNOMEDcodelist object specifying
 concepts to exclude from the concept database. By
@@ -41,14 +41,14 @@ takes place after exclusion, i.e. a concept in both the include
 and exclude lists will be included.}
 
 \item{exclude_historic}{a SNOMEDconcept or SNOMEDcodelist object
-specifying concepts to be excluded from the 'historic' lookup,
+specifying concepts to be excluded from the `historic' lookup,
 i.e. those that should not be converted into historic forms.
 The default is to not do this conversion for disorders, only for
 procedures.}
 
 \item{blacklist}{a SNOMEDconcept or SNOMEDcodelist object specifying
 concepts to filter out of the final output. By default, concepts
-in the CDB of any semantic type other than 'finding' or 'disorder'
+in the CDB of any semantic type other than `finding' or `disorder'
 are excluded. The blacklist can be used to exclude a subset of
 findings or disorders that are not useful for the particular
 application.}
@@ -106,7 +106,7 @@ For MiADE postprocessing:
      may be identified by MedCAT as part of text analysis but 
      should not be included in final MiADE output, Examples include
      procedure codes which may be used to link to precoordinated
-     'history of...' concepts. This file can also be used to
+     `history of...' concepts. This file can also be used to
      force MiADE to ignore any specific SNOMED CT concepts in the
      output. Sorted in ascending order.}
 }
@@ -124,4 +124,8 @@ For more information about MedCAT, visit
 \seealso{
 createCDB, downloadWordnet, downloadOrphanet, MANUAL_SYNONYMS,
   exclude_irrelevant_findings
+
+Other MiADE functions: 
+\code{\link{exclude_irrelevant_findings}()}
 }
+\concept{MiADE functions}

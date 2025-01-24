@@ -18,6 +18,8 @@
 #' @return environment containing the following data tables: FINDINGS,
 #'   QUAL, CAUSES, BODY, OTHERCAUSE, OTHERSEARCH, OVERLAP, TRANSITIVE
 #' @export
+#' @family CDB functions
+#' @seealso exportMiADECDB, MANUAL_SYNONYMS
 #' @examples
 #' # Not run
 #' # data(MANUAL_SYNONYMS)
@@ -567,7 +569,7 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 #'      may be identified by MedCAT as part of text analysis but 
 #'      should not be included in final MiADE output, Examples include
 #'      procedure codes which may be used to link to precoordinated
-#'      'history of...' concepts. This file can also be used to
+#'      `history of...' concepts. This file can also be used to
 #'      force MiADE to ignore any specific SNOMED CT concepts in the
 #'      output. Sorted in ascending order.}
 #' }
@@ -584,8 +586,8 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 #'   SNOMED CT language refset files, in order to identify the
 #'   preferred term for each concept. If NULL, the Fully Specified Name
 #'   minus the semantic type suffix is used as the preferred term
-#'   (e.g. if the Fully Specified Name is 'Cancer (disorder)', the
-#'   default preferred term is 'Cancer'.
+#'   (e.g. if the Fully Specified Name is `Cancer (disorder)', the
+#'   default preferred term is `Cancer'.
 #' @param exclude a SNOMEDconcept or SNOMEDcodelist object specifying
 #'   concepts to exclude from the concept database. By
 #'   default, all concepts in the FINDINGS, CAUSES, BODY, LATERALITY,
@@ -598,13 +600,13 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 #'   takes place after exclusion, i.e. a concept in both the include
 #'   and exclude lists will be included.
 #' @param exclude_historic a SNOMEDconcept or SNOMEDcodelist object
-#'   specifying concepts to be excluded from the 'historic' lookup,
+#'   specifying concepts to be excluded from the `historic' lookup,
 #'   i.e. those that should not be converted into historic forms.
 #'   The default is to not do this conversion for disorders, only for
 #'   procedures.
 #' @param blacklist a SNOMEDconcept or SNOMEDcodelist object specifying
 #'   concepts to filter out of the final output. By default, concepts
-#'   in the CDB of any semantic type other than 'finding' or 'disorder'
+#'   in the CDB of any semantic type other than `finding' or `disorder'
 #'   are excluded. The blacklist can be used to exclude a subset of
 #'   findings or disorders that are not useful for the particular
 #'   application. 
@@ -612,6 +614,7 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 #' @seealso createCDB, downloadWordnet, downloadOrphanet, MANUAL_SYNONYMS,
 #'   exclude_irrelevant_findings
 #' @return TRUE if successful
+#' @family MiADE functions
 #' @export
 #' @examples
 #' # Not run
@@ -880,6 +883,7 @@ exportMiADECDB <- function(CDB, export_folderpath,
 #' }
 #'
 #' @seealso exportMiADECDB, createCDB
+#' @family MiADE functions
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @return SNOMEDconcept vector containing findings to exclude
 #' @export
@@ -905,9 +909,12 @@ exclude_irrelevant_findings <- function(SNOMED = getSNOMED()){
 		'Registered deaf',
 		'Registered hearing impaired',
 		'Registered sight impaired'), SNOMED = SNOMED)
-	housing_and_care_keep <- descendants(c('Homeless', 'No fixed abode',
+	housing_and_care_keep <- descendants(c(
+		'Homeless',
+		'No fixed abode',
 		'Lives alone',
-		'Lives in supported home', 'Unsatisfactory living conditions',
+		'Lives in supported home',
+		'Unsatisfactory living conditions',
 		'Finding related to care and support circumstances and networks'),
 		SNOMED = SNOMED, include_self = TRUE)
 	
@@ -920,10 +927,13 @@ exclude_irrelevant_findings <- function(SNOMED = getSNOMED()){
 		SNOMED = SNOMED, include_self = TRUE),
 		SNOMEDconcept(c('General symptom',
 		'Complaining of a general symptom',
-		'Urine finding', 'Finding related to pregnancy',
-		'Delivery finding', 'Safety finding', 'Feeding finding',
-		'Finding of movement', 'Stool finding'), SNOMED = SNOMED)),
-		disorders)
+		'Urine finding',
+		'Finding related to pregnancy',
+		'Delivery finding',
+		'Safety finding',
+		'Feeding finding',
+		'Finding of movement',
+		'Stool finding'), SNOMED = SNOMED)), disorders)
 	normal <- SNOMEDconcept('^Normal| normal', exact_match = FALSE,
 		SNOMED = SNOMED)
 	normal <- normal[semanticType(normal) == 'finding']
@@ -955,33 +965,62 @@ exclude_irrelevant_findings <- function(SNOMED = getSNOMED()){
 }
 
 #' @rdname exclude_irrelevant_findings
+#' @family MiADE functions
 #' @export
 blacklist_vague_findings <- function(SNOMED = getSNOMED()){
 	intersect(descendants('Clinical finding', SNOMED = SNOMED,
-		include_self = TRUE),
-		SNOMEDconcept(c('Disease', 'Clinical finding',
-		'Problem', 'Impairment', 'Chief complaint', 'Sign', 'Complaint',
-		'Sequela', 'Early complication', 'Co-morbid conditions',
-		'Pre-existing condition', 'Acute disease', 'Subacute disease',
-		'Chronic disease', 'General problem AND/OR complaint',
-		'Evaluation finding', 'Administrative statuses', 
-		'Finding by site', 'Finding by method',
-		'Clinical history and observation findings', 'Behaviour',
+		include_self = TRUE), SNOMEDconcept(c(
+		'Disease',
+		'Clinical finding',
+		'Problem',
+		'Impairment',
+		'Chief complaint',
+		'Sign',
+		'Complaint',
+		'Sequela',
+		'Early complication',
+		'Co-morbid conditions',
+		'Pre-existing condition',
+		'Acute disease',
+		'Subacute disease',
+		'Chronic disease',
+		'General problem AND/OR complaint',
+		'Evaluation finding',
+		'Administrative statuses', 
+		'Finding by site',
+		'Finding by method',
+		'Clinical history and observation findings',
+		'Behaviour',
 		'Adverse incident outcome categories', 
 		'Prognosis/outlook finding',
-		'General clinical state finding', 'Disorder by body site',
-		'Failure', 'Acute failure', 'Subacute failure',
-		'Chronic failure', 'Decompensation', 'Discrepancy',
-		'Idiosyncrasy', 'Inefficiency', 'General body state finding',
-		'General clinical state finding', 'Pressure',
-		'Disease related state', 'Absence of pressure',
-		'Decreased pressure', 'Increased pressure', 'Swelling',
-		'Disease condition finding', 'Allergic disposition', 'Pain',
-		'Values (community)', 'Fit and well', 'No sensitivity to pain'),
-		SNOMED = SNOMED))
+		'General clinical state finding',
+		'Disorder by body site',
+		'Failure',
+		'Acute failure',
+		'Subacute failure',
+		'Chronic failure',
+		'Decompensation',
+		'Discrepancy',
+		'Idiosyncrasy',
+		'Inefficiency',
+		'General body state finding',
+		'General clinical state finding',
+		'Pressure',
+		'Disease related state',
+		'Absence of pressure',
+		'Decreased pressure',
+		'Increased pressure',
+		'Swelling',
+		'Disease condition finding',
+		'Allergic disposition',
+		'Pain',
+		'Values (community)',
+		'Fit and well',
+		'No sensitivity to pain'), SNOMED = SNOMED))
 }
 
 #' @rdname exclude_irrelevant_findings
+#' @family MiADE functions
 #' @export
 blacklist_almost_all_except_diseases <- function(SNOMED = getSNOMED()){
 	dont_exclude <- descendants(c(

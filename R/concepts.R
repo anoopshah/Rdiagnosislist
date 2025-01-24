@@ -24,7 +24,7 @@ inactiveIncluded <- function(SNOMED = getSNOMED()){
 	}
 }
 
-#' Returns the SNOMED CT concept IDs for a set of terms
+#' Return the SNOMED CT concept IDs for a set of terms
 #'
 #' Carries out an exact or regular expression match to
 #' return the concept ID for a set of search terms, or

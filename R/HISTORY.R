@@ -28,6 +28,7 @@
 #'   \item{FSN_TAGIDENTICALFLAG}{ integer: whether Fully Specified Names tags are identical}
 #' }
 #' 
+#' @family sampleSNOMED
 #' @examples
 #' # Create a TEST environment and load the sample dictionaries
 #' TEST <- new.env()

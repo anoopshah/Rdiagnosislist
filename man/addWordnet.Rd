@@ -68,5 +68,13 @@ addWordnet(CDB_TABLE, 'noun.state', WORDNET)
 \url{https://wordnet.princeton.edu/}
 }
 \seealso{
-[downloadWordnet()]
+downloadWordnet
+
+Other CDB functions: 
+\code{\link{addComposeLookupToCDB}()},
+\code{\link{batchDecompose}()},
+\code{\link{createCDB}()},
+\code{\link{downloadOrphanet}()},
+\code{\link{downloadWordnet}()}
 }
+\concept{CDB functions}

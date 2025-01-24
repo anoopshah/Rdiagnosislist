@@ -27,4 +27,15 @@ sampleSNOMED()$metadata
 \seealso{
 CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, 
 REFSET, SIMPLEMAP, EXTENDEDMAP, HISTORY, QUERY, loadSNOMED, sampleSNOMED
+
+Other sampleSNOMED: 
+\code{\link{HISTORY}},
+\code{\link{READMAPS}},
+\code{\link{SNOMED_CONCEPT}},
+\code{\link{SNOMED_DESCRIPTION}},
+\code{\link{SNOMED_EXTENDEDMAP}},
+\code{\link{SNOMED_REFSET}},
+\code{\link{SNOMED_RELATIONSHIP}},
+\code{\link{SNOMED_SIMPLEMAP}}
 }
+\concept{sampleSNOMED}

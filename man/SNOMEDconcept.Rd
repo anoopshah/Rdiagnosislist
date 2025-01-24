@@ -5,7 +5,7 @@
 \alias{as.integer64.SNOMEDconcept}
 \alias{SNOMEDconcept}
 \alias{as.SNOMEDconcept}
-\title{Returns the SNOMED CT concept IDs for a set of terms}
+\title{Return the SNOMED CT concept IDs for a set of terms}
 \usage{
 \method{as.data.frame}{SNOMEDconcept}(x, ...)
 

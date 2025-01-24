@@ -388,6 +388,7 @@ createSNOMEDindices <- function(SNOMED){
 #' @export
 #' @seealso CONCEPT, DESCRIPTION, RELATIONSHIP, STATEDRELATIONSHIP, 
 #' REFSET, SIMPLEMAP, EXTENDEDMAP, HISTORY, QUERY, loadSNOMED, sampleSNOMED
+#' @family sampleSNOMED
 #' @examples
 #' TEST <- sampleSNOMED()
 #' inactiveIncluded(TEST)

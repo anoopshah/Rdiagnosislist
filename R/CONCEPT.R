@@ -19,6 +19,7 @@
 #'   \item{active}{ logical: whether this concept is currently active}
 #' }
 #' 
+#' @family sampleSNOMED
 #' @examples
 #' # Show properties of the CONCEPT table
 #' data('CONCEPT')

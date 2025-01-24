@@ -33,4 +33,16 @@ str(SIMPLEMAP)
 # Hence this should show the same properties as above
 str(sampleSNOMED()$SIMPLEMAP)
 }
+\seealso{
+Other sampleSNOMED: 
+\code{\link{HISTORY}},
+\code{\link{READMAPS}},
+\code{\link{SNOMED_CONCEPT}},
+\code{\link{SNOMED_DESCRIPTION}},
+\code{\link{SNOMED_EXTENDEDMAP}},
+\code{\link{SNOMED_REFSET}},
+\code{\link{SNOMED_RELATIONSHIP}},
+\code{\link{sampleSNOMED}()}
+}
+\concept{sampleSNOMED}
 \keyword{datasets}

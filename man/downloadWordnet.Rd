@@ -32,5 +32,13 @@ used by addWordNet to add extra synonyms to a concept database.
 \url{https://wordnet.princeton.edu/}
 }
 \seealso{
-[addWordNet()]
+addWordNet
+
+Other CDB functions: 
+\code{\link{addComposeLookupToCDB}()},
+\code{\link{addWordnet}()},
+\code{\link{batchDecompose}()},
+\code{\link{createCDB}()},
+\code{\link{downloadOrphanet}()}
 }
+\concept{CDB functions}

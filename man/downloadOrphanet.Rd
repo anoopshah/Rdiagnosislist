@@ -37,5 +37,13 @@ database creation.
 \url{https://www.orphadata.com/pack-nomenclature/}
 }
 \seealso{
-downloadWordnet
+downloadWordnet, MANUAL_SYNONYMS
+
+Other CDB functions: 
+\code{\link{addComposeLookupToCDB}()},
+\code{\link{addWordnet}()},
+\code{\link{batchDecompose}()},
+\code{\link{createCDB}()},
+\code{\link{downloadWordnet}()}
 }
+\concept{CDB functions}

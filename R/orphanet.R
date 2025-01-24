@@ -14,7 +14,8 @@
 #' @importFrom readxl read_excel
 #'   
 #' @export
-#' @seealso downloadWordnet
+#' @family CDB functions
+#' @seealso downloadWordnet, MANUAL_SYNONYMS
 #' @references \url{https://www.orphadata.com/pack-nomenclature/}
 #' @examples
 #' # Not run

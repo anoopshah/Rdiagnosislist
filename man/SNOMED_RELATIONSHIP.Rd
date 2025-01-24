@@ -54,6 +54,17 @@ str(TEST$STATEDRELATIONSHIP)
 Other SNOMEDsample: 
 \code{\link{HISTORY}},
 \code{\link{QUERY}}
+
+Other sampleSNOMED: 
+\code{\link{HISTORY}},
+\code{\link{READMAPS}},
+\code{\link{SNOMED_CONCEPT}},
+\code{\link{SNOMED_DESCRIPTION}},
+\code{\link{SNOMED_EXTENDEDMAP}},
+\code{\link{SNOMED_REFSET}},
+\code{\link{SNOMED_SIMPLEMAP}},
+\code{\link{sampleSNOMED}()}
 }
 \concept{SNOMEDsample}
+\concept{sampleSNOMED}
 \keyword{datasets}

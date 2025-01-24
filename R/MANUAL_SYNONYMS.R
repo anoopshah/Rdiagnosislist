@@ -15,7 +15,7 @@
 #'     snomed. Not to be used for abbreviations or acronyms.}
 #' }
 #' 
-#' @seealso [addManual()]
+#' @seealso createCDB
 #' @examples
 #' data(MANUAL_SYNONYMS)
 #' str(MANUAL_SYNONYMS)

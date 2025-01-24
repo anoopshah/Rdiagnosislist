@@ -35,5 +35,16 @@ str(READMAPS)
 }
 \seealso{
 loadREADMAPS, getMaps
+
+Other sampleSNOMED: 
+\code{\link{HISTORY}},
+\code{\link{SNOMED_CONCEPT}},
+\code{\link{SNOMED_DESCRIPTION}},
+\code{\link{SNOMED_EXTENDEDMAP}},
+\code{\link{SNOMED_REFSET}},
+\code{\link{SNOMED_RELATIONSHIP}},
+\code{\link{SNOMED_SIMPLEMAP}},
+\code{\link{sampleSNOMED}()}
 }
+\concept{sampleSNOMED}
 \keyword{datasets}

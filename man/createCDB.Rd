@@ -48,3 +48,14 @@ Uses WordNet and manual synonyms if available.
 # MANUAL_SYNONYMS <- rbind(MANUAL_SYNONYMS, downloadOrphanet())
 # CDBNEW <- createCDB(WN = WN, MANUAL_SYNONYMS = MANUAL_SYNONYMS)
 }
+\seealso{
+exportMiADECDB, MANUAL_SYNONYMS
+
+Other CDB functions: 
+\code{\link{addComposeLookupToCDB}()},
+\code{\link{addWordnet}()},
+\code{\link{batchDecompose}()},
+\code{\link{downloadOrphanet}()},
+\code{\link{downloadWordnet}()}
+}
+\concept{CDB functions}

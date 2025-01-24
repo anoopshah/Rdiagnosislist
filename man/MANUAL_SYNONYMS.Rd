@@ -26,6 +26,6 @@ data(MANUAL_SYNONYMS)
 str(MANUAL_SYNONYMS)
 }
 \seealso{
-[addManual()]
+createCDB
 }
 \keyword{datasets}

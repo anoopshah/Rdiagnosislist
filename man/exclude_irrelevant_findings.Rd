@@ -38,4 +38,14 @@ findings in the MedCAT named entity recognition step, or blacklist
 }
 \seealso{
 exportMiADECDB, createCDB
+
+Other MiADE functions: 
+\code{\link{exportMiADECDB}()}
+
+Other MiADE functions: 
+\code{\link{exportMiADECDB}()}
+
+Other MiADE functions: 
+\code{\link{exportMiADECDB}()}
 }
+\concept{MiADE functions}

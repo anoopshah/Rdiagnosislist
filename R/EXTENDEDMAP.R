@@ -25,6 +25,7 @@
 #'   \item{active}{ logical: whether this concept is currently active}
 #' }
 #' 
+#' @family sampleSNOMED
 #' @examples
 #' # Load the dataset and show its properties
 #' data('EXTENDEDMAP')

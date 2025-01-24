@@ -8,8 +8,9 @@
 #'   FINDINGS 
 #' @param SNOMED environment containing a SNOMED dictionary
 #' @param output_filename filename of output file 
-#' @param ... out
+#' @param ... other arguments to pass through to decompose
 #' @return TRUE if successful 
+#' @family CDB functions
 #' @export
 #' @seealso decompose, compose, addComposeLookupToCDB
 batchDecompose <- function(conceptIds, CDB, output_filename,
@@ -42,7 +43,7 @@ batchDecompose <- function(conceptIds, CDB, output_filename,
 #' Add composition lookups to CDB
 #'
 #' Creates a composition lookup table for a set of SNOMED CT concepts
-#' based on , and adds it to the CDB
+#' based on output of `decompose', and adds it to the CDB
 #' 
 #' @param decompositions vector of filenames of decompose output (read
 #'   by fread) or data.frame containing outputs of decompose function
@@ -55,10 +56,12 @@ batchDecompose <- function(conceptIds, CDB, output_filename,
 #'   possible SNOMED CT concept decompositions.
 #' @param SNOMED environment containing a SNOMED CT dictionary
 #' @param ... other arguments to pass to fread
-#' @return data.table with columns rootId, attr_1 ... attr_X (up to
+#' @return CDB environment with an additional data.table `COMPOSELOOKUP'
+#'   with columns rootId, attr_1 ... attr_X (up to
 #'   maxcol), with, due_to, without, origId (all with data type
 #'   integer64 and class 'SNOMEDconcept')
 #' @export
+#' @family CDB functions
 #' @seealso decompose, compose, batchDecompose
 addComposeLookupToCDB <- function(decompositions, CDB, maxcol = 10,
 	SNOMED = getSNOMED(), ...){
