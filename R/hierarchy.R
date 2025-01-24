@@ -87,7 +87,7 @@ relatedConcepts <- function(conceptIds,
 
 	# Add relationships from each table
 	out <- unique(as.SNOMEDconcept(getRelationship(tables[1],
-		active_only)))
+		active_only), SNOMED = SNOMED))
 	if (length(tables) > 1){
 		for (table in tables[-1]){
 			out <- union(out, getRelationship(table, active_only))
