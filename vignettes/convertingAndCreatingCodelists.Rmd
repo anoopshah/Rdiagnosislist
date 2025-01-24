@@ -34,6 +34,10 @@ Both the query table and the history table are automatically loaded using the lo
 
 ```{r}
 library(Rdiagnosislist)
+
+# Use one thread only for CRAN
+data.table::setDTthreads(threads = 1)
+
 SNOMED <- sampleSNOMED()
 
 # Create a codelist for right heart failure

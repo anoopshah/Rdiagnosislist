@@ -55,6 +55,9 @@ Note that the UK SNOMED CT release needs to be loaded together with the correspo
 # Load package
 require(Rdiagnosislist)
 
+# Use one thread only for CRAN
+data.table::setDTthreads(threads = 1)
+
 # Load UK and International SNOMED CT release files into an
 # R environment called 'SNOMED'
 SNOMED <- loadSNOMED(c(

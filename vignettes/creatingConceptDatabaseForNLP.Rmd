@@ -40,6 +40,9 @@ The first stage is to create 'decompositions' of SNOMED CT concepts, which uses 
 ```{r}
 library(Rdiagnosislist)
 
+# Use one thread only for CRAN
+data.table::setDTthreads(threads = 1)
+
 # Load the SNOMED dictionary (for this example we are using the
 # sample included with the package)
 SNOMED <- sampleSNOMED()

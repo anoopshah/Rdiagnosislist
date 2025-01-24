@@ -41,6 +41,9 @@ As there is only one description per concept in this example, the data can be sp
 # Load package
 require(Rdiagnosislist)
 
+# Use one thread only for CRAN
+data.table::setDTthreads(threads = 1)
+
 CUSTOM <- sampleSNOMED()
 
 NEW_DESCRIPTION <- data.table::data.table(
