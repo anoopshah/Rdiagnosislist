@@ -3,7 +3,7 @@
 #' A sample of the SNOMED CT refset table. This contains SNOMED CT
 #' codelists that are used for partiular operational or clinical
 #' purposes, and are curated by SNOMED CT. The id column of the
-#' refset table is not included, in order to save spave.
+#' refset table is not included, in order to save space.
 #' 
 #' @name SNOMED_REFSET
 #' @aliases REFSET

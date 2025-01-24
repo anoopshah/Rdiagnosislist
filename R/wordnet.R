@@ -1,7 +1,7 @@
 #' Download WordNet to assist concept database creation
 #'
 #' Downloads the WordNet thesaurus and converts it into a format to be
-#' used by addWordNet to add extra synonyms to a concept database.
+#' used by addWordnet to add extra synonyms to a concept database.
 #'
 #' @param wordnet_url URL or filepath to WordNet tar.gz file
 #' @param wn_categories WordNet categories from which to extract data
@@ -9,7 +9,7 @@
 #'   categories, in the format: cat (character), wordnetId (integer64),
 #'   synonyms (list), parents (list), adj (list)
 #' @export
-#' @seealso addWordNet
+#' @seealso addWordnet
 #' @family CDB functions
 #' @references \url{https://wordnet.princeton.edu/}
 #' @examples

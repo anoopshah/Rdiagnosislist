@@ -22,7 +22,7 @@ data.table containing WordNet data from appropriate
 }
 \description{
 Downloads the WordNet thesaurus and converts it into a format to be
-used by addWordNet to add extra synonyms to a concept database.
+used by addWordnet to add extra synonyms to a concept database.
 }
 \examples{
 # Not run
@@ -32,7 +32,7 @@ used by addWordNet to add extra synonyms to a concept database.
 \url{https://wordnet.princeton.edu/}
 }
 \seealso{
-addWordNet
+addWordnet
 
 Other CDB functions: 
 \code{\link{addComposeLookupToCDB}()},

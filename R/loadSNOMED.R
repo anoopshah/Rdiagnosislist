@@ -523,7 +523,7 @@ getSNOMED <- function(SNOMEDname = 'SNOMED'){
 #' \url{https://isd.digital.nhs.uk/trud/user/guest/group/0/pack/9/subpack/9/releases}
 #' 
 #' The final release was in April 2020. The mapping tables are
-#' intended for converting entires in clinical records from
+#' intended for converting entries in clinical records from
 #' Read Version 2 (Read 2) to SNOMED CT, and Clinical Terms
 #' Version 3 (CTV3) to SNOMED CT.
 #' 
