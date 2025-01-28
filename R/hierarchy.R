@@ -317,6 +317,8 @@ createTransitive <- function(conceptIds, SNOMED = getSNOMED(),
 #' @return a vector of Booleans stating whether the attribute exists
 #' @export
 #' @examples
+#' data.table::setDTthreads(threads = 1) # for CRAN testing
+#'
 #' SNOMED <- sampleSNOMED()
 #'
 #' hasAttributes(c('Heart failure', 'Acute heart failure'),

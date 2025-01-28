@@ -34,6 +34,7 @@ Both the query table and the history table are automatically loaded using the lo
 
 ```{r}
 library(Rdiagnosislist)
+require(data.table)
 
 # Use one thread only for CRAN
 data.table::setDTthreads(threads = 1)
@@ -72,9 +73,6 @@ A suggested process is:
 Example code:
 
 ```{r}
-library(data.table)
-library(Rdiagnosislist)
-
 oldReadCodelist <- fread('
 readcode|readterm
 G54z500|Valvular heart disease"                     

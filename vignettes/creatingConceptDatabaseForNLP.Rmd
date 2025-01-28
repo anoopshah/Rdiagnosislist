@@ -39,6 +39,7 @@ The first stage is to create 'decompositions' of SNOMED CT concepts, which uses 
 
 ```{r}
 library(Rdiagnosislist)
+require(data.table)
 
 # Use one thread only for CRAN
 data.table::setDTthreads(threads = 1)

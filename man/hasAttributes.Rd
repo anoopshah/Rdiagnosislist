@@ -39,6 +39,8 @@ For each concept in the first list, whether it has the attribute
 in the second list. Returns a vector of Booleans.
 }
 \examples{
+data.table::setDTthreads(threads = 1) # for CRAN testing
+
 SNOMED <- sampleSNOMED()
 
 hasAttributes(c('Heart failure', 'Acute heart failure'),

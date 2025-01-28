@@ -52,11 +52,9 @@ When the NHS Digital SNOMED CT files are extracted, they will be in a folder suc
 Note that the UK SNOMED CT release needs to be loaded together with the corresponding international release. The UK release cannot be used in isolation because it is incomplete. 
 
 ```
-# Load package
-require(Rdiagnosislist)
-
-# Use one thread only for CRAN
-data.table::setDTthreads(threads = 1)
+# Load packages
+library(Rdiagnosislist)
+library(data.table)
 
 # Load UK and International SNOMED CT release files into an
 # R environment called 'SNOMED'
@@ -79,9 +77,15 @@ The SNOMED CT dictionary files are loaded into an R 'environment', which is an o
 For the purpose of this vignette, we will create a sample set of SNOMED CT files from the sample dictionaries included with the package. 
 
 ```{r}
+# Load packages
+require(Rdiagnosislist)
+require(data.table)
+
+# Use one thread only for CRAN
+data.table::setDTthreads(threads = 1)
+
 # The sampleSNOMED() function returns an environment containing
 # the sample dictionaries
-require(Rdiagnosislist)
 TEST <- sampleSNOMED()
 
 # TEST is now an environment containing the sample SNOMED CT dictionary.
@@ -195,7 +199,6 @@ The 'hasAttributes' function can be used to find terms with particular attribute
 In order to find the finding site of a disorder, we use the 'forward' relationship. In order to find disorders with a particular finding site, we use the relationship in the 'reverse' direction.
 
 ```{r}
-require(Rdiagnosislist)
 SNOMED <- sampleSNOMED()
 
 # List all the attributes of a concept

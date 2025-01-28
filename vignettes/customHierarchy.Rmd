@@ -40,6 +40,7 @@ As there is only one description per concept in this example, the data can be sp
 ```{r}
 # Load package
 require(Rdiagnosislist)
+require(data.table)
 
 # Use one thread only for CRAN
 data.table::setDTthreads(threads = 1)

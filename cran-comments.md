@@ -1,5 +1,5 @@
 ## Test environments
-* local Ubuntu 20.04, R 3.6.3
+* local Ubuntu 20.04, R 3.6.3, R 4.1.0
 * win-builder (devel and release)
 
 ## R CMD check results
@@ -18,3 +18,6 @@ and various other performance enhancements and bug fixes.
 
 Change to the maintainer's name (Anoop D. Shah) to include middle
 initial.
+
+Ensure that examples and vignettes use only one thread for CRAN
+checks.
