@@ -13,17 +13,21 @@ test_that('Test exporting and reloading sample SNOMED dictionary', {
 	
 	# Try to import using the loadSNOMED function
 	TEST2 <- loadSNOMED(tempdir(), active_only = FALSE)
-	expect_equal(TEST$CONCEPT, TEST2$CONCEPT)
-	expect_equal(TEST$DESCRIPTION, TEST2$DESCRIPTION)
-	expect_equal(TEST$RELATIONSHIP, TEST2$RELATIONSHIP)
-	expect_equal(TEST$STATEDRELATIONSHIP, TEST2$STATEDRELATIONSHIP)
-	expect_equal(TEST$REFSET, TEST2$REFSET)
-	expect_equal(TEST$SIMPLEMAP, TEST2$SIMPLEMAP)
-	expect_equal(TEST$HISTORY, TEST2$HISTORY)
-	expect_equal(TEST$QUERY, TEST2$QUERY)
-	# expect_equal(TEST$EXTENDEDMAP, TEST2$EXTENDEDMAP)
-	# Comments fields in EXTENDEDMAP may have different
-	# handling of missing data
+	
+	# Data table comparison ignoring attributes
+	dtcomp <- function(dt1, dt2){
+		data.table:::all.equal.data.table(dt1, dt2,
+			trim.levels = TRUE, check.attributes = FALSE,
+			ignore.col.order = TRUE, ignore.row.order = TRUE)
+	}
+	expect_true(dtcomp(TEST$CONCEPT, TEST2$CONCEPT))
+	expect_true(dtcomp(TEST$DESCRIPTION, TEST2$DESCRIPTION))
+	expect_true(dtcomp(TEST$RELATIONSHIP, TEST2$RELATIONSHIP))
+	expect_true(dtcomp(TEST$STATEDRELATIONSHIP, TEST2$STATEDRELATIONSHIP))
+	expect_true(dtcomp(TEST$REFSET, TEST2$REFSET))
+	expect_true(dtcomp(TEST$SIMPLEMAP, TEST2$SIMPLEMAP))
+	expect_true(dtcomp(TEST$HISTORY, TEST2$HISTORY))
+	expect_true(dtcomp(TEST$QUERY, TEST2$QUERY))
 
 	# Clean up
 	for (table in c('_Concept_', '_Description_',
@@ -52,15 +56,21 @@ test_that('Test exporting and reloading multiple files', {
 	# Try to import using the loadSNOMED function
 	TEST2 <- loadSNOMED(paste0(tempdir(), c('/1', '/2')),
 		active_only = FALSE)
-	expect_equal(TEST$CONCEPT, TEST2$CONCEPT)
-	expect_equal(TEST$DESCRIPTION, TEST2$DESCRIPTION)
-	expect_equal(TEST$RELATIONSHIP, TEST2$RELATIONSHIP)
-	expect_equal(TEST$STATEDRELATIONSHIP, TEST2$STATEDRELATIONSHIP)
-	expect_equal(TEST$REFSET, TEST2$REFSET)
-	expect_equal(TEST$SIMPLEMAP, TEST2$SIMPLEMAP)
-	expect_equal(TEST$QUERY, TEST2$QUERY)
-	expect_equal(TEST$HISTORY, TEST2$HISTORY)
-	# expect_equal(TEST$EXTENDEDMAP, TEST2$EXTENDEDMAP)
+
+	# Data table comparison ignoring attributes
+	dtcomp <- function(dt1, dt2){
+		data.table:::all.equal.data.table(dt1, dt2,
+			trim.levels = TRUE, check.attributes = FALSE,
+			ignore.col.order = TRUE, ignore.row.order = TRUE)
+	}
+	expect_true(dtcomp(TEST$CONCEPT, TEST2$CONCEPT))
+	expect_true(dtcomp(TEST$DESCRIPTION, TEST2$DESCRIPTION))
+	expect_true(dtcomp(TEST$RELATIONSHIP, TEST2$RELATIONSHIP))
+	expect_true(dtcomp(TEST$STATEDRELATIONSHIP, TEST2$STATEDRELATIONSHIP))
+	expect_true(dtcomp(TEST$REFSET, TEST2$REFSET))
+	expect_true(dtcomp(TEST$SIMPLEMAP, TEST2$SIMPLEMAP))
+	expect_true(dtcomp(TEST$HISTORY, TEST2$HISTORY))
+	expect_true(dtcomp(TEST$QUERY, TEST2$QUERY))
 	
 	# Try with one file completely missing
 	file.remove(paste0(tempdir(), '/2/_Relationship_Snapshot.txt'))

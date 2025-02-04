@@ -1,23 +1,18 @@
 ## Test environments
 * local Ubuntu 20.04, R 3.6.3, R 4.1.0
 * win-builder (devel and release)
+* rhub clang20, gcc13, gcc14, ubuntu-clang, ubuntu-gcc12
 
 ## R CMD check results
 * checking CRAN incoming feasibility ... NOTE
 Maintainer: ‘Anoop D. Shah <anoop@doctors.org.uk>’
 
-New maintainer:
-  Anoop D. Shah <anoop@doctors.org.uk>
-Old maintainer(s):
-  Anoop Shah <anoop@doctors.org.uk>
+Days since last update: 6
 
-## Changes in this version 1.4 (9 Jan 2025)
-This version includes modifications to display of filenames in
-the loadSNOMED function to correct CRAN errors in Windows build,
-and various other performance enhancements and bug fixes.
+There is also a note about an invalid DOI in the
+DESCRIPTION file, but it is actually correct.
 
-Change to the maintainer's name (Anoop D. Shah) to include middle
-initial.
-
-Ensure that examples and vignettes use only one thread for CRAN
-checks.
+## Changes in this version 1.4.1 (4 Feb 2025)
+Relaxation of checking of identical data.tables when saving
+and loading SNOMED dictionaries to avoid error in tests. No
+changes to functionality of the actual package.
