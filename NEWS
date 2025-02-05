@@ -5,6 +5,10 @@ Version 1.4.1
 BUG FIXES:
 - Changes to data.table equality tests to correct CRAN errors
 
+CHANGES:
+- The 'decompose' function now also checks for laterality not
+  associated with a body structure. 
+
 =====================================================================
 Version 1.4.0 - Fifth release on CRAN
 =====================================================================

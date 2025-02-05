@@ -661,6 +661,43 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 		}
 	}
 
+	#### LATERALITY
+
+	e_laterality <- function(DATALINE){
+		# Returns a data.table containing the original DATALINE and
+		# with laterality information extracted.
+		if (is.na(DATALINE$laterality)){ 
+			use <- sapply(CDB$LATERALITY$term, function(x){
+				DATALINE$other_attr %like% x
+			})
+			LAT <- CDB$LATERALITY[use == TRUE, list(conceptId, term)]
+			# Only allow if a single unambiguous laterality
+			if (uniqueN(LAT$conceptId) == 1){
+				return(rbindlist(lapply(1:nrow(LAT), function(x){
+					new_text <- sub(LAT[x]$term, repl_(LAT[x]$term),
+						DATALINE$other_attr)
+					OUTPUT <- copy(DATALINE)
+					OUTPUT[, other_attr := new_text]
+					OUTPUT[, laterality := LAT[x]$conceptId]
+				})))
+			} else {
+				# no valid laterality - no decomposition performed
+				return(DATALINE)
+			}
+		} else {
+			# laterality already included
+			return(DATALINE)
+		}
+	}
+
+	TEMP <- rbindlist(lapply(1:nrow(C), function(x) e_laterality(C[x])))
+	C <- TEMP
+	if (noisy){
+		message('\nFinding laterality (if not part of body structure)')
+		print(C)
+	}
+	
+
 	#### STAGE
 
 	e_stage <- function(DATALINE){
