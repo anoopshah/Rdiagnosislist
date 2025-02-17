@@ -516,12 +516,14 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 	body_siteIds <- setdiff(relatedConcepts(the_conceptId,
 		typeId = CDB$SCT_findingsite, SNOMED = SNOMED),
 		SNOMEDconcept(c('91689009', '278195005', '714488006',
-		'91690000'), SNOMED = SNOMED))
+		'91690000', '52530000', '243928005'), SNOMED = SNOMED))
 	# Remove vague body sites:
 	# 91689009 | Body system structure (body structure)
 	# 278195005 | Entire body system (body structure)
 	# 714488006 | Structure of subdivision of organ system (body structure)
 	# 91690000 | Entire subdivision of organ system (body structure)
+	# 52530000 | Body region structure (body structure)
+	# 243928005 | Entire body region (body structure)
 	
 	# the_body_siteId should only be one but a few concepts have
 	# multiple body sites, so allow multiple

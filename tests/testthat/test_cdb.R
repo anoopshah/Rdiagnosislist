@@ -16,7 +16,7 @@ test_that('Testing createCDB and decomposition', {
 	expect_true(SNOMEDconcept('84114007', SNOMED = miniSNOMED) %in%
 		miniCDB$FINDINGS$conceptId)
 	expect_identical(sort(tables(env = miniCDB)$NAME),
-		c('BODY', 'BODY_LATERALITY', 'CAUSES', 'FINDINGS',
+		c('BODY', 'CAUSES', 'FINDINGS',
 		'LATERALITY', 'MORPH', 'OTHERCAUSE', 'OVERLAP',
 		'QUAL', 'SEMTYPE', 'SEVERITY', 'STAGE', 'TRANSITIVE'))
 	D <- decompose(SNOMEDconcept('83291003', SNOMED = miniSNOMED),

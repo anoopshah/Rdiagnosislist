@@ -118,7 +118,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	BODY <- init('Body structure')
 	
 	# Remove 'entire', 'structure of', 'of' and 'the'
-	strip_structure <- ' entire | region structure | structure of | structure | of the | of | the '
+	strip_structure <- ' region structure | structure of | structure | of the | of | the '
 	if (nrow(BODY) > 0){
 		BODY <- rbind(BODY, BODY[, list(conceptId,
 			term = gsub(strip_structure, ' ',
@@ -281,7 +281,13 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		reverse = TRUE, SNOMED = SNOMED)
 	lateralisable_structures <- relatedConcepts('Side', typeId = 'Laterality',
 		reverse = TRUE, SNOMED = SNOMED)
-	bilateral_structures <- intersect(left_structures, right_structures)
+	bilateral_structures <- union(intersect(left_structures,
+		right_structures), desc(
+		'Structure of bilateral paired structures'))
+	if (noisy) message('Identified ', length(left_structures),
+		' left structures, ', length(right_structures),
+		' right structures, and ', length(bilateral_structures),
+		' bilateral structures.')
 	
 	# Laterality concepts
 	CDB$latConcepts <- s(c('Left', 'Right', 'Bilateral'))
@@ -362,10 +368,10 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	# Mark body site concepts that are actually concepts describing
 	# two separate body parts (e.g. proximal end of radius and ulna)
 	# Use the 
-	BODY[, multipart := conceptId %in% 
+	BODY[, multipart := conceptId %in% union(desc('Combined site'),
 		description(unique(BODY$conceptId), SNOMED = SNOMED)[
 		tolower(term) %like%
-		' and | or | and/or |\\(combined site\\)']$conceptId]
+		' and | or | and/or |\\(combined site\\)']$conceptId)]
 	
 	# Remove morphologic abnormalities from BODY to FINDINGS
 	MORPH <- BODY[semanticType(conceptId, SNOMED = SNOMED) ==
@@ -377,20 +383,21 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	CDB$MORPH <- MORPH
 	CDB$BODY <- BODY
 
-	CDB$BODY_LATERALITY <- merge(BODY, LAT, by = 'conceptId')
-	CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
-		laterality %in% c('Left', 'Right', 'Bilateral'),
-		list(conceptId, laterality, nonlat_parentId)]
-	CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
-		!duplicated(CDB$BODY_LATERALITY)]
+	# May not need CDB$BODY_LATERALITY - to check
+	#CDB$BODY_LATERALITY <- merge(BODY, LAT, by = 'conceptId')
+	#CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
+	#	laterality %in% c('Left', 'Right', 'Bilateral'),
+	#	list(conceptId, laterality, nonlat_parentId)]
+	#CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
+	#	!duplicated(CDB$BODY_LATERALITY)]
 
 	# Remove ambiguous parent concepts 
-	CDB$BODY_LATERALITY[, .N, by = list(laterality, nonlat_parentId)][
-		N > 1]$nonlat_parentId -> toremove
-	if (nrow(CDB$BODY_LATERALITY) > 0){
-		CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
-			!(nonlat_parentId %in% toremove) & !is.na(nonlat_parentId)]
-	}
+	#CDB$BODY_LATERALITY[, .N, by = list(laterality, nonlat_parentId)][
+	#	N > 1]$nonlat_parentId -> toremove
+	#if (nrow(CDB$BODY_LATERALITY) > 0){
+	#	CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
+	#		!(nonlat_parentId %in% toremove) & !is.na(nonlat_parentId)]
+	#}
 
 	CDB$SEVERITY <- SEVERITY
 	CDB$LATERALITY <- LATERALITY
@@ -459,9 +466,9 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	setkey(CDB$OTHERCAUSE, term); setindex(CDB$OTHERCAUSE, conceptId)
 	setkey(CDB$CAUSES, term); setindex(CDB$CAUSES, conceptId)
 	setkey(CDB$OVERLAP, otherId)
-	setkey(CDB$BODY_LATERALITY, conceptId)
-	setindex(CDB$BODY_LATERALITY, laterality)
-	setindex(CDB$BODY_LATERALITY, nonlat_parentId)
+	#setkey(CDB$BODY_LATERALITY, conceptId)
+	#setindex(CDB$BODY_LATERALITY, laterality)
+	#setindex(CDB$BODY_LATERALITY, nonlat_parentId)
 	return(CDB)
 }
 
