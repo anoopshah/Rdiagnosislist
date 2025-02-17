@@ -189,7 +189,6 @@ LRTI,lower respiratory tract infection,FALSE
 pulmonary,lung,TRUE
 Ca,malignant neoplasm,FALSE
 cancer,malignant neoplasm,FALSE
-carcinoma,malignant neoplasm,FALSE
 malig neop,malignant neoplasm,TRUE
 malignancy,malignant neoplasm,FALSE
 neoplasm malignant,malignant neoplasm,FALSE
