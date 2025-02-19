@@ -39,7 +39,8 @@ test_that('Testing createCDB and decomposition', {
 #~ Root : 367363000 | Right ventricular failure (disorder)
 #~ - Due to : 19829001 | Disorder of lung (disorder)
 	miniCDB <- addComposeLookupToCDB(D, CDB = miniCDB)
-	expect_equal(compose(SNOMEDconcept('128404006', SNOMED = miniSNOMED),
+	expect_equal(
+		compose(SNOMEDconcept('128404006', SNOMED = miniSNOMED),
 		due_to_conceptIds = SNOMEDconcept('19829001', SNOMED = miniSNOMED),
 		CDB = miniCDB, SNOMED = miniSNOMED),
 		SNOMEDconcept('83291003', SNOMED = miniSNOMED))

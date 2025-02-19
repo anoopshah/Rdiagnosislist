@@ -2,7 +2,7 @@
 #'
 #' Finds the most specific SNOMED CT concepts that matches the
 #' combination of a root concept and attributes. Based on a
-#' composeLookup table
+#' composeLookup table in the CDB.
 #'
 #' @param conceptId SNOMED CT concept to refine
 #' @param CDB SNOMED CT concept database, as created by createCDB.
@@ -64,9 +64,7 @@ compose <- function(conceptId, CDB,
 	# Harmonise and append NA for each attribute
 	expand <- function(x){
 		if (length(x) == 0){
-			return(bit64::integer64(0))
-		} else {
-			x <- as.SNOMEDconcept(x, SNOMED = SNOMED)
+			return(x)
 		}
 		x <- add_overlap(x)
 		out <- ancestors(x, SNOMED = SNOMED, TRANSITIVE = CDB$TRANSITIVE)
@@ -86,17 +84,19 @@ compose <- function(conceptId, CDB,
 		if (is.null(x)) x <- NA_concept
 		if (length(x) == 0) x <- NA_concept
 		if (limitToFindings){
-			union(intersect(expand(
-				as.SNOMEDconcept(bit64::as.integer64(x), SNOMED = SNOMED)
-				), CDB$FINDINGS$conceptId), NA_concept)
+			union(intersect(expand(x), CDB$FINDINGS$conceptId), NA_concept)
 		} else {
-			union(expand(as.SNOMEDconcept(bit64::as.integer64(x),
-				SNOMED = SNOMED)), NA_concept)
+			union(expand(x), NA_concept)
 		}
 	}
 	
 	# Ensure correct data types
 	conceptId <- as.SNOMEDconcept(conceptId, SNOMED = SNOMED)
+	attributes_conceptIds <- as.SNOMEDconcept(attributes_conceptIds,
+		SNOMED = SNOMED)
+	without_conceptIds <- as.SNOMEDconcept(without_conceptIds,
+		SNOMED = SNOMED)
+	with_conceptIds <- as.SNOMEDconcept(with_conceptIds, SNOMED = SNOMED)
 	
 	# Expand to include ancestors
 	due_to_search <- harmonise(due_to_conceptIds, TRUE)
@@ -140,14 +140,34 @@ compose <- function(conceptId, CDB,
 		return(conceptId)
 	}
 
+	# Filter by subset with maximum number of exact attribute matches
+    attr_exact <- c(attributes_conceptIds, due_to_conceptIds,
+		with_conceptIds, without_conceptIds)
+	attr_exact <- attr_exact[!is.na(attr_exact)]
+    SUBSET[, exact_matches := 0]
+    SUBSET[, n_attr := 0]
+    for (i in 1:max_attr){
+		SUBSET[, exact_matches := exact_matches +
+			get(paste0('attr_', i)) %in% attr_exact]
+		SUBSET[, n_attr := n_attr +
+			!is.na(get(paste0('attr_', i)))]
+	}
+	SUBSET[, exact_matches := exact_matches + due_to %in% attr_exact]
+	SUBSET[, n_attr := n_attr + !is.na(due_to)]
+	SUBSET[, exact_matches := exact_matches + with %in% attr_exact]
+	SUBSET[, n_attr := n_attr + !is.na(with)]
+	SUBSET[, exact_matches := exact_matches + without %in% attr_exact]
+	SUBSET[, n_attr := n_attr + !is.na(without)]
+	SUBSET <- SUBSET[exact_matches/n_attr == max(exact_matches/n_attr)]
+
+	# Return original concept if no compositions
+	if (length(nrow(SUBSET)) == 0){
+		return(conceptId)
+	}
+
 	# Retrieve valid compositions
 	matchIds <- unique(as.SNOMEDconcept(SUBSET$origId,
 		SNOMED = SNOMED))
-
-	# Return original concept if no compositions
-	if (length(matchIds) == 0){
-		return(conceptId)
-	}
 	
 	# Remove all matches which are an ancestor of another match
 	i <- 1
