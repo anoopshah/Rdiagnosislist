@@ -1,5 +1,5 @@
 =====================================================================
-Version 1.4.1
+Version 1.5.0
 =====================================================================
 
 BUG FIXES:
@@ -7,7 +7,8 @@ BUG FIXES:
 
 CHANGES:
 - The 'decompose' function now also checks for laterality not
-  associated with a body structure. 
+  associated with a body structure
+- The 'compose' function returns an exact match if possible
 
 =====================================================================
 Version 1.4.0 - Fifth release on CRAN

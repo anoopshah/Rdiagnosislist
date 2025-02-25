@@ -770,11 +770,13 @@ decompose <- function(conceptIds, diagnosis_text = NULL, CDB,
 					CDB$FINDINGS[term %in% to_match &
 						conceptId %in% relevant_conceptId &
 						!(conceptId %in% c(DATALINE$rootId,
-						DATALINE$partId)), list(conceptId, term)],
+						desc(DATALINE$rootId), DATALINE$partId)),
+						list(conceptId, term)],
 					CDB$CAUSES[term %in% to_match &
 						conceptId %in% relevant_conceptId &
 						!(conceptId %in% c(DATALINE$rootId,
-						DATALINE$partId)), list(conceptId, term)],
+						desc(DATALINE$rootId), DATALINE$partId)),
+						list(conceptId, term)],
 					CDB$BODY[term %in% to_match &
 						conceptId %in% relevant_conceptId &
 						!(conceptId %in% DATALINE$body_site),

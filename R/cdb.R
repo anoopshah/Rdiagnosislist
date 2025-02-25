@@ -70,6 +70,9 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 				DESC[, list(conceptId, term = std_term(term,
 					stopwords = stopwords,
 					remove_words_in_parentheses = TRUE))],
+				DESC[, list(conceptId, term = std_term(term,
+					stopwords = stopwords,
+					remove_apostrophes = TRUE))],
 				acronyms(x, SNOMED = SNOMED)[, list(conceptId,
 					term = paste0(' ', term, ' '))])
 			return(INIT[!duplicated(INIT)])
@@ -110,7 +113,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		'Scores (qualifier value)', 'Types (qualifier value)',
 		'Classification system (qualifier value)',
 		'Descriptor (qualifier value)', 'Finding value (qualifier value)',
-		'Courses (qualifier value)',
+		'Courses (qualifier value)', 'Stages (qualifier value)',
 		'General site descriptor (qualifier value)'))
 
 	#### BODY STRUCTURES ####
@@ -266,11 +269,10 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	QUAL <- QUAL[!(conceptId %in% SEVERITY$conceptId)]
 
 	# Concepts for stage definition as per FHIR valueset with a few extra
-	# from 'Stages' 
-	STAGE <- desc(c('Stages', 'Tumour stage finding'))
-	STAGE <- rbind(FINDINGS[conceptId %in% STAGE],
-		QUAL[conceptId %in% STAGE])
-	QUAL <- QUAL[!(conceptId %in% STAGE$conceptId)]
+	# from 'Stages'
+	STAGE <- rbind(
+		FINDINGS[conceptId %in% desc('Tumour stage finding')],
+		QUAL[conceptId %in% desc('Stages (qualifier value)')])
 
 	#### LATERALITY ####
 	# Create a list of lateralised body structures
@@ -382,23 +384,6 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	
 	CDB$MORPH <- MORPH
 	CDB$BODY <- BODY
-
-	# May not need CDB$BODY_LATERALITY - to check
-	#CDB$BODY_LATERALITY <- merge(BODY, LAT, by = 'conceptId')
-	#CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
-	#	laterality %in% c('Left', 'Right', 'Bilateral'),
-	#	list(conceptId, laterality, nonlat_parentId)]
-	#CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
-	#	!duplicated(CDB$BODY_LATERALITY)]
-
-	# Remove ambiguous parent concepts 
-	#CDB$BODY_LATERALITY[, .N, by = list(laterality, nonlat_parentId)][
-	#	N > 1]$nonlat_parentId -> toremove
-	#if (nrow(CDB$BODY_LATERALITY) > 0){
-	#	CDB$BODY_LATERALITY <- CDB$BODY_LATERALITY[
-	#		!(nonlat_parentId %in% toremove) & !is.na(nonlat_parentId)]
-	#}
-
 	CDB$SEVERITY <- SEVERITY
 	CDB$LATERALITY <- LATERALITY
 	CDB$STAGE <- STAGE
@@ -450,7 +435,8 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 			CDB$BODY$conceptId, CDB$QUAL$conceptId,
 			CDB$LATERALITY$conceptId, CDB$SEVERITY$conceptId)),
 			list(conceptId, semType)])
-		# contents of stage are mostly findings so don't need to include
+		# contents of stage are included in findings or qualifiers so
+		# don't need to include explicitly
 	CDB$SEMTYPE <- CDB$SEMTYPE[!duplicated(CDB$SEMTYPE)]
 
 	# Set keys for fast searching
@@ -466,9 +452,6 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	setkey(CDB$OTHERCAUSE, term); setindex(CDB$OTHERCAUSE, conceptId)
 	setkey(CDB$CAUSES, term); setindex(CDB$CAUSES, conceptId)
 	setkey(CDB$OVERLAP, otherId)
-	#setkey(CDB$BODY_LATERALITY, conceptId)
-	#setindex(CDB$BODY_LATERALITY, laterality)
-	#setindex(CDB$BODY_LATERALITY, nonlat_parentId)
 	return(CDB)
 }
 
@@ -1054,7 +1037,8 @@ std_term <- function(x, stopwords = c('the', 'of', 'by', 'with', 'to',
 	hyphens_to_space = FALSE, remove_stopwords = FALSE,
 	remove_words_in_parentheses = FALSE,
 	regex_do_not_remove_parentheses =
-	'\\(exclud|\\(with|\\(except|\\(includ'){
+	'\\(exclud|\\(with|\\(except|\\(includ',
+	remove_apostrophes = FALSE){
 	# lowercase except if single word concepts with second, third
 	# or final letter upper case (i.e. an acronym like HbA1c or
 	# nSTEMI)
@@ -1076,6 +1060,9 @@ std_term <- function(x, stopwords = c('the', 'of', 'by', 'with', 'to',
 	if (remove_stopwords){
 		x <- gsub(paste0(' ', paste0(stopwords, collapse = ' | '),
 			' '), ' ', x)
+	}
+	if (remove_apostrophes){
+		x <- gsub("'", "", gsub("'s ", "", x))
 	}
 	x
 }

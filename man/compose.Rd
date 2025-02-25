@@ -41,7 +41,7 @@ a refined SNOMED concept Id
 \description{
 Finds the most specific SNOMED CT concepts that matches the
 combination of a root concept and attributes. Based on a
-composeLookup table
+composeLookup table in the CDB.
 }
 \examples{
 \dontrun{
