@@ -155,6 +155,13 @@ addComposeLookupToCDB <- function(decompositions, CDB, maxcol = 10,
 	if (is.null(maxcol)){
 		maxcol <- max(sapply(D$attrId, length))
 	}
+	
+	# Find which decompositions include body site
+	BODY <- data.table(.temp2 = unique(CDB$BODY$conceptId),
+		body = TRUE)
+	setkeyv(BODY, '.temp2')
+	D[, incl_bodysite := FALSE]
+
 	for (i in 1:maxcol){
 		# extract attribute Ids via as.character to avoid incorrect
 		# conversion to numeric
@@ -163,11 +170,15 @@ addComposeLookupToCDB <- function(decompositions, CDB, maxcol = 10,
 		})]
 		D[, .temp2 := as.SNOMEDconcept(bit64::as.integer64(.temp),
 			SNOMED = SNOMED)]
-		setnames(D, '.temp2', paste0('attr_', i))
 		D[, .temp := NULL]
+		D[, incl_bodysite := incl_bodysite | ifelse(
+			is.na(BODY[D, on = '.temp2']$body), FALSE,
+			BODY[D, on = '.temp2']$body)]
+		setnames(D, '.temp2', paste0('attr_', i))
 	}
+		
 	cols_to_keep <- c('rootId', paste0('attr_', 1:maxcol), 
-		'with', 'due_to', 'without', 'origId')
+		'with', 'due_to', 'without', 'origId', 'incl_bodysite')
 	D <- subset(D, select = cols_to_keep)
 	D <- D[!duplicated(D)]
 	setorderv(D, cols_to_keep)

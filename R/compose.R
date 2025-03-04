@@ -141,13 +141,16 @@ compose <- function(conceptId, CDB,
 		return(conceptId)
 	}
 
+	# Filter by subset with bodysite included
+	SUBSET <- SUBSET[incl_bodysite == max(incl_bodysite)]
+
 	# Filter by subset with maximum number of exact attribute matches
-    attr_exact <- c(attributes_conceptIds, due_to_conceptIds,
+	attr_exact <- c(attributes_conceptIds, due_to_conceptIds,
 		with_conceptIds, without_conceptIds)
 	attr_exact <- attr_exact[!is.na(attr_exact)]
-    SUBSET[, exact_matches := 0]
-    SUBSET[, n_attr := 0]
-    for (i in 1:max_attr){
+	SUBSET[, exact_matches := 0]
+	SUBSET[, n_attr := 0]
+	for (i in 1:max_attr){
 		SUBSET[, exact_matches := exact_matches +
 			get(paste0('attr_', i)) %in% attr_exact]
 		SUBSET[, n_attr := n_attr +
