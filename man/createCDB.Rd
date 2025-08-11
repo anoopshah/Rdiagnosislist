@@ -11,7 +11,9 @@ createCDB(
   MANUAL_SYNONYMS = NULL,
   noisy = TRUE,
   stopwords = c("the", "of", "by", "with", "to", "into", "and", "or", "at", "as",
-    "and/or", "in")
+    "and/or", "in"),
+  simplify_body_part_names = TRUE,
+  UMLS = NULL
 )
 }
 \arguments{
@@ -31,10 +33,24 @@ containing additional exact synonyms or abbreviations}
 \item{noisy}{whether to output status messages}
 
 \item{stopwords}{vector of stopwords}
+
+\item{simplify_body_part_names}{Boolean, whether to add additional
+body part names without preceding phrases such as 'structure of'.
+Default TRUE but probably not necessary if using UMLS}
+
+\item{UMLS}{data.frame or data.table containing the MRCONSO table
+with columns CUI, SAB, LAT, CODE, TTY and STR, or filepath to the
+RRF format file containing this data}
 }
 \value{
 environment containing the following data tables: FINDINGS,
-  QUAL, CAUSES, BODY, OTHERCAUSE, OTHERSEARCH, OVERLAP, TRANSITIVE
+  QUAL, CAUSES, BODY, OTHERCAUSE, OTHERSEARCH, OVERLAP, TRANSITIVE,
+  as well as the following source data and metadata:
+  WN (wordnet table used to create the CDB), MANUAL_SYNONYMS,
+  metadata (SNOMED CT version and whether UMLS_included),
+  stopwords, and some SNOMEDconcept concepts for convenience:
+  SCT_assoc, SCT_cause, SCT_after, SCT_dueto, SCT_findingsite
+  SCT_disorder, SCT_finding, SCT_allergy
 }
 \description{
 Extracts SNOMED CT concepts from appropriate places in the 
@@ -49,7 +65,7 @@ Uses WordNet and manual synonyms if available.
 # CDBNEW <- createCDB(WN = WN, MANUAL_SYNONYMS = MANUAL_SYNONYMS)
 }
 \seealso{
-exportMiADECDB, MANUAL_SYNONYMS
+exportMiADECDB, MANUAL_SYNONYMS, compose, decompose
 
 Other CDB functions: 
 \code{\link{addComposeLookupToCDB}()},

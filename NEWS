@@ -1,4 +1,13 @@
 =====================================================================
+Version 1.5.1
+=====================================================================
+
+CHANGES:
+- The CDB generation function can now include UMLS concepts
+- Wordnet and manual synonyms tables that were used to generate a CDB
+  are now included within it
+
+=====================================================================
 Version 1.5.0
 =====================================================================
 

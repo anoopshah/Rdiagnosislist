@@ -111,7 +111,9 @@ compose <- function(conceptId, CDB,
 	# composition options)
 	root_search <- add_overlap(conceptId)
 	root_search <- union(root_search,
-		CDB$COMPOSELOOKUP[origId %in% root_search]$rootId)
+		intersect(ancestors(conceptId, SNOMED = SNOMED,
+		TRANSITIVE = CDB$TRANSITIVE),
+		CDB$COMPOSELOOKUP[origId %in% root_search]$rootId))
 	
 	# Create indexed data.table for fast lookup
 	LOOKUP <- data.table(expand.grid(root_search, attributes_search))

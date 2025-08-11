@@ -43,5 +43,29 @@ test_that('Testing createCDB and decomposition', {
 		compose(SNOMEDconcept('128404006', SNOMED = miniSNOMED),
 		due_to_conceptIds = SNOMEDconcept('19829001', SNOMED = miniSNOMED),
 		CDB = miniCDB, SNOMED = miniSNOMED),
-		SNOMEDconcept('83291003', SNOMED = miniSNOMED))
+		SNOMEDconcept('83291003', SNOMED = miniSNOMED))#
+	expect_false(miniCDB$metadata$UMLS_included)
+})
+
+test_that('Test createCDB with UMLS', {
+	data.table::setDTthreads(threads = 1)
+	miniSNOMED <- sampleSNOMED()
+	# Export UMLS to a temporary file
+	umlsfile <- paste0(tempdir(), '/testumls.rrf')
+	# Sample UMLS format file with two rows
+	write(c('C0000005|ENG|P|L0000005|PF|S0007492|Y|A26634265||M0019694|D012711|SNOMEDCT_US|PEP|127337006|Acute heart failure|0|N|256|',
+		'C0000005|ENG|S|L0270109|PF|S0007491|Y|A26634266||M0019694|D012711|MSH|ET|D012711|Rapid onset cardiac insufficiency|0|N|256|',
+		'C0000005|ENG|S|L0270109|PF|S0007491|Y|A26634266||M0019694|D012711|MSH|ET|D012712|Rapid onset CI (diagnosis)|0|N|256|'),
+		file = umlsfile)
+	# Create miniCDB
+	miniCDB <- createCDB(SNOMED = miniSNOMED,
+		UMLS = umlsfile)
+	# Delete temporary file
+	unlink(paste0(tempdir(), '/testumls.rrf'))
+	
+	# Test for inclusion of UMLS concepts
+	expect_equal(nrow(miniCDB$FINDINGS[
+		conceptId == bit64::as.integer64('127337006') &
+		term == ' rapid onset cardiac insufficiency ']), 1)
+	expect_true(miniCDB$metadata$UMLS_included)
 })

@@ -15,11 +15,30 @@
 #'   containing additional exact synonyms or abbreviations
 #' @param noisy whether to output status messages
 #' @param stopwords vector of stopwords 
+#' @param simplify_body_part_names Boolean, whether to add additional
+#'   body part names without preceding phrases such as 'structure of'.
+#'   Default TRUE
+#' @param UMLS data.frame or data.table containing the MRCONSO table
+#'   with columns CUI, SAB, LAT, CODE, TTY and STR, or filepath to the
+#'   RRF format file containing this data 
+#' @param min_length_umls_term minimum length of UMLS terms to
+#'   include, as there are some short ambiguous terms that may lead
+#'   to false positives and are not useful to include. Default 5.
+#' @param umls_vocabs which vocabularies other than SNOMED CT to draw
+#'   synonyms from. Default MSH, MEDLINEPLUS, OMIM, HPO, FMA, UWDA, CHV,
+#'   ORPHANET and NCI
 #' @return environment containing the following data tables: FINDINGS,
-#'   QUAL, CAUSES, BODY, OTHERCAUSE, OTHERSEARCH, OVERLAP, TRANSITIVE
+#'   QUAL, CAUSES, BODY, OTHERCAUSE, OTHERSEARCH, OVERLAP, TRANSITIVE,
+#'   as well as the following source data and metadata:
+#'   WN (wordnet table used to create the CDB), MANUAL_SYNONYMS,
+#'   metadata (SNOMED CT version and whether UMLS_included),
+#'   stopwords, and some SNOMEDconcept concepts for convenience:
+#'   SCT_assoc, SCT_cause, SCT_after, SCT_dueto, SCT_findingsite
+#'   SCT_disorder, SCT_finding, SCT_allergy  
 #' @export
 #' @family CDB functions
-#' @seealso exportMiADECDB, MANUAL_SYNONYMS
+#' @seealso exportMiADECDB, MANUAL_SYNONYMS, compose, decompose
+#' @importFrom stringdist stringdist
 #' @examples
 #' # Not run
 #' # data(MANUAL_SYNONYMS)
@@ -29,10 +48,16 @@
 createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	WN = NULL, MANUAL_SYNONYMS = NULL, noisy = TRUE,
 	stopwords = c('the', 'of', 'by', 'with', 'to', 'into', 'and', 'or',
-	'at', 'as', 'and/or', 'in')){
+	'at', 'as', 'and/or', 'in'), simplify_body_part_names = TRUE,
+	UMLS = NULL, min_length_umls_term = 5, umls_vocabs = c('MSH',
+	'MEDLINEPLUS', 'OMIM', 'HPO', 'FMA', 'UWDA', 'CHV', 'ORPHANET',
+	'NCI')){
 	# Returns an environment containing data.tables used for
 	# generating decompositions 
 	CDB <- new.env()
+	CDB$metadata <- SNOMED$metadata
+	CDB$WN <- WN
+	CDB$MANUAL_SYNONYMS <- MANUAL_SYNONYMS
 	
 	# Declare symbols to avoid R check error
 	type <- conceptId <- term <- typeId <- adj <- wordnetId <- NULL
@@ -40,6 +65,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	extra <- sourceId <- destinationId <- laterality <- NULL
 	nonlat_parentId <- N <- semType <- findingId <- otherId <- NULL
 	descendantId <- ancestorId <- bidirectional <- multipart <- NULL
+	CUI <- SAB <- LAT <- CODE <- STR <- NULL
 
 	#### USEFUL FUNCTIONS ####
 	
@@ -120,87 +146,89 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	if (noisy) message('Initialising body structures.')
 	BODY <- init('Body structure')
 	
-	# Remove 'entire', 'structure of', 'of' and 'the'
-	strip_structure <- ' region structure | structure of | structure | of the | of | the '
-	if (nrow(BODY) > 0){
-		BODY <- rbind(BODY, BODY[, list(conceptId,
-			term = gsub(strip_structure, ' ',
-			gsub(strip_structure, ' ', term)))])
-		BODY <- BODY[!duplicated(BODY)]
+	if (simplify_body_part_names){
+		# Remove 'entire', 'structure of', 'of' and 'the'
+		strip_structure <- ' region structure | structure of | structure | of the | of | the '
+		if (nrow(BODY) > 0){
+			BODY <- rbind(BODY, BODY[, list(conceptId,
+				term = gsub(strip_structure, ' ',
+				gsub(strip_structure, ' ', term)))])
+			BODY <- BODY[!duplicated(BODY)]
 
-		# Remove structure type (e.g. 'muscle structure' etc.) if a name is
-		# unique (e.g. there is only one rectus femoris and it is a muscle)
-		structure_types <- c(' muscle | skeletal muscle ', ' ligament ',
-			' tendon ', ' bone | bone structure ', ' joint ', ' artery ',
-			' vein ')
-		structure_terms <- lapply(structure_types, function(structure_type){
-			# Find concepts with structure
-			ANCESTOR <- BODY[term %like% paste0('^(', structure_type, ')$')]
-			# first generation children are non-specific and are not to have
-			# their body type stripped out
-			if (nrow(ANCESTOR) > 0){
-				if (noisy) message(paste0('Removing the word(s) ',
-					structure_type, ' where possible.'))
-				TEMP <- BODY[term %like% structure_type &
-					conceptId %in% desc(ANCESTOR$conceptId),
-					list(conceptId, term = gsub(paste0(strip_structure, '|',
-					structure_type), ' ', gsub(paste0(strip_structure, '|',
-					structure_type), ' ', term)))]
-				TEMP[!duplicated(TEMP)]
-				TEMP
-			} else {
-				data.table(conceptId = bit64::integer64(0),
-					term = character(0))
-			}
-		})
-		setattr(structure_terms, 'names', structure_types)
+			# Remove structure type (e.g. 'muscle structure' etc.) if a name is
+			# unique (e.g. there is only one rectus femoris and it is a muscle)
+			structure_types <- c(' muscle | skeletal muscle ', ' ligament ',
+				' tendon ', ' bone | bone structure ', ' joint ', ' artery ',
+				' vein ')
+			structure_terms <- lapply(structure_types, function(structure_type){
+				# Find concepts with structure
+				ANCESTOR <- BODY[term %like% paste0('^(', structure_type, ')$')]
+				# first generation children are non-specific and are not to have
+				# their body type stripped out
+				if (nrow(ANCESTOR) > 0){
+					if (noisy) message(paste0('Removing the word(s) ',
+						structure_type, ' where possible.'))
+					TEMP <- BODY[term %like% structure_type &
+						conceptId %in% desc(ANCESTOR$conceptId),
+						list(conceptId, term = gsub(paste0(strip_structure, '|',
+						structure_type), ' ', gsub(paste0(strip_structure, '|',
+						structure_type), ' ', term)))]
+					TEMP[!duplicated(TEMP)]
+					TEMP
+				} else {
+					data.table(conceptId = bit64::integer64(0),
+						term = character(0))
+				}
+			})
+			setattr(structure_terms, 'names', structure_types)
 
-		# For each structure types, we have a list of putative terms. 
-		# Need to check if these are unique
-		other_structure_terms <- lapply(structure_types, function(structure_type){
-			# Find concepts with structure
-			unique(unlist(lapply(
-			structure_terms[setdiff(structure_types, structure_type)],
-			function(x){
-				x$term
-			})))
-		})
-		setattr(other_structure_terms, 'names', structure_types)
+			# For each structure types, we have a list of putative terms. 
+			# Need to check if these are unique
+			other_structure_terms <- lapply(structure_types, function(structure_type){
+				# Find concepts with structure
+				unique(unlist(lapply(
+				structure_terms[setdiff(structure_types, structure_type)],
+				function(x){
+					x$term
+				})))
+			})
+			setattr(other_structure_terms, 'names', structure_types)
 
-		# Body parts without a structure
-		body_ancestors <- BODY[term %like% paste0('^(',
-			paste(structure_types, collapse = '|'), ')$')]$conceptId
-		OTHER_BODY_PARTS <- BODY[!(conceptId %in% desc(body_ancestors))]
+			# Body parts without a structure
+			body_ancestors <- BODY[term %like% paste0('^(',
+				paste(structure_types, collapse = '|'), ')$')]$conceptId
+			OTHER_BODY_PARTS <- BODY[!(conceptId %in% desc(body_ancestors))]
 
-		# Find concepts for generic body parts (these should not have
-		# their body type stripped)
-		firstgen <- BODY[term %like% paste0('^(',
-			paste(structure_types, collapse = '|'),
-			')(part |)$')]$conceptId
-		firstgen <- children(firstgen, include_self = TRUE,
-			SNOMED = SNOMED)
-		
-		# Find unique structure terms without body part type
-		unique_structure_terms <- lapply(structure_types,
-			function(structure_type){
-				TEMP <- structure_terms[[structure_type]]
-				searchtext <- paste(setdiff(structure_types, structure_type),
-					collapse = '|')
-				exclude <- c(TEMP[(term %in% c(OTHER_BODY_PARTS$term,
-					other_structure_terms[[structure_type]])) |
-					(term %like% searchtext)]$conceptId, 
-					firstgen)
-				# Exclude if term is ambiguous or has another structure
-				# type mentioned
-				TEMP[!(conceptId %in% exclude), 
-					list(conceptId, term, structure_type)]
-			}
-		)
-		setattr(unique_structure_terms, 'names', structure_types)
+			# Find concepts for generic body parts (these should not have
+			# their body type stripped)
+			firstgen <- BODY[term %like% paste0('^(',
+				paste(structure_types, collapse = '|'),
+				')(part |)$')]$conceptId
+			firstgen <- children(firstgen, include_self = TRUE,
+				SNOMED = SNOMED)
+			
+			# Find unique structure terms without body part type
+			unique_structure_terms <- lapply(structure_types,
+				function(structure_type){
+					TEMP <- structure_terms[[structure_type]]
+					searchtext <- paste(setdiff(structure_types, structure_type),
+						collapse = '|')
+					exclude <- c(TEMP[(term %in% c(OTHER_BODY_PARTS$term,
+						other_structure_terms[[structure_type]])) |
+						(term %like% searchtext)]$conceptId, 
+						firstgen)
+					# Exclude if term is ambiguous or has another structure
+					# type mentioned
+					TEMP[!(conceptId %in% exclude), 
+						list(conceptId, term, structure_type)]
+				}
+			)
+			setattr(unique_structure_terms, 'names', structure_types)
 
-		EXTRA_WITHOUT_STRUCTURE <- rbindlist(unique_structure_terms)
-		BODY <- rbind(BODY, EXTRA_WITHOUT_STRUCTURE[,
-			list(conceptId, term)])
+			EXTRA_WITHOUT_STRUCTURE <- rbindlist(unique_structure_terms)
+			BODY <- rbind(BODY, EXTRA_WITHOUT_STRUCTURE[,
+				list(conceptId, term)])
+		}
 	}
 
 	#### ADDING WORDNET ADJECTIVES ####
@@ -261,6 +289,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		TEMP <- NULL
 	}
 
+	#### SEVERITY AND STAGE
 	# Severity codes as per FHIR valueset plus a few extra
 	if (noisy) message('Creating severity and stage lists.')
 	SEVERITY <- QUAL[conceptId %in% desc(c(
@@ -308,7 +337,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	QUAL <- QUAL[!(conceptId %in% LATERALITY$conceptId)]
 	QUAL <- QUAL[!(term %in% paste0(' ', stopwords, ' '))]
 
-	#### PREPARE CDB ENVIRONMENT ####
+	#### ADD MANUAL AND WORDNET SYNONYMS ####
 	addmw <- function(X, wn_categories){
 		if (!is.null(MANUAL_SYNONYMS)){
 			M <- copy(as.data.table(MANUAL_SYNONYMS))
@@ -332,14 +361,99 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		}
 	}
 
-	CDB$FINDINGS <- addmw(FINDINGS, c('noun.state',
+	FINDINGS <- addmw(FINDINGS, c('noun.state',
 		'noun.process', 'noun.phenomenon'))
-	CDB$QUAL <- addmw(QUAL, c('noun.state',
+	QUAL <- addmw(QUAL, c('noun.state',
 		'noun.process', 'noun.phenomenon'))
-	CDB$CAUSES <- addmw(CAUSES, c('noun.state',
+	CAUSES <- addmw(CAUSES, c('noun.state',
 		'noun.process', 'noun.phenomenon', 'noun.animal', 'noun.plant'))
 	BODY <- addmw(BODY, c('noun.body'))
 	BODY <- BODY[!term %in% LATERALITY$term]
+	
+	#### ADD UMLS FINDINGS, BODY AND CAUSES
+	# Need to add UMLS in a principled way, as some concepts are too
+	# short and ambiguous.
+	# .
+	# Generate all concepts first as per usual.
+	# Then process UMLS:
+	# 1. Remove ; and , from concepts (as never found in text),
+	#    lower case concepts and 
+	# 2. Ignore any terms that already exist in CDB (case insensitive)
+	# 3. For each term that is linked to SNOMED, generate a list of
+	#    descendants of those SNOMED concepts and delete any links to a
+	#    descendant (i.e. only allow a link to the highest level concept).
+	#    This will avoid the error that general UMLS terms are linked
+	#    to specific SNOMED concepts.
+	
+	addumls <- function(X, UMLS){
+		# Ignore UMLS concepts that already exist in the table
+		XUMLS <- UMLS[conceptId %in% X$conceptId &
+			!(term %in% c(tolower(X$term), sub(' $', 's ', tolower(X$term))))]
+		# Generate a table of UMLS concepts-term links
+		# Keep only one link per term, that is to the SNOMED concept
+		# wth the most similar description
+		XUMLS <- merge(description(unique(X$conceptId), SNOMED = SNOMED)[,
+			list(conceptId, sct = term)], XUMLS, by = 'conceptId')
+		if (nrow(XUMLS) > 0){
+			XUMLS[, sct := tolower(sub('^(.*) \\([a-z ]+\\)$', ' \\1 ', sct))]
+			XUMLS[, dist := stringdist::stringdist(term, sct)]
+			setkey(XUMLS, term, dist)
+			XUMLS[, keep := c(TRUE, rep(FALSE, .N - 1)), by = term]
+			return(rbind(X, XUMLS[keep == TRUE, list(conceptId, term)], fill = TRUE))
+		} else {
+			return(X)
+		}
+	}
+	
+	if (is.null(UMLS)){
+		# do nothing
+		CDB$metadata$UMLS_included <- FALSE
+	} else {
+		if (is.character(UMLS)){
+			if (noisy) message(paste0('Attempting to import UMLS from\n',
+				UMLS))
+			UMLS <- fread(UMLS, header = FALSE, sep = "|",
+				col.names = c('CUI', 'SAB', 'LAT', 'CODE', 'STR'),
+				select = c(1, 12, 2, 14, 15),
+				quote = "")
+		} else {
+			UMLS <- as.data.table(UMLS)
+		}
+		# create UMLS lookup table
+		SCTMAP <- UMLS[SAB == 'SNOMEDCT_US' & LAT == 'ENG',
+			list(CUI, CODE)]
+		SCTMAP <- SCTMAP[!duplicated(SCTMAP)]
+		# Find all English synonyms for the CUIs identified,
+		# from specified vocabularies
+		UMLS <- UMLS[CUI %in% SCTMAP$CUI & LAT == 'ENG' &
+			SAB %in% umls_vocabs, list(CUI, term = tolower(STR))]
+		UMLS <- UMLS[!duplicated(UMLS)]
+		# Merge UMLS with SNOMED CT map file
+		# Remove semicolons and NOS, and lowercase terms
+		UMLS <- merge(UMLS, SCTMAP, allow.cartesian = TRUE)[,
+			list(conceptId = as.SNOMEDconcept(CODE, SNOMED = SNOMED),
+			term = paste0(' ', tolower(gsub(' \\(|\\) |; *|, *', ' ',
+			sub(paste0(' \\(diagnosis\\)$| \\(finding\\)$| \\(symptom\\)$|',
+			' \\(body structure\\)$| nos$'), '', term))), ' '))]
+		UMLS <- UMLS[nchar(term) >= min_length_umls_term + 2]
+		UMLS <- UMLS[!duplicated(UMLS)]
+		UMLS[, desc := description(conceptId, SNOMED = SNOMED)$term]
+		setkey(UMLS, conceptId)
+		rm(SCTMAP)
+		gc()
+		if (noisy) message(paste0('Created UMLS lookup table, ',
+			nrow(UMLS), ' rows.'))
+		CDB$metadata$UMLS_included <- TRUE
+		
+		browser()
+		
+		FINDINGS <- addumls(FINDINGS, UMLS)
+		CAUSES <- addumls(CAUSES, UMLS)
+		BODY <- addumls(BODY, UMLS)
+		if (noisy) message(paste0('Added UMLS to FINDINGS, ',
+			'CAUSES and BODY tables.'))
+		gc()
+	}
 	
 	#### PROCESS LATERALITY
 	
@@ -382,7 +496,10 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		BODY <- BODY[!(conceptId %in% MORPH$conceptId)]
 	}
 	
+	# Assemble CDB
+	CDB$FINDINGS <- FINDINGS
 	CDB$MORPH <- MORPH
+	CDB$QUAL <- QUAL
 	CDB$BODY <- BODY
 	CDB$SEVERITY <- SEVERITY
 	CDB$LATERALITY <- LATERALITY
@@ -405,7 +522,6 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	CDB$OVERLAP <- CDB$OVERLAP[!duplicated(CDB$OVERLAP)]
 
 	CDB$TRANSITIVE <- TRANSITIVE
-	CDB$metadata <- SNOMED$metadata
 	
 	CDB$SCT_assoc <- s('Associated with')
 	CDB$SCT_cause <- s('Causative agent')
@@ -414,13 +530,15 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	CDB$SCT_findingsite <- s('Finding site')
 	CDB$SCT_disorder <- s('Disorder')
 	CDB$SCT_finding <- s('Clinical finding')
-	CDB$allergyConcepts <- union(s(c('Allergic disposition',
+	CDB$SCT_allergy <- union(s(c('Allergic disposition',
 		'Adverse reaction',
 		'Intolerance to substance',
 		'Hypersensitivity disposition')), s('281647001'))
 	# remove allergy as synonym of 'allergic reaction'. Ensure that
 	# there is at least one allergy concept regardless of version of
 	# SNOMED dictionary used, to avoid error.
+	CDB$FINDINGS <- CDB$FINDINGS[!(conceptId == s('Allergic reaction') &
+		term %like% '^ allerg(y|ic|ie|ies) (dis |disorder|$)')]
 	
 	CDB$stopwords <- stopwords
 	CDB$SEMTYPE <- rbind(
@@ -452,6 +570,9 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	setkey(CDB$OTHERCAUSE, term); setindex(CDB$OTHERCAUSE, conceptId)
 	setkey(CDB$CAUSES, term); setindex(CDB$CAUSES, conceptId)
 	setkey(CDB$OVERLAP, otherId)
+
+	rm(UMLS)
+	gc()
 	return(CDB)
 }
 
@@ -1058,6 +1179,9 @@ std_term <- function(x, stopwords = c('the', 'of', 'by', 'with', 'to',
 			y %in% toupper(stopwords), tolower(y), y)
 	}), function(y) paste(y, collapse = ' ')), ' ')
 	if (remove_stopwords){
+		x <- gsub(paste0(' ', paste0(stopwords, collapse = ' | '),
+			' '), ' ', x)
+		# repeat to remove a sequence of two stopwords
 		x <- gsub(paste0(' ', paste0(stopwords, collapse = ' | '),
 			' '), ' ', x)
 	}
