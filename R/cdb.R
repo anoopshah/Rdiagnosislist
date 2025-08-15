@@ -38,7 +38,7 @@
 #' @export
 #' @family CDB functions
 #' @seealso exportMiADECDB, MANUAL_SYNONYMS, compose, decompose
-#' @importFrom stringdist stringdist
+#' @importFrom utils adist
 #' @examples
 #' # Not run
 #' # data(MANUAL_SYNONYMS)
@@ -396,7 +396,8 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 			list(conceptId, sct = term)], XUMLS, by = 'conceptId')
 		if (nrow(XUMLS) > 0){
 			XUMLS[, sct := tolower(sub('^(.*) \\([a-z ]+\\)$', ' \\1 ', sct))]
-			XUMLS[, dist := stringdist::stringdist(term, sct)]
+			adist2 <- function(x, y) adist(x, y)[1, 1]
+			XUMLS[, dist := unlist(mapply(adist2, term, sct))]
 			setkey(XUMLS, term, dist)
 			XUMLS[, keep := c(TRUE, rep(FALSE, .N - 1)), by = term]
 			return(rbind(X, XUMLS[keep == TRUE, list(conceptId, term)], fill = TRUE))
