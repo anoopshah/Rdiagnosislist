@@ -373,7 +373,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	#### ADD UMLS FINDINGS, BODY AND CAUSES
 	# Need to add UMLS in a principled way, as some concepts are too
 	# short and ambiguous.
-	# .
+	#
 	# Generate all concepts first as per usual.
 	# Then process UMLS:
 	# 1. Remove ; and , from concepts (as never found in text),
