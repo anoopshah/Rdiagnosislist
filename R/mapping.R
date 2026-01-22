@@ -1,7 +1,7 @@
 #' Obtain Read 2, CTV3, ICD-10 and OPCS4 maps for SNOMED CT concepts
 #'
 #' Returns concepts mapped to SNOMED CT from either the
-#' SIMPLEMAP table in the SNOMED dictionay (Clinical Terms Version 3,
+#' SIMPLEMAP table in the SNOMED dictionary (Clinical Terms Version 3,
 #' CTV3 maps, one per concept),
 #' the EXTENDEDMAP table (ICD-10 and OPCS4 maps) or a separate mapping
 #' table with Read Clinical Terms Version 2 (Read 2) and 
@@ -169,16 +169,17 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 	if ('icd10' %in% to){
 		if ('icd10_code' %in% names(out)) out[, icd10_code := NULL]
 		# Limit to Map source concept is properly classified 
-		# (mapCategoryId = 447637006)
-		# mapPriority is almost always 1 for these maps
+		# (mapCategoryId = 447637006).
+		# Choose concept with highest mapPriority (= default map).
 		# Up to 5 ICD-10 codes mapped per SNOMED CT concept, but mostly
 		# just one.
-		TEMP <- merge(SNOMED$EXTENDEDMAP[mapPriority == 1 &
+		TEMP <- merge(SNOMED$EXTENDEDMAP[
 			mapCategoryId == bit64::as.integer64('447637006') &
 			(refsetId == bit64::as.integer64('447562003') |
 			refsetId == bit64::as.integer64('999002271000000101')),
-			list(icd10_code = list(mapTarget)),
-			by = list(conceptId = referencedComponentId)],
+			list(icd10_code = mapTarget, include = mapPriority == max(mapPriority)),
+			by = list(conceptId = referencedComponentId)][include == TRUE,
+			list(icd10_code = list(mapTarget)), by = conceptId],
 			out[, list(conceptId)], by = 'conceptId')
 		if (single_row_per_concept){
 			out[, icd10_code := clean(TEMP[out, on = 'conceptId']$icd10_code)]
