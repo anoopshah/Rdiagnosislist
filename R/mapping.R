@@ -170,16 +170,14 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 		if ('icd10_code' %in% names(out)) out[, icd10_code := NULL]
 		# Limit to Map source concept is properly classified 
 		# (mapCategoryId = 447637006).
-		# Choose concept with highest mapPriority (= default map).
 		# Up to 5 ICD-10 codes mapped per SNOMED CT concept, but mostly
 		# just one.
 		TEMP <- merge(SNOMED$EXTENDEDMAP[
 			mapCategoryId == bit64::as.integer64('447637006') &
 			(refsetId == bit64::as.integer64('447562003') |
 			refsetId == bit64::as.integer64('999002271000000101')),
-			list(icd10_code = mapTarget, include = mapPriority == max(mapPriority)),
-			by = list(conceptId = referencedComponentId)][include == TRUE,
-			list(icd10_code = list(mapTarget)), by = conceptId],
+			list(icd10_code = list(mapTarget)),
+			by = list(conceptId = referencedComponentId)],
 			out[, list(conceptId)], by = 'conceptId')
 		if (single_row_per_concept){
 			out[, icd10_code := clean(TEMP[out, on = 'conceptId']$icd10_code)]

@@ -445,9 +445,6 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 		if (noisy) message(paste0('Created UMLS lookup table, ',
 			nrow(UMLS), ' rows.'))
 		CDB$metadata$UMLS_included <- TRUE
-		
-		browser()
-		
 		FINDINGS <- addumls(FINDINGS, UMLS)
 		CAUSES <- addumls(CAUSES, UMLS)
 		BODY <- addumls(BODY, UMLS)
