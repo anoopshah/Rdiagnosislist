@@ -2,10 +2,16 @@
 Version 1.5.1
 =====================================================================
 
+BUG FIXES:
+- loadSNOMED would overwrite different versions of tables loaded from
+  the same folder
+
 CHANGES:
 - The CDB generation function can now include UMLS concepts
 - Wordnet and manual synonyms tables that were used to generate a CDB
   are now included within it
+- addInactiveConcepts allows filtering on the ISAMBIGUOUS column of
+  the HISTORY table
 
 =====================================================================
 Version 1.5.0

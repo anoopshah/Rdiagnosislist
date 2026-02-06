@@ -13,6 +13,11 @@
 #' Reference Update Distribution:
 #' \url{https://isd.digital.nhs.uk/trud/user/guest/group/0/home}
 #'
+#' Note that the NHS TRUD Monolith files (as of Jan 2026) do not include
+#' the mapCategoryId column in the Extended Map table (for ICD-10 maps)
+#' so the getMaps function will not work correctly. We recommend using
+#' the International Edition or the standard UK Clinical Edition files.  
+#'
 #' @param folders Vector of folder paths containing SNOMED CT files
 #' @param active_only Whether to limit to current (active) SNOMED CT
 #'   concepts
@@ -67,19 +72,19 @@ SNOMEDQueryTable|QUERY
 HistorySubstitutionTable_Concepts|HISTORY')
 
 	SNOMED <- new.env()
-	append <- FALSE
 	for (folder in folders){
 		message('Attempting to load from ', folder)
 		files <- dir(folder, recursive = TRUE, full.names = TRUE)
 		used <- rep(FALSE, length(files))
 		for (thispattern in FILENAMES$pattern){
+			thistable <- FILENAMES[thispattern == pattern]$table
 			touse <- which(files %like% thispattern & used == FALSE)
 			used[touse] <- TRUE
 			if (length(touse) == 0){
 				message('No files matching ', thispattern)
 			} else {
 				for (thisfile in files[touse]){
-					message('Attempting to load ', thisfile)
+					message('Loading ', thisfile, ' as ', thistable)
 					TEMP <- NULL
 					try(TEMP <- data.table::fread(thisfile, quote = ""))
 					if (is.null(TEMP)){
@@ -98,6 +103,7 @@ HistorySubstitutionTable_Concepts|HISTORY')
 									as.character(get(i)), '%Y-%m-%d')]
 								if (all(is.na(TEMP[['.temp']]))){
 									message('  Failed to convert ', i, ' to IDate.')
+                                    TEMP[, .temp := NULL]
 								} else {
 									TEMP[, (i) := NULL]
 									data.table::setnames(TEMP, '.temp', i)
@@ -143,49 +149,35 @@ HistorySubstitutionTable_Concepts|HISTORY')
 							}
 							if ('correlationId' %in% names(TEMP)){
 								TEMP[, correlationId := NULL]
-								# all the same, no uesful info in this column
+								# all the same, no useful info in this column
 							}
 						}
 						# Remove . from ICD-10 terms
-						if (thispattern == 'Refset_ExtendedMapSnapshot'){
+						if (thistable == 'EXTENDEDMAP'){
 							TEMP[, mapTarget := sub('\\.', '', mapTarget)]
 						}
 						# Return the table or append to another partial table
-						if (append){
-							message('  Attempting to append to ',
-								FILENAMES[thispattern == pattern]$table)
-							EXISTING <- NULL
-							try(EXISTING <- get(FILENAMES[thispattern == pattern]$table,
-								envir = SNOMED, inherits = FALSE))
-							if (is.null(EXISTING)){
-								message('  No table in original, using new.')
-							} else if (nrow(TEMP) == 0 & nrow(EXISTING) == 0){
-								warning('  No data in original or new file.')
-							} else if (nrow(TEMP) == 0 & nrow(EXISTING) > 0){
-								message('  No data in new file, keeping original.')
-								TEMP <- EXISTING
-							} else if (nrow(TEMP) > 0 & nrow(EXISTING) == 0){
-								message('  No data in original, using new.')
-							} else {
-								existingN <- nrow(TEMP)
-								try(TEMP <- rbind(TEMP, EXISTING,
-									use.names = TRUE, fill = TRUE))
-								if (nrow(TEMP) > existingN){
-									message('  Successfully appended.')
-								}
+						PRIOR <- NULL
+						try(PRIOR <- get(thistable, envir = SNOMED, inherits = FALSE))
+						if (!(is.null(PRIOR))){
+							existingN <- nrow(TEMP)
+							try(TEMP <- rbind(TEMP, PRIOR,
+								use.names = TRUE, fill = TRUE))
+							if (nrow(TEMP) > existingN){
+								message('  Successfully appended.')
 							}
-						} else {
-							message('  Naming as ', FILENAMES[thispattern == pattern]$table)
 						}
+						# Deduplicate
+						existingN <- nrow(TEMP)
+						TEMP <- TEMP[!duplicated(TEMP)]
+						message('  ', existingN - nrow(TEMP), ' rows removed, ',
+							nrow(TEMP), ' rows remain after deduplication.')
 						assign(FILENAMES[thispattern == pattern]$table, value = TEMP,
 							envir = SNOMED)
 					}
 				}
 			}
 		}
-		
-		# Append files from 2nd and subsequent folders
-		append <- TRUE
 	}
 	
 	# Remove double quotes around descriptions
@@ -351,8 +343,6 @@ createSNOMEDindices <- function(SNOMED){
 		SNOMED$EXTENDEDMAP[, mapPriority := as.integer(mapPriority)]
 		SNOMED$EXTENDEDMAP[, mapRule := as.character(mapRule)]
 		SNOMED$EXTENDEDMAP[, mapTarget := as.character(mapTarget)]
-		# data.table::setindex(SNOMED$EXTENDEDMAP, correlationId)
-		# not using correlationId because they are all the same
 		SNOMED$EXTENDEDMAP[, mapCategoryId := bit64::as.integer64(mapCategoryId)]
 		SNOMED$EXTENDEDMAP[, active := as.logical(active)]
 		data.table::setkeyv(SNOMED$EXTENDEDMAP, c('mapPriority', 'mapCategoryId', 'refsetId',

@@ -720,24 +720,34 @@ print.SNOMEDcodelist <- function(x, ...){
 #' record database which might contain historic SNOMED CT concepts.
 #'
 #' @param x SNOMEDcodelist or SNOMEDconcept object
-#' @param provenance vector of provenance values to use
+#' @param provenance vector of provenance values to use in QUERY table
+#' (0 = subsumption
+#' is always true, 1 = subsumption is usually true, 2 = both ancestors
+#' and descendents are only approximately known, 3 = original code had
+#' at least two distinct meanings and all are being returned) 
+#' @param is_ambiguous vector of is_ambiguous values to use in HISTORY
+#' table (0 = exact,
+#' 1 = possibly ambiguous, 2 = was a, 3 = definitely ambiguous)
 #' @param SNOMED SNOMED environment containing HISTORY and QUERY tables
 #' @return SNOMEDcodelist or SNOMEDconcept with linked inactive concepts included
 #' @family SNOMEDcodelist functions
 #' @export
-addInactiveConcepts <- function(x, provenance = 0:3, SNOMED = getSNOMED()){
+addInactiveConcepts <- function(x, provenance = 0, is_ambiguous = 0,
+	SNOMED = getSNOMED()){
 	supertypeId <- NEWCONCEPTID <- NULL
 
 	if (is.SNOMEDconcept(x)){
 		if ('QUERY' %in% names(SNOMED)){
-			x <- union(x, as.SNOMEDconcept(SNOMED$QUERY[supertypeId %in% x &
+			x <- union(x, as.SNOMEDconcept(
+				SNOMED$QUERY[supertypeId %in% x &
 				provenance %in% provenance]$subtypeId))
 		} else {
 			warning('SNOMED does not contain a query table')
 		}
 		if ('HISTORY' %in% names(SNOMED)){
 			x <- union(x, as.SNOMEDconcept(SNOMED$HISTORY[
-				NEWCONCEPTID %in% x]$OLDCONCEPTID))
+				NEWCONCEPTID %in% x &
+                ISAMBIGUOUS %in% is_ambiguous]$OLDCONCEPTID))
 		} else {
 			warning('SNOMED does not contain a history table')
 		}

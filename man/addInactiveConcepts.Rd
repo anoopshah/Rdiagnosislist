@@ -4,12 +4,20 @@
 \alias{addInactiveConcepts}
 \title{Add inactive concepts to a SNOMEDcodelist or SNOMEDconcept vector}
 \usage{
-addInactiveConcepts(x, provenance = 0:3, SNOMED = getSNOMED())
+addInactiveConcepts(x, provenance = 0, is_ambiguous = 0, SNOMED = getSNOMED())
 }
 \arguments{
 \item{x}{SNOMEDcodelist or SNOMEDconcept object}
 
-\item{provenance}{vector of provenance values to use}
+\item{provenance}{vector of provenance values to use in QUERY table
+(0 = subsumption
+is always true, 1 = subsumption is usually true, 2 = both ancestors
+and descendents are only approximately known, 3 = original code had
+at least two distinct meanings and all are being returned)}
+
+\item{is_ambiguous}{vector of is_ambiguous values to use in HISTORY
+table (0 = exact,
+1 = possibly ambiguous, 2 = was a, 3 = definitely ambiguous)}
 
 \item{SNOMED}{SNOMED environment containing HISTORY and QUERY tables}
 }
