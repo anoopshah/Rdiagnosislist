@@ -13,7 +13,10 @@ createCDB(
   stopwords = c("the", "of", "by", "with", "to", "into", "and", "or", "at", "as",
     "and/or", "in"),
   simplify_body_part_names = TRUE,
-  UMLS = NULL
+  UMLS = NULL,
+  min_length_umls_term = 5,
+  umls_vocabs = c("MSH", "MEDLINEPLUS", "OMIM", "HPO", "FMA", "UWDA", "CHV", "ORPHANET",
+    "NCI")
 )
 }
 \arguments{
@@ -36,11 +39,19 @@ containing additional exact synonyms or abbreviations}
 
 \item{simplify_body_part_names}{Boolean, whether to add additional
 body part names without preceding phrases such as 'structure of'.
-Default TRUE but probably not necessary if using UMLS}
+Default TRUE}
 
 \item{UMLS}{data.frame or data.table containing the MRCONSO table
 with columns CUI, SAB, LAT, CODE, TTY and STR, or filepath to the
 RRF format file containing this data}
+
+\item{min_length_umls_term}{minimum length of UMLS terms to
+include, as there are some short ambiguous terms that may lead
+to false positives and are not useful to include. Default 5.}
+
+\item{umls_vocabs}{which vocabularies other than SNOMED CT to draw
+synonyms from. Default MSH, MEDLINEPLUS, OMIM, HPO, FMA, UWDA, CHV,
+ORPHANET and NCI}
 }
 \value{
 environment containing the following data tables: FINDINGS,

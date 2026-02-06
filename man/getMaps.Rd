@@ -59,7 +59,7 @@ a data.table containing the columns conceptId and either
 }
 \description{
 Returns concepts mapped to SNOMED CT from either the
-SIMPLEMAP table in the SNOMED dictionay (Clinical Terms Version 3,
+SIMPLEMAP table in the SNOMED dictionary (Clinical Terms Version 3,
 CTV3 maps, one per concept),
 the EXTENDEDMAP table (ICD-10 and OPCS4 maps) or a separate mapping
 table with Read Clinical Terms Version 2 (Read 2) and 
