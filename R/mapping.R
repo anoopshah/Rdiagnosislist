@@ -23,6 +23,11 @@
 #' codelist to SNOMED CT) because some of the SNOMED CT terms will
 #' be missed out, and the list will be incomplete.
 #'
+#' The OPCS4 and ICD-10 returned are those with the highest priority
+#' number within each map block and group (i.e. the default map), or
+#' those with mapCategoryId = 447637006 "Map source concept is
+#' properly classified".
+#'
 #' The mapping table must be a data.table object with columns:
 #' conceptId (integer64, unique),
 #' read2_code (character list of 7-character Read 2 codes),
@@ -168,15 +173,19 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 	}
 	if ('icd10' %in% to){
 		if ('icd10_code' %in% names(out)) out[, icd10_code := NULL]
-		# Limit to Map source concept is properly classified 
-		# (mapCategoryId = 447637006).
-		# Up to 5 ICD-10 codes mapped per SNOMED CT concept, but mostly
-		# just one.
-		TEMP <- merge(SNOMED$EXTENDEDMAP[
-			mapCategoryId == bit64::as.integer64('447637006') &
-			(refsetId == bit64::as.integer64('447562003') |
-			refsetId == bit64::as.integer64('999002271000000101')),
-			list(icd10_code = list(mapTarget)),
+		# Limit to 'Map source concept is properly classified' 
+		# (mapCategoryId = 447637006), otherwise use the highest number
+		# priority in each group / block
+		TEMP <- SNOMED$EXTENDEDMAP[refsetId %in%
+			bit64::as.integer64(c('447562003', '999002271000000101')) &
+			referencedComponentId %in% out$conceptId]
+		data.table::setkeyv(TEMP, c('referencedComponentId', 'mapBlock',
+			'mapGroup', 'mapPriority'))
+		TEMP[, use := c(rep(FALSE, .N - 1), TRUE), by = list(
+			referencedComponentId, mapBlock, mapGroup)]
+		TEMP <- merge(TEMP[use == TRUE |
+			mapCategoryId == bit64::as.integer64('447637006'),
+			list(icd10_code = list(unique(mapTarget))),
 			by = list(conceptId = referencedComponentId)],
 			out[, list(conceptId)], by = 'conceptId')
 		if (single_row_per_concept){
@@ -188,10 +197,17 @@ getMaps <- function(x, mappingtable = NULL, to = c('read2', 'ctv3',
 	}
 	if ('opcs4' %in% to){
 		if ('opcs4_code' %in% names(out)) out[, opcs4_code := NULL]
-		# mapCategoryId is NULL for OPCS maps
-		TEMP <- merge(SNOMED$EXTENDEDMAP[mapPriority == 1 &
-			refsetId == bit64::as.integer64(c('1126441000000105')),
-			list(opcs4_code = list(mapTarget)),
+		# mapCategoryId is NULL for OPCS maps. Use highest number
+		# priority in each group / block
+		TEMP <- SNOMED$EXTENDEDMAP[
+			refsetId == bit64::as.integer64('1126441000000105') &
+			referencedComponentId %in% out$conceptId]
+		data.table::setkeyv(TEMP, c('referencedComponentId', 'mapBlock',
+			'mapGroup', 'mapPriority'))
+		TEMP[, use := c(rep(FALSE, .N - 1), TRUE), by = list(
+			referencedComponentId, mapBlock, mapGroup)]
+		TEMP <- merge(TEMP[use == TRUE,
+			list(opcs4_code = list(unique(mapTarget))),
 			by = list(conceptId = referencedComponentId)],
 			out[, list(conceptId)], by = 'conceptId')
 		if (single_row_per_concept){

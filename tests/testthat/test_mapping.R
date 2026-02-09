@@ -64,7 +64,8 @@ test_that('Test SNOMED CT to ICD-10 mappings - single row', {
 		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED(),
 		to = 'icd10', single_row_per_concept = TRUE)
 	expect_equal(nrow(icd10map), 1)
-	expect_equal(unlist(icd10map$icd10_code), 'I509')
+	expect_equal(sort(unlist(icd10map$icd10_code)),
+        c('E059', 'I438A', 'I509'))
 })
 
 test_that('Test SNOMED CT to ICD-10 mappings - multiple rows', {
@@ -74,9 +75,9 @@ test_that('Test SNOMED CT to ICD-10 mappings - multiple rows', {
 		'due to coronary artery disease')),
 		SNOMED = sampleSNOMED()), SNOMED = sampleSNOMED(),
 		to = 'icd10', single_row_per_concept = FALSE)
-	expect_equal(nrow(icd10map), 3)
+	expect_equal(nrow(icd10map), 6)
 	expect_equal(sort(unique(unlist(icd10map$icd10_code))),
-		c('I251', 'I509'))
+		c('E059', 'I251', 'I438A', 'I500', 'I509'))
 })
 
 test_that('Test SNOMED CT to OPCS mappings - single row', {
@@ -87,7 +88,7 @@ test_that('Test SNOMED CT to OPCS mappings - single row', {
 		to = 'opcs4', single_row_per_concept = TRUE)
 	expect_equal(nrow(opcs4map), 1)
 	expect_equal(sort(unique(unlist(opcs4map$opcs4_code))),
-		c('K601', 'Y534'))
+		c('K611', 'Y534'))
 })
 
 test_that('Test SNOMED CT to OPCS mappings - multiple rows', {
@@ -98,5 +99,5 @@ test_that('Test SNOMED CT to OPCS mappings - multiple rows', {
 		to = 'opcs4', single_row_per_concept = FALSE)
 	expect_equal(nrow(opcs4map), 2)
 	expect_equal(sort(unique(unlist(opcs4map$opcs4_code))),
-		c('K601', 'Y534'))
+		c('K611', 'Y534'))
 })

@@ -82,6 +82,11 @@ They cannot be used in the reverse direction (to map a Read 2/CTV3
 codelist to SNOMED CT) because some of the SNOMED CT terms will
 be missed out, and the list will be incomplete.
 
+The OPCS4 and ICD-10 returned are those with the highest priority
+number within each map block and group (i.e. the default map), or
+those with mapCategoryId = 447637006 "Map source concept is
+properly classified".
+
 The mapping table must be a data.table object with columns:
 conceptId (integer64, unique),
 read2_code (character list of 7-character Read 2 codes),

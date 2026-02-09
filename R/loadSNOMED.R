@@ -14,9 +14,7 @@
 #' \url{https://isd.digital.nhs.uk/trud/user/guest/group/0/home}
 #'
 #' Note that the NHS TRUD Monolith files (as of Jan 2026) do not include
-#' the mapCategoryId column in the Extended Map table (for ICD-10 maps)
-#' so the getMaps function will not work correctly. We recommend using
-#' the International Edition or the standard UK Clinical Edition files.  
+#' the mapCategoryId column in the Extended Map table (for ICD-10 maps).
 #'
 #' @param folders Vector of folder paths containing SNOMED CT files
 #' @param active_only Whether to limit to current (active) SNOMED CT

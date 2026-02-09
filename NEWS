@@ -4,14 +4,19 @@ Version 1.5.1
 
 BUG FIXES:
 - loadSNOMED would overwrite different versions of tables loaded from
-  the same folder
+  the same folder so some tables would not be loaded. This is now fixed
 
 CHANGES:
 - The CDB generation function can now include UMLS concepts
 - Wordnet and manual synonyms tables that were used to generate a CDB
   are now included within it
+- default set of acceptable provenance values changed to 0 (accurate
+  maps only) for adding inactive concepts using the HISTORY table 
 - addInactiveConcepts allows filtering on the ISAMBIGUOUS column of
   the HISTORY table
+- ICD-10 and OPCS4 mapping algorithm is modified - now it returns the
+  highest priority number map within each map group and block, as 
+  this is more likely to correspond accurately to the SNOMED CT concept
 
 =====================================================================
 Version 1.5.0
