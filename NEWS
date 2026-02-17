@@ -17,6 +17,8 @@ CHANGES:
 - ICD-10 and OPCS4 mapping algorithm is modified - now it returns the
   highest priority number map within each map group and block, as 
   this is more likely to correspond accurately to the SNOMED CT concept
+- Additional files exported by exportMiADECDB to correspond with the
+  new version of MiADE
 
 =====================================================================
 Version 1.5.0

@@ -96,11 +96,6 @@ For MiADE postprocessing:
      situationId (SNOMED CT concept ID of the pre-coordinated
      situation concept for 'suspected' finding / disorder).
      Sorted by findingId.}
-  \item{overlap.csv}{ - CSV file with columns findingId (SNOMED CT
-     concept ID of the underlying finding / disorder) and
-     otherId (SNOMED CT concept ID of a concept with the same
-     description but a different semantic type, typically a
-     morphologic abnormality). Sorted by otherId.}
   \item{problem_blacklist.csv}{ - CSV file without header with one
      column containing SNOMED CT concept IDs for concepts that
      may be identified by MedCAT as part of text analysis but 
@@ -109,6 +104,18 @@ For MiADE postprocessing:
      `history of...' concepts. This file can also be used to
      force MiADE to ignore any specific SNOMED CT concepts in the
      output. Sorted in ascending order.}
+  \item{transitive.csv}{ - CSV file with columns ancestorId,
+     descendantId containing ancestor - descendant links for
+     findings, body structures and qualifiers.}
+  \item{semantic_type.csv}{ - CSV file with columns conceptId,
+     semantic_type - semantic type of each concept.}
+  \item{laterality_lookup.csv}{ - CSV file with columns conceptId,
+     laterality - contains intrinsic laterality of body system and 
+     finding concepts.}
+  \item{compose_lookup.csv}{ - CSV file with composition lookup table
+     (columns: rootId, attr_1, ..., attr_10, due_to, without, origId)
+     for linking concepts with
+     attributes to a more specific concept.}
 }
 
 For more information about MiADE, visit

@@ -668,11 +668,6 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 #'      situationId (SNOMED CT concept ID of the pre-coordinated
 #'      situation concept for 'suspected' finding / disorder).
 #'      Sorted by findingId.}
-#'   \item{overlap.csv}{ - CSV file with columns findingId (SNOMED CT
-#'      concept ID of the underlying finding / disorder) and
-#'      otherId (SNOMED CT concept ID of a concept with the same
-#'      description but a different semantic type, typically a
-#'      morphologic abnormality). Sorted by otherId.}
 #'   \item{problem_blacklist.csv}{ - CSV file without header with one
 #'      column containing SNOMED CT concept IDs for concepts that
 #'      may be identified by MedCAT as part of text analysis but 
@@ -681,6 +676,18 @@ createDisambiguationTrainer <- function(CDB, SNOMED){
 #'      `history of...' concepts. This file can also be used to
 #'      force MiADE to ignore any specific SNOMED CT concepts in the
 #'      output. Sorted in ascending order.}
+#'   \item{transitive.csv}{ - CSV file with columns ancestorId,
+#'      descendantId containing ancestor - descendant links for
+#'      findings, body structures and qualifiers.}
+#'   \item{semantic_type.csv}{ - CSV file with columns conceptId,
+#'      semantic_type - semantic type of each concept.}
+#'   \item{laterality_lookup.csv}{ - CSV file with columns conceptId,
+#'      laterality - contains intrinsic laterality of body system and 
+#'      finding concepts.}
+#'   \item{compose_lookup.csv}{ - CSV file with composition lookup table
+#'      (columns: rootId, attr_1, ..., attr_10, due_to, without, origId)
+#'      for linking concepts with
+#'      attributes to a more specific concept.}
 #' }
 #'
 #' For more information about MiADE, visit
@@ -791,7 +798,8 @@ exportMiADECDB <- function(CDB, export_folderpath,
 	# Suspected, Historic, Negated version of concepts (where available)
 	relation_source <- function(destination){
 		sort(unique(as.SNOMEDconcept(SNOMED$RELATIONSHIP[
-			destinationId %in% SNOMEDconcept(destination)]$sourceId)))
+			destinationId %in% SNOMEDconcept(destination,
+			SNOMED = SNOMED)]$sourceId, SNOMED = SNOMED)))
 	}
 
 	# Procedures can be used for historic concepts for problem list
@@ -950,20 +958,35 @@ exportMiADECDB <- function(CDB, export_folderpath,
 	# cui, name, ontologies, name_status
 	setkey(SCT, conceptId, name_status, term)
 	
+	export <- function(data, filename){
+		fwrite(data, file = paste0(export_folderpath, filename))
+	}
+	
 	fwrite(SCT[, list(cui = conceptId, name = term,
 		ontologies = 'SNO', name_status)],
 		file = paste0(export_folderpath, 'cdb_problems.csv'))
 
 	# Export lookup files for MiADE
-	fwrite(NEGATED[, list(findingId, situationId)][order(findingId)],
-		file = paste0(export_folderpath, 'negated.csv')) 
-	fwrite(HISTORIC[, list(findingId, situationId)][order(findingId)],
-		file = paste0(export_folderpath, 'historic.csv')) 
-	fwrite(SUSPECTED[, list(findingId, situationId)][order(findingId)],
-		file = paste0(export_folderpath, 'suspected.csv')) 
-	fwrite(CDB$OVERLAP[, list(findingId, otherId)][order(otherId)],
-		file = paste0(export_folderpath, 'overlap.csv')) 
-
+	export(NEGATED[, list(findingId, situationId)][order(findingId)],
+		'negated.csv')
+	export(HISTORIC[, list(findingId, situationId)][order(findingId)],
+		'historic.csv') 
+	export(SUSPECTED[, list(findingId, situationId)][order(findingId)],
+		'suspected.csv')
+	export(CDB$TRANSITIVE, 'transitive.csv')
+	export(CDB$SEMTYPE[, list(conceptId, semType)][order(conceptId)],
+		'semantic_type.csv')
+	export(CDB$BODY[, list(conceptId, laterality = sub('no laterality',
+		'none', tolower(laterality)))][order(conceptId)],
+		'laterality_lookup.csv')
+	if (is.null(CDB$COMPOSELOOKUP)){
+		# Create a dummy compose lookup table
+		D <- decompose('Disorder', CDB = createCDB(sampleSNOMED()),
+			SNOMED = sampleSNOMED())
+		CDB <- addComposeLookupToCDB(D, CDB)
+	} 
+	export(CDB$COMPOSELOOKUP, 'compose_lookup.csv')
+	
 	# Blacklist of ignorable concepts not to present as final output 
 	write(as.character(sort(unique(blacklist))),
 		file = paste0(export_folderpath, 'problem_blacklist.csv'),
