@@ -481,7 +481,6 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	
 	# Mark body site concepts that are actually concepts describing
 	# two separate body parts (e.g. proximal end of radius and ulna)
-	# Use the 
 	BODY[, multipart := conceptId %in% union(desc('Combined site'),
 		description(unique(BODY$conceptId), SNOMED = SNOMED)[
 		tolower(term) %like%
@@ -793,7 +792,7 @@ exportMiADECDB <- function(CDB, export_folderpath,
 	SCT[, term := sub('^\\[X\\]', '', term)]
 	SCT[, lowerterm := tolower(term)]
 
-	#### SUSPECTED, HISTORIC, NEGATED, BLACKLIST ####
+	#### SUSPECTED, HISTORIC, NEGATED, LATERALITY ####
 
 	# Suspected, Historic, Negated version of concepts (where available)
 	relation_source <- function(destination){
@@ -857,6 +856,41 @@ exportMiADECDB <- function(CDB, export_folderpath,
 	# Keep if only one situation per finding, to avoid errors
 	SUSPECTED[, Nsit := .N, by = findingId]
 	SUSPECTED <- SUSPECTED[Nsit == 1]
+
+	# Create a laterality table consisting of:
+	# - laterality qualifier concepts (i.e. Left, Right, Bilateral)
+	# - body sites with laterality
+	# - findings with a lateralised body site
+	LAT <- data.table(conceptId = as.SNOMEDconcept(
+		c('7771000', '24028007', '51440002'), SNOMED = SNOMED),
+		laterality = c('left', 'right', 'bilateral'))
+	LAT <- rbind(LAT, CDB$BODY[
+		laterality %in% c('Left', 'Right', 'Bilateral'), 
+		list(conceptId, laterality = tolower(laterality))])
+	
+	# Map to findings
+	left <- relatedConcepts(
+		LAT[laterality == 'left']$conceptId,
+		typeId = as.SNOMEDconcept('Finding site', SNOMED = SNOMED),
+		reverse = TRUE, SNOMED = SNOMED)
+	right <- relatedConcepts(
+		LAT[laterality == 'right']$conceptId,
+		typeId = as.SNOMEDconcept('Finding site', SNOMED = SNOMED),
+		reverse = TRUE, SNOMED = SNOMED)
+	bilateral <- relatedConcepts(
+		LAT[laterality == 'bilateral']$conceptId,
+		typeId = as.SNOMEDconcept('Finding site', SNOMED = SNOMED),
+		reverse = TRUE, SNOMED = SNOMED)
+	# Remove findings with ambiguous laterality
+	left <- setdiff(left, union(bilateral, right))
+	right <- setdiff(right, union(bilateral, left))
+
+	LAT <- rbind(LAT,
+		data.table(conceptId = left, laterality = 'left'),
+		data.table(conceptId = right, laterality = 'right'),
+		data.table(conceptId = bilateral, laterality = 'bilateral'))
+	LAT <- LAT[!duplicated(LAT)]
+	rm(left, right, bilateral)
 
 	#### PROCESS SNOMED CONCEPTS ####
 
@@ -973,12 +1007,22 @@ exportMiADECDB <- function(CDB, export_folderpath,
 		'historic.csv') 
 	export(SUSPECTED[, list(findingId, situationId)][order(findingId)],
 		'suspected.csv')
-	export(CDB$TRANSITIVE, 'transitive.csv')
 	export(CDB$SEMTYPE[, list(conceptId, semType)][order(conceptId)],
 		'semantic_type.csv')
-	export(CDB$BODY[, list(conceptId, laterality = sub('no laterality',
-		'none', tolower(laterality)))][order(conceptId)],
-		'laterality_lookup.csv')
+	export(LAT, 'laterality_lookup.csv')
+	
+	# Export transitive table
+	# Remove multipart body parts from transitive table
+	# (so they cannot cause confusion when used in composition) and
+	# limit the transitive table to concepts in the CDB
+	TRANSITIVE <- CDB$TRANSITIVE
+	concepts_to_include <- setdiff(SCT$conceptId,
+		CDB$BODY[multipart == TRUE]$conceptId)
+	TRANSITIVE <- TRANSITIVE[ancestorId %in% concepts_to_include &
+		descendantId %in% concepts_to_include]
+	export(TRANSITIVE, 'transitive.csv')
+	
+	# Composition lookup
 	if (is.null(CDB$COMPOSELOOKUP)){
 		# Create a dummy compose lookup table
 		D <- decompose('Disorder', CDB = createCDB(sampleSNOMED()),
