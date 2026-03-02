@@ -503,7 +503,7 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	CDB$STAGE <- STAGE
 	
 	# Causes which are not other findings (may be events,
-	#	substances or organisms)
+	# substances or organisms)
 	CDB$CAUSES <- CAUSES
 	CDB$OTHERCAUSE <- CAUSES[!(conceptId %in% FINDINGS$conceptId)]
 	CDB$OTHERCAUSE[, semType := semanticType(conceptId, SNOMED = SNOMED)]
@@ -519,7 +519,8 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	CDB$OVERLAP <- CDB$OVERLAP[!duplicated(CDB$OVERLAP)]
 
 	CDB$TRANSITIVE <- TRANSITIVE
-	
+
+	# Reference SNOMED CT concepts for relationships
 	CDB$SCT_assoc <- s('Associated with')
 	CDB$SCT_cause <- s('Causative agent')
 	CDB$SCT_after <- s('After')
@@ -528,14 +529,12 @@ createCDB <- function(SNOMED = getSNOMED(), TRANSITIVE = NULL,
 	CDB$SCT_disorder <- s('Disorder')
 	CDB$SCT_finding <- s('Clinical finding')
 	CDB$SCT_allergy <- union(s(c('Allergic disposition',
-		'Adverse reaction',
-		'Intolerance to substance',
+		'Adverse reaction', 'Intolerance to substance',
 		'Hypersensitivity disposition')), s('281647001'))
-	# remove allergy as synonym of 'allergic reaction'. Ensure that
-	# there is at least one allergy concept regardless of version of
-	# SNOMED dictionary used, to avoid error.
-	CDB$FINDINGS <- CDB$FINDINGS[!(conceptId == s('Allergic reaction') &
-		term %like% '^ allerg(y|ic|ie|ies) (dis |disorder|$)')]
+
+	# Remove allergy as synonym of 'allergic reaction'
+	CDB$FINDINGS <- CDB$FINDINGS[!(conceptId %in% s('419076005') &
+		term %like% '^ allerg(y|ic|ies) (dis |disposition |disorder |)$')]
 	
 	CDB$stopwords <- stopwords
 	CDB$SEMTYPE <- rbind(
@@ -1025,12 +1024,22 @@ exportMiADECDB <- function(CDB, export_folderpath,
 	# Composition lookup
 	if (is.null(CDB$COMPOSELOOKUP)){
 		# Create a dummy compose lookup table
-		D <- decompose('Disorder', CDB = createCDB(sampleSNOMED()),
+		COMPOSELOOKUP <- decompose('Disorder',
+			CDB = createCDB(sampleSNOMED()),
 			SNOMED = sampleSNOMED())
-		CDB <- addComposeLookupToCDB(D, CDB)
+	} else {
+		COMPOSELOOKUP <- CDB$COMPOSELOOKUP
 	}
+	# For concepts in OVERLAP, create a version of the row with the
+	# mapped finding as the rootId
+	TEMP <- merge(COMPOSELOOKUP, CDB$OVERLAP[,
+		list(rootId = otherId, findingId)], by = 'rootId')
+	TEMP[, rootId := NULL]
+	setnames(TEMP, 'findingId', 'rootId')
+	COMPOSELOOKUP <- rbind(COMPOSELOOKUP, TEMP)
+	COMPOSELOOKUP <- COMPOSELOOKUP[!duplicated(COMPOSELOOKUP)]
 	# Don't export concepts with 'with' (not using)
-	export(CDB$COMPOSELOOKUP[is.na(with), list(rootId, attr_1, attr_2,
+	export(COMPOSELOOKUP[is.na(with), list(rootId, attr_1, attr_2,
 		attr_3, attr_4, attr_5, attr_6, attr_7, attr_8, attr_9, attr_10,
 		due_to, without, origId)], 'compose_lookup.csv')
 	
