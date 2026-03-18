@@ -279,6 +279,8 @@ SNOMEDcodelist <- function(x, include_desc = FALSE,
 	out[]
 }
 
+methods::setOldClass(c("SNOMEDconcept", "integer64"))
+
 #' @rdname SNOMEDconcept
 #' @family SNOMEDconcept functions
 #' @export
