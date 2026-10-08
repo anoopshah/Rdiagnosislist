@@ -284,7 +284,7 @@ SNOMEDcodelist <- function(x, include_desc = FALSE,
 #' @export
 as.data.frame.SNOMEDconcept <- function(x, ...){
 	class(x) <- 'integer64'
-	bit64::as.data.frame.integer64(x, ...)
+	as.data.frame(x, ...)
 }
 
 #' @rdname SNOMEDconcept
